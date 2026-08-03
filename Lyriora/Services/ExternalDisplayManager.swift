@@ -130,7 +130,9 @@ final class ExternalDisplayManager {
     }
 
     func refreshPresentation() {
+        #if canImport(UIKit)
         invalidateCachedExternalSceneIfNeeded()
+        #endif
         refreshDisplayInfo()
         bumpLayoutRevision()
 

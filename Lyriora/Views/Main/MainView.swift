@@ -12,7 +12,8 @@ struct MainView: View {
         ZStack {
             AppBackgroundView(
                 background: viewModel.activePresentationBackground,
-                defaultBackgroundSettings: viewModel.settings.defaultBackground
+                defaultBackgroundSettings: viewModel.settings.defaultBackground,
+                blurBackground: false
             )
 
             HStack(spacing: 20) {

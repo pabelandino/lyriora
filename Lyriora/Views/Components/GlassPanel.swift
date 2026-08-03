@@ -7,13 +7,12 @@ import SwiftUI
 
 struct GlassPanel<Content: View>: View {
     var cornerRadius: CGFloat = 24
-    var variant: Glass = .regular
     @ViewBuilder var content: () -> Content
 
     var body: some View {
         content()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .glassEffect(variant, in: .rect(cornerRadius: cornerRadius))
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .glassEffect(.regular, in: .rect(cornerRadius: cornerRadius, style: .continuous))
     }
 }
 
@@ -21,14 +20,12 @@ struct GlassCapsuleToolbar<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        GlassEffectContainer(spacing: 24) {
-            HStack(spacing: 24) {
-                content()
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 10)
-            .glassEffect(.regular.interactive(), in: .capsule)
+        HStack(spacing: 24) {
+            content()
         }
+        .padding(.horizontal, 24)
+        .padding(.vertical, 10)
+        .glassEffect(.regular.interactive(), in: .capsule)
     }
 }
 
@@ -81,14 +78,8 @@ struct GlassIconButton: View {
     }
 }
 
-struct GlassMediaThumbnail<Content: View>: View {
-    var cornerRadius: CGFloat = 14
-    @ViewBuilder var content: () -> Content
-
-    var body: some View {
-        content()
-            .frame(maxWidth: .infinity)
-            .frame(height: 88)
-            .glassEffect(.clear, in: .rect(cornerRadius: cornerRadius))
+extension View {
+    func transparentScrollContent() -> some View {
+        scrollContentBackground(.hidden)
     }
 }
