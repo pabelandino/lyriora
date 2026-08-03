@@ -8,6 +8,8 @@ import SwiftUI
 struct AppBackgroundView: View {
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    /// When false, keeps the shell background sharp so Liquid Glass panels can refract it.
+    var blurBackground: Bool = false
 
     private var layerIdentity: String {
         background?.url.absoluteString ?? "default-\(defaultBackgroundSettings.preset.rawValue)"
@@ -16,18 +18,27 @@ struct AppBackgroundView: View {
     var body: some View {
         ZStack {
             if let background {
-                BlurredBackgroundLayer(
-                    blurRadius: defaultBackgroundSettings.blurRadius,
-                    overlayOpacity: defaultBackgroundSettings.overlayOpacity
-                ) {
-                    PresentationBackgroundView(
-                        background: background,
-                        defaultBackgroundSettings: defaultBackgroundSettings
-                    )
+                Group {
+                    if blurBackground {
+                        BlurredBackgroundLayer(
+                            blurRadius: defaultBackgroundSettings.blurRadius,
+                            overlayOpacity: defaultBackgroundSettings.overlayOpacity
+                        ) {
+                            PresentationBackgroundView(
+                                background: background,
+                                defaultBackgroundSettings: defaultBackgroundSettings
+                            )
+                        }
+                    } else {
+                        PresentationBackgroundView(
+                            background: background,
+                            defaultBackgroundSettings: defaultBackgroundSettings
+                        )
+                    }
                 }
                 .transition(.opacity)
                 .id(layerIdentity)
-            } else {
+            } else if blurBackground {
                 BlurredBackgroundLayer(
                     blurRadius: defaultBackgroundSettings.blurRadius,
                     overlayOpacity: defaultBackgroundSettings.overlayOpacity
@@ -36,6 +47,16 @@ struct AppBackgroundView: View {
                 }
                 .transition(.opacity)
                 .id(layerIdentity)
+            } else {
+                ConfigurableDefaultGradientView(settings: defaultBackgroundSettings)
+                    .transition(.opacity)
+                    .id(layerIdentity)
+            }
+
+            if !blurBackground {
+                Color.black.opacity(defaultBackgroundSettings.overlayOpacity * 0.15)
+                    .transition(.opacity)
+                    .id("\(layerIdentity)-dim")
             }
         }
         .animation(AppBackgroundAnimation.transition, value: layerIdentity)
@@ -92,13 +113,15 @@ struct ToggleablePresentationBackgroundLayer: View {
     let isVisible: Bool
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    var blurDefaultBackground: Bool = true
 
     var body: some View {
         Group {
             if isVisible {
                 PresentationBackgroundLayer(
                     background: background,
-                    defaultBackgroundSettings: defaultBackgroundSettings
+                    defaultBackgroundSettings: defaultBackgroundSettings,
+                    blurDefaultBackground: blurDefaultBackground
                 )
             } else {
                 Color.black.opacity(0.35)

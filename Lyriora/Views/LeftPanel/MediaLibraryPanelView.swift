@@ -48,6 +48,7 @@ private struct ImageLibrarySection: View {
                     .padding(.horizontal, 12)
                     .padding(.bottom, 12)
                 }
+                .transparentScrollContent()
             }
             .padding(.top, 12)
         }
@@ -86,6 +87,7 @@ private struct VideoLibrarySection: View {
                     .padding(.horizontal, 12)
                     .padding(.bottom, 12)
                 }
+                .transparentScrollContent()
             }
             .padding(.top, 12)
         }
@@ -163,7 +165,6 @@ private struct MediaThumbnailView: View {
         }
         .frame(height: 88)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .glassEffect(.clear, in: .rect(cornerRadius: 14))
         .overlay(alignment: .topTrailing) {
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")

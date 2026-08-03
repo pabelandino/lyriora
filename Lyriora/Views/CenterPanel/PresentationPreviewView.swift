@@ -19,15 +19,15 @@ struct PresentationPreviewView: View {
             ToggleablePresentationBackgroundLayer(
                 isVisible: state.showBackground,
                 background: state.background,
-                defaultBackgroundSettings: defaultBackgroundSettings
+                defaultBackgroundSettings: defaultBackgroundSettings,
+                blurDefaultBackground: false
             )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             lyricsOverlay
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipShape(shape)
-        .glassEffect(.regular, in: .rect(cornerRadius: cornerRadius))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .glassEffect(.regular, in: .rect(cornerRadius: cornerRadius, style: .continuous))
     }
 
     @ViewBuilder

@@ -43,8 +43,8 @@ struct LyricsLibraryPanelView: View {
                         }
                     }
                     .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
                 }
+                .transparentScrollContent()
             }
         }
     }
@@ -96,7 +96,7 @@ private struct LyricCardView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .glassEffect(.clear, in: footerShape)
+            .glassEffect(.regular, in: footerShape)
         }
         .frame(height: 132)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))

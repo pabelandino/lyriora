@@ -42,6 +42,7 @@ struct SlideGridView: View {
                     }
                     .padding(16)
                 }
+                .transparentScrollContent()
             }
         }
     }
@@ -60,7 +61,8 @@ private struct SlideThumbnailView: View {
             ToggleablePresentationBackgroundLayer(
                 isVisible: presentationState.showBackground,
                 background: presentationState.background,
-                defaultBackgroundSettings: defaultBackgroundSettings
+                defaultBackgroundSettings: defaultBackgroundSettings,
+                blurDefaultBackground: false
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -76,7 +78,6 @@ private struct SlideThumbnailView: View {
         }
         .frame(minHeight: 72)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-        .glassEffect(.clear, in: .rect(cornerRadius: cornerRadius))
         .overlay {
             if isSelected {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
