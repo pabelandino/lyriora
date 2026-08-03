@@ -24,7 +24,9 @@ final class AppViewModel {
     var showLyrics = true
     var settings = AppSettings.default
 
-    var isNewLyricSheetPresented = false
+    private(set) var themes: [LyricTheme] = []
+
+    var lyricEditorLaunch: LyricEditorLaunch?
     var isDisplayInfoSheetPresented = false
     var isSettingsSheetPresented = false
 
@@ -45,16 +47,19 @@ final class AppViewModel {
     private let lyricRepository: LyricRepositoryProtocol
     private let mediaRepository: MediaRepositoryProtocol
     private let settingsRepository: SettingsRepositoryProtocol
+    private let themeRepository: ThemeRepositoryProtocol
 
     init(
         lyricRepository: LyricRepositoryProtocol? = nil,
         mediaRepository: MediaRepositoryProtocol? = nil,
         settingsRepository: SettingsRepositoryProtocol? = nil,
+        themeRepository: ThemeRepositoryProtocol? = nil,
         externalDisplayManager: ExternalDisplayManager? = nil
     ) {
         self.lyricRepository = lyricRepository ?? LyricRepository()
         self.mediaRepository = mediaRepository ?? MediaRepository()
         self.settingsRepository = settingsRepository ?? SettingsRepository()
+        self.themeRepository = themeRepository ?? ThemeRepository()
         self.externalDisplayManager = externalDisplayManager ?? ExternalDisplayManager()
     }
 
@@ -77,12 +82,18 @@ final class AppViewModel {
     }
 
     var presentationState: PresentationState {
-        PresentationState(
+        let slide = selectedSlide
+        let slideStyle = slide.flatMap { slide in
+            selectedLyric.map { $0.styleProfile.resolvedStyle(for: slide) }
+        }
+
+        return PresentationState(
             showBackground: showBackground,
             showLyrics: showLyrics,
-            slideText: selectedSlide?.text,
+            slideText: slide?.text,
             lyricTitle: selectedLyric?.title,
-            background: activePresentationBackground
+            background: activePresentationBackground,
+            slideStyle: slideStyle
         )
     }
 
@@ -110,6 +121,34 @@ final class AppViewModel {
         if lyrics.isEmpty {
             seedSampleLyricsIfNeeded()
         }
+
+        loadThemes()
+    }
+
+    func loadThemes() {
+        themes = (try? themeRepository.loadAll()) ?? []
+    }
+
+    func saveTheme(name: String, style: SlideTextStyle) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if let existingIndex = themes.firstIndex(where: { $0.name == trimmed }) {
+            var existing = themes[existingIndex]
+            existing.style = style
+            existing.updatedAt = .now
+            try? themeRepository.save(existing)
+        } else {
+            let theme = LyricTheme(name: trimmed, style: style)
+            try? themeRepository.save(theme)
+        }
+
+        loadThemes()
+    }
+
+    func deleteTheme(_ theme: LyricTheme) {
+        try? themeRepository.delete(theme)
+        loadThemes()
     }
 
     func saveSettings() {
@@ -141,20 +180,71 @@ final class AppViewModel {
         showBackground = true
     }
 
-    func createLyric(title: String, content: String) {
-        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedTitle.isEmpty, !trimmedContent.isEmpty else { return }
+    func presentNewLyricEditor() {
+        lyricEditorLaunch = LyricEditorLaunch(existingLyricID: nil)
+    }
 
-        let lyric = LyricDocument(title: trimmedTitle, content: trimmedContent)
+    func presentLyricEditor(for lyric: LyricDocument) {
+        lyricEditorLaunch = LyricEditorLaunch(existingLyricID: lyric.id)
+    }
+
+    func dismissLyricEditor() {
+        lyricEditorLaunch = nil
+    }
+
+    func saveLyric(
+        id: UUID?,
+        title: String,
+        slides: [LyricSlide],
+        styleProfile: LyricStyleProfile,
+        language: LyricLanguage,
+        rawContent: String
+    ) {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty, !slides.isEmpty else { return }
+
+        var lyric = LyricDocument(
+            id: id ?? UUID(),
+            title: trimmedTitle,
+            content: rawContent,
+            storedSlides: slides.enumerated().map { index, slide in
+                var normalized = slide
+                normalized.order = index
+                return normalized
+            },
+            styleProfile: styleProfile,
+            language: language
+        )
+        lyric.syncContentFromSlides()
 
         do {
             try lyricRepository.save(lyric)
-            lyrics.insert(lyric, at: 0)
+            if let existingIndex = lyrics.firstIndex(where: { $0.id == lyric.id }) {
+                lyrics[existingIndex] = lyric
+            } else {
+                lyrics.insert(lyric, at: 0)
+            }
             selectLyric(lyric)
         } catch {
             return
         }
+    }
+
+    func importLyricsFromClipboard(styleProfile: LyricStyleProfile = .default) throws -> LyricImportResult {
+        let text = try LyricClipboardImporter.readText()
+        return LyricImportParser.parse(text, styleProfile: styleProfile)
+    }
+
+    func createLyric(title: String, content: String) {
+        let parsed = LyricImportParser.parse(content)
+        saveLyric(
+            id: nil,
+            title: parsed.title ?? title,
+            slides: parsed.slides,
+            styleProfile: .default,
+            language: parsed.language,
+            rawContent: content
+        )
     }
 
     func clearAll() {
@@ -250,39 +340,48 @@ final class AppViewModel {
         let samples = [
             LyricDocument(
                 title: "Amazing Grace",
-                content: """
-                Amazing grace, how sweet the sound
-                That saved a wretch like me
-                I once was lost, but now am found
-                Was blind, but now I see
+                content: "",
+                storedSlides: LyricImportParser.parse(
+                    """
+                    Verse 1
+                    Amazing grace, how sweet the sound
+                    That saved a wretch like me
+                    I once was lost, but now am found
+                    Was blind, but now I see
 
-                ---
-
-                Through many dangers, toils and snares
-                I have already come
-                'Tis grace hath brought me safe thus far
-                And grace will lead me home
-                """
+                    Verse 2
+                    Through many dangers, toils and snares
+                    I have already come
+                    'Tis grace hath brought me safe thus far
+                    And grace will lead me home
+                    """
+                ).slides,
+                language: .english
             ),
             LyricDocument(
                 title: "How Great Thou Art",
-                content: """
-                O Lord my God, when I in awesome wonder
-                Consider all the worlds Thy hands have made
-                I see the stars, I hear the rolling thunder
-                Thy power throughout the universe displayed
+                content: "",
+                storedSlides: LyricImportParser.parse(
+                    """
+                    Verse
+                    O Lord my God, when I in awesome wonder
+                    Consider all the worlds Thy hands have made
+                    I see the stars, I hear the rolling thunder
+                    Thy power throughout the universe displayed
 
-                ---
-
-                Then sings my soul, my Savior God, to Thee
-                How great Thou art, how great Thou art
-                Then sings my soul, my Savior God, to Thee
-                How great Thou art, how great Thou art
-                """
+                    Chorus
+                    Then sings my soul, my Savior God, to Thee
+                    How great Thou art, how great Thou art
+                    Then sings my soul, my Savior God, to Thee
+                    How great Thou art, how great Thou art
+                    """
+                ).slides,
+                language: .english
             )
         ]
 
-        for sample in samples {
+        for var sample in samples {
+            sample.syncContentFromSlides()
             try? lyricRepository.save(sample)
         }
 

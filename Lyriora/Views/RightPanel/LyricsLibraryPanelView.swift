@@ -8,6 +8,10 @@ import SwiftUI
 struct LyricsLibraryPanelView: View {
     @Bindable var viewModel: AppViewModel
 
+    #if os(macOS)
+    @Environment(\.openWindow) private var openWindow
+    #endif
+
     var body: some View {
         GlassPanel(cornerRadius: 22) {
             VStack(spacing: 12) {
@@ -18,7 +22,7 @@ struct LyricsLibraryPanelView: View {
                     Spacer()
 
                     Button {
-                        viewModel.isNewLyricSheetPresented = true
+                        openLyricEditor(existingLyricID: nil)
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title3)
@@ -35,7 +39,10 @@ struct LyricsLibraryPanelView: View {
                         ForEach(viewModel.lyrics) { lyric in
                             LyricCardView(
                                 lyric: lyric,
-                                isSelected: lyric.id == viewModel.selectedLyricID
+                                isSelected: lyric.id == viewModel.selectedLyricID,
+                                onEdit: {
+                                    openLyricEditor(existingLyricID: lyric.id)
+                                }
                             )
                             .onTapGesture {
                                 viewModel.selectLyric(lyric)
@@ -48,11 +55,26 @@ struct LyricsLibraryPanelView: View {
             }
         }
     }
+
+    private func openLyricEditor(existingLyricID: UUID?) {
+        #if os(macOS)
+        let launch = LyricEditorLaunch(existingLyricID: existingLyricID)
+        openWindow(id: "lyric-editor", value: launch)
+        #else
+        if let existingLyricID,
+           let lyric = viewModel.lyrics.first(where: { $0.id == existingLyricID }) {
+            viewModel.presentLyricEditor(for: lyric)
+        } else {
+            viewModel.presentNewLyricEditor()
+        }
+        #endif
+    }
 }
 
 private struct LyricCardView: View {
     let lyric: LyricDocument
     let isSelected: Bool
+    let onEdit: () -> Void
 
     private let cornerRadius: CGFloat = 18
 
@@ -72,6 +94,20 @@ private struct LyricCardView: View {
                 .fill(LyricGradient.linearGradient(for: lyric.colorSeed))
 
             VStack {
+                HStack {
+                    Spacer()
+                    Button(action: onEdit) {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.title3)
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, .black.opacity(0.35))
+                            .shadow(color: .black.opacity(0.25), radius: 2, y: 1)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Edit lyric")
+                    .padding(8)
+                }
+
                 Spacer()
 
                 Image(systemName: "music.note")

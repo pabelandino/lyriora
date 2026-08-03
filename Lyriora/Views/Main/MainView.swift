@@ -16,25 +16,20 @@ struct MainView: View {
                 blurBackground: true
             )
 
-            HStack(spacing: 20) {
-                MediaLibraryPanelView(viewModel: viewModel)
-                    .frame(width: 280)
-
-                CenterPanelView(viewModel: viewModel)
-                    .frame(maxWidth: .infinity)
-
-                LyricsLibraryPanelView(viewModel: viewModel)
-                    .frame(width: 300)
-            }
-            .padding(24)
+            mainWorkspace
         }
         .onAppear {
             viewModel.loadInitialData()
             viewModel.externalDisplayManager.refreshDisplayInfo()
         }
-        .sheet(isPresented: $viewModel.isNewLyricSheetPresented) {
-            NewLyricSheet(viewModel: viewModel)
+        #if !os(macOS)
+        .fullScreenCover(item: $viewModel.lyricEditorLaunch) { launch in
+            LyricEditorView(
+                viewModel: viewModel,
+                existingLyricID: launch.existingLyricID
+            )
         }
+        #endif
         .sheet(isPresented: $viewModel.isDisplayInfoSheetPresented) {
             DisplayInfoSheet(
                 displayInfo: viewModel.externalDisplayManager.displayInfo,
@@ -46,6 +41,20 @@ struct MainView: View {
         .sheet(isPresented: $viewModel.isSettingsSheetPresented) {
             SettingsSheet(viewModel: viewModel)
         }
+    }
+
+    private var mainWorkspace: some View {
+        HStack(spacing: 20) {
+            MediaLibraryPanelView(viewModel: viewModel)
+                .frame(width: 280)
+
+            CenterPanelView(viewModel: viewModel)
+                .frame(maxWidth: .infinity)
+
+            LyricsLibraryPanelView(viewModel: viewModel)
+                .frame(width: 300)
+        }
+        .padding(24)
     }
 }
 

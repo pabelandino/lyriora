@@ -32,7 +32,7 @@ enum PresentationTextMeasurer {
             if textFits(
                 text,
                 fontSize: mid,
-                weight: configuration.fontWeight,
+                configuration: configuration,
                 in: size
             ) {
                 best = mid
@@ -48,13 +48,13 @@ enum PresentationTextMeasurer {
     static func textFits(
         _ text: String,
         fontSize: CGFloat,
-        weight: Font.Weight,
+        configuration: PresentationTextConfiguration,
         in size: CGSize
     ) -> Bool {
         let measured = measure(
             text: text,
             fontSize: fontSize,
-            weight: weight,
+            configuration: configuration,
             maxWidth: size.width
         )
 
@@ -64,11 +64,11 @@ enum PresentationTextMeasurer {
     static func measure(
         text: String,
         fontSize: CGFloat,
-        weight: Font.Weight,
+        configuration: PresentationTextConfiguration,
         maxWidth: CGFloat
     ) -> CGSize {
         #if canImport(UIKit)
-        let font = UIFont.systemFont(ofSize: fontSize, weight: uiFontWeight(from: weight))
+        let font = configuration.fontFamily.uiFont(size: fontSize, weight: configuration.fontWeight)
         let attributes: [NSAttributedString.Key: Any] = [.font: font]
         let bounds = (text as NSString).boundingRect(
             with: CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
@@ -78,7 +78,7 @@ enum PresentationTextMeasurer {
         )
         return CGSize(width: ceil(bounds.width), height: ceil(bounds.height))
         #elseif os(macOS)
-        let font = NSFont.systemFont(ofSize: fontSize, weight: nsFontWeight(from: weight))
+        let font = configuration.fontFamily.nsFont(size: fontSize, weight: configuration.fontWeight)
         let attributes: [NSAttributedString.Key: Any] = [.font: font]
         let bounds = (text as NSString).boundingRect(
             with: CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
@@ -91,36 +91,4 @@ enum PresentationTextMeasurer {
         return .zero
         #endif
     }
-
-    #if canImport(UIKit)
-    private static func uiFontWeight(from weight: Font.Weight) -> UIFont.Weight {
-        switch weight {
-        case .ultraLight: .ultraLight
-        case .thin: .thin
-        case .light: .light
-        case .regular: .regular
-        case .medium: .medium
-        case .semibold: .semibold
-        case .bold: .bold
-        case .heavy: .heavy
-        case .black: .black
-        default: .regular
-        }
-    }
-    #elseif os(macOS)
-    private static func nsFontWeight(from weight: Font.Weight) -> NSFont.Weight {
-        switch weight {
-        case .ultraLight: .ultraLight
-        case .thin: .thin
-        case .light: .light
-        case .regular: .regular
-        case .medium: .medium
-        case .semibold: .semibold
-        case .bold: .bold
-        case .heavy: .heavy
-        case .black: .black
-        default: .regular
-        }
-    }
-    #endif
 }

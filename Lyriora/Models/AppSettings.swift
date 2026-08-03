@@ -47,7 +47,7 @@ struct PresentationTextSettings: Codable, Equatable, Sendable {
     static let externalDefault = PresentationTextSettings(
         isAdaptiveScalingEnabled: true,
         minFontSize: 12,
-        maxFontSize: 72,
+        maxFontSize: 40,
         fontWeight: .bold,
         paddingRatio: 0.06
     )

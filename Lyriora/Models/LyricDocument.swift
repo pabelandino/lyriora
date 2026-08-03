@@ -9,6 +9,9 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
     let id: UUID
     var title: String
     var content: String
+    var storedSlides: [LyricSlide]
+    var styleProfile: LyricStyleProfile
+    var language: LyricLanguage
     var colorSeed: UInt64
     var createdAt: Date
     var updatedAt: Date
@@ -16,7 +19,10 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
     init(
         id: UUID = UUID(),
         title: String,
-        content: String,
+        content: String = "",
+        storedSlides: [LyricSlide] = [],
+        styleProfile: LyricStyleProfile = .default,
+        language: LyricLanguage = .unknown,
         colorSeed: UInt64 = UInt64.random(in: 0...UInt64.max),
         createdAt: Date = .now,
         updatedAt: Date = .now
@@ -24,13 +30,19 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
         self.id = id
         self.title = title
         self.content = content
+        self.storedSlides = storedSlides
+        self.styleProfile = styleProfile
+        self.language = language
         self.colorSeed = colorSeed
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
 
     var slides: [LyricSlide] {
-        LyricDocument.parseSlides(from: content)
+        if !storedSlides.isEmpty {
+            return storedSlides.sorted { $0.order < $1.order }
+        }
+        return LyricImportParser.parseLegacyContent(content)
     }
 
     var previewSnippet: String {
@@ -41,31 +53,36 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
 
-    static func parseSlides(from content: String) -> [LyricSlide] {
-        let normalized = content
-            .replacingOccurrences(of: "\r\n", with: "\n")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard !normalized.isEmpty else { return [] }
-
-        let parts = normalized
-            .components(separatedBy: "\n---\n")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-
-        if parts.count > 1 {
-            return parts.enumerated().map { index, text in
-                LyricSlide(index: index, text: text)
+    mutating func syncContentFromSlides() {
+        content = slides
+            .map { slide in
+                let header = "[\(slide.tag.localizedName(for: language))]"
+                return "\(header)\n\(slide.text)"
             }
-        }
+            .joined(separator: "\n\n---\n\n")
+        updatedAt = .now
+    }
 
-        let paragraphs = normalized
-            .components(separatedBy: "\n\n")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
+    enum CodingKeys: String, CodingKey {
+        case id, title, content, storedSlides, styleProfile, language, colorSeed, createdAt, updatedAt
+    }
 
-        return paragraphs.enumerated().map { index, text in
-            LyricSlide(index: index, text: text)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        content = try container.decode(String.self, forKey: .content)
+        storedSlides = try container.decodeIfPresent([LyricSlide].self, forKey: .storedSlides) ?? []
+        styleProfile = try container.decodeIfPresent(LyricStyleProfile.self, forKey: .styleProfile) ?? .default
+        language = try container.decodeIfPresent(LyricLanguage.self, forKey: .language) ?? .unknown
+        colorSeed = try container.decodeIfPresent(UInt64.self, forKey: .colorSeed) ?? UInt64.random(in: 0...UInt64.max)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? .now
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? .now
+
+        if storedSlides.isEmpty, !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            let parsed = LyricImportParser.parse(content, styleProfile: styleProfile)
+            storedSlides = parsed.slides
+            language = parsed.language
         }
     }
 }

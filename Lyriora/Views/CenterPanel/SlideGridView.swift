@@ -7,6 +7,8 @@ import SwiftUI
 
 struct SlideGridView: View {
     let slides: [LyricSlide]
+    let styleProfile: LyricStyleProfile?
+    let language: LyricLanguage
     let selectedSlideIndex: Int?
     let presentationState: PresentationState
     let defaultBackgroundSettings: DefaultBackgroundSettings
@@ -31,6 +33,8 @@ struct SlideGridView: View {
                         ForEach(slides) { slide in
                             SlideThumbnailView(
                                 slide: slide,
+                                style: styleProfile?.resolvedStyle(for: slide),
+                                language: language,
                                 isSelected: slide.index == selectedSlideIndex,
                                 presentationState: presentationState,
                                 defaultBackgroundSettings: defaultBackgroundSettings
@@ -38,6 +42,7 @@ struct SlideGridView: View {
                             .onTapGesture {
                                 onSelect(slide)
                             }
+                            .id(slide.id)
                         }
                     }
                     .padding(16)
@@ -50,33 +55,47 @@ struct SlideGridView: View {
 
 private struct SlideThumbnailView: View {
     let slide: LyricSlide
+    let style: SlideTextStyle?
+    let language: LyricLanguage
     let isSelected: Bool
     let presentationState: PresentationState
     let defaultBackgroundSettings: DefaultBackgroundSettings
 
     private let cornerRadius: CGFloat = 16
 
-    var body: some View {
-        ZStack {
-            ToggleablePresentationBackgroundLayer(
-                isVisible: presentationState.showBackground,
-                background: presentationState.background,
-                defaultBackgroundSettings: defaultBackgroundSettings,
-                blurDefaultBackground: false
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            Text(slide.text)
-                .font(.caption.weight(.semibold))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity)
-                .padding(10)
-                .shadow(color: .black.opacity(0.35), radius: 4, y: 2)
+    private var textConfiguration: PresentationTextConfiguration {
+        if let style {
+            return style.presentationConfiguration(isPreview: true)
         }
-        .frame(minHeight: 72)
+        return PresentationTextConfiguration(style: .previewDefault)
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text(slide.tag.localizedName(for: language))
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(.white.opacity(0.85))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity)
+                .background(Color.black.opacity(0.35))
+
+            ZStack {
+                ToggleablePresentationBackgroundLayer(
+                    isVisible: presentationState.showBackground,
+                    background: presentationState.background,
+                    defaultBackgroundSettings: defaultBackgroundSettings,
+                    blurDefaultBackground: false
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                AdaptivePresentationText(
+                    text: slide.text,
+                    configuration: textConfiguration
+                )
+            }
+            .frame(minHeight: 72)
+        }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay {
             if isSelected {

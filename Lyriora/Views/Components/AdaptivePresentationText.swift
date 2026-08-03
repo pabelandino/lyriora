@@ -26,15 +26,22 @@ struct AdaptivePresentationText: View {
                 : configuration.maxFontSize
 
             Text(text)
-                .font(.system(size: fontSize, weight: configuration.fontWeight, design: .rounded))
+                .font(configuration.font(size: fontSize))
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
+                .foregroundStyle(configuration.textColor)
+                .lineSpacing(configuration.lineSpacing)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(width: availableSize.width, alignment: .center)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 .padding(padding)
-                .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
+                .shadow(
+                    color: configuration.shadowEnabled
+                        ? configuration.shadowColor.opacity(configuration.shadowOpacity)
+                        : .clear,
+                    radius: configuration.shadowRadius,
+                    y: configuration.shadowYOffset
+                )
         }
     }
 }

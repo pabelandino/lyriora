@@ -7,10 +7,17 @@ import SwiftUI
 
 struct PresentationPreviewView: View {
     let state: PresentationState
-    let textConfiguration: PresentationTextConfiguration
+    let fallbackConfiguration: PresentationTextConfiguration
     let defaultBackgroundSettings: DefaultBackgroundSettings
 
     private let cornerRadius: CGFloat = 28
+
+    private var textConfiguration: PresentationTextConfiguration {
+        if let style = state.slideStyle {
+            return style.presentationConfiguration(isPreview: true)
+        }
+        return fallbackConfiguration
+    }
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -52,7 +59,7 @@ struct ExternalPresentationView: View {
     var body: some View {
         PresentationContentView(
             state: viewModel.presentationState,
-            textConfiguration: PresentationTextConfiguration(settings: viewModel.settings.externalDisplay),
+            fallbackConfiguration: PresentationTextConfiguration(settings: viewModel.settings.externalDisplay),
             defaultBackgroundSettings: viewModel.settings.defaultBackground
         )
         .id(layoutRevision)
@@ -64,8 +71,15 @@ struct ExternalPresentationView: View {
 
 struct PresentationContentView: View {
     let state: PresentationState
-    let textConfiguration: PresentationTextConfiguration
+    let fallbackConfiguration: PresentationTextConfiguration
     let defaultBackgroundSettings: DefaultBackgroundSettings
+
+    private var textConfiguration: PresentationTextConfiguration {
+        if let style = state.slideStyle {
+            return style.presentationConfiguration(isPreview: false)
+        }
+        return fallbackConfiguration
+    }
 
     var body: some View {
         GeometryReader { geometry in
