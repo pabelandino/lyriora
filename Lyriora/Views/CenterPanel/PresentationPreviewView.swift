@@ -47,6 +47,7 @@ struct PresentationPreviewView: View {
 
 struct ExternalPresentationView: View {
     @Bindable var viewModel: AppViewModel
+    var layoutRevision: Int
 
     var body: some View {
         PresentationContentView(
@@ -54,6 +55,9 @@ struct ExternalPresentationView: View {
             textConfiguration: PresentationTextConfiguration(settings: viewModel.settings.externalDisplay),
             defaultBackgroundSettings: viewModel.settings.defaultBackground
         )
+        .id(layoutRevision)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
         .ignoresSafeArea()
     }
 }
@@ -64,23 +68,25 @@ struct PresentationContentView: View {
     let defaultBackgroundSettings: DefaultBackgroundSettings
 
     var body: some View {
-        ZStack {
-            Color.black
+        GeometryReader { geometry in
+            ZStack {
+                Color.black
 
-            if state.showBackground {
-                PresentationBackgroundLayer(
-                    background: state.background,
-                    defaultBackgroundSettings: defaultBackgroundSettings
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
-            }
+                if state.showBackground {
+                    PresentationBackgroundLayer(
+                        background: state.background,
+                        defaultBackgroundSettings: defaultBackgroundSettings
+                    )
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                }
 
-            if state.showLyrics, let slideText = state.slideText {
-                AdaptivePresentationText(
-                    text: slideText,
-                    configuration: textConfiguration
-                )
+                if state.showLyrics, let slideText = state.slideText {
+                    AdaptivePresentationText(
+                        text: slideText,
+                        configuration: textConfiguration
+                    )
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                }
             }
         }
     }

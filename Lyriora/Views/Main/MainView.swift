@@ -29,12 +29,18 @@ struct MainView: View {
         }
         .onAppear {
             viewModel.loadInitialData()
+            viewModel.externalDisplayManager.refreshDisplayInfo()
         }
         .sheet(isPresented: $viewModel.isNewLyricSheetPresented) {
             NewLyricSheet(viewModel: viewModel)
         }
         .sheet(isPresented: $viewModel.isDisplayInfoSheetPresented) {
-            DisplayInfoSheet(displayInfo: viewModel.externalDisplayManager.displayInfo)
+            DisplayInfoSheet(
+                displayInfo: viewModel.externalDisplayManager.displayInfo,
+                isPresentationEnabled: viewModel.externalDisplayManager.isPresentationEnabled,
+                isPresentationActive: viewModel.externalDisplayManager.isPresentationActive,
+                onRefreshPresentation: viewModel.refreshExternalPresentation
+            )
         }
         .sheet(isPresented: $viewModel.isSettingsSheetPresented) {
             SettingsSheet(viewModel: viewModel)

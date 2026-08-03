@@ -91,7 +91,7 @@ private struct LyricCardView: View {
                 Text(lyric.previewSnippet)
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.88))
-                    .lineLimit(2)
+                    .lineLimit(1)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)

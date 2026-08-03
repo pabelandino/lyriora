@@ -58,6 +58,16 @@ struct CenterPanelView: View {
 
     private var displayToolbar: some View {
         GlassCapsuleToolbar {
+            GlassIconButton(
+                systemName: "arrow.up.left.and.arrow.down.right",
+                accessibilityLabel: "Rescale external display content",
+                isActive: viewModel.externalDisplayManager.isPresentationActive,
+                isEnabled: viewModel.externalDisplayManager.isExternalDisplayConnected
+                    && viewModel.externalDisplayManager.isPresentationEnabled
+            ) {
+                viewModel.refreshExternalPresentation()
+            }
+
             GlassIconButton(systemName: "info.circle", accessibilityLabel: "Display information") {
                 viewModel.externalDisplayManager.refreshDisplayInfo()
                 viewModel.isDisplayInfoSheetPresented = true
@@ -65,11 +75,12 @@ struct CenterPanelView: View {
 
             GlassIconButton(
                 systemName: "display",
-                accessibilityLabel: viewModel.externalDisplayManager.isPresentationEnabled
-                    ? "Disable external display"
-                    : "Enable external display",
+                accessibilityLabel: displayButtonAccessibilityLabel,
                 size: .prominent,
                 isActive: viewModel.externalDisplayManager.isPresentationEnabled
+                    && viewModel.externalDisplayManager.isExternalDisplayConnected,
+                isEnabled: viewModel.externalDisplayManager.isExternalDisplayConnected
+                    || viewModel.externalDisplayManager.isPresentationEnabled
             ) {
                 viewModel.toggleExternalDisplay()
             }
@@ -78,5 +89,14 @@ struct CenterPanelView: View {
                 viewModel.isSettingsSheetPresented = true
             }
         }
+    }
+
+    private var displayButtonAccessibilityLabel: String {
+        if !viewModel.externalDisplayManager.isExternalDisplayConnected {
+            return "External display not connected"
+        }
+        return viewModel.externalDisplayManager.isPresentationEnabled
+            ? "Disable external display"
+            : "Enable external display"
     }
 }

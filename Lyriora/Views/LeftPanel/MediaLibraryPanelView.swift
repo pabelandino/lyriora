@@ -37,7 +37,8 @@ private struct ImageLibrarySection: View {
                             MediaThumbnailView(
                                 asset: asset,
                                 fileURL: viewModel.imageURL(for: asset),
-                                isSelected: viewModel.isBackgroundSelected(asset)
+                                isSelected: viewModel.isBackgroundSelected(asset),
+                                onRemove: { viewModel.deleteMediaAsset(asset) }
                             )
                             .onTapGesture {
                                 viewModel.selectBackgroundMedia(asset)
@@ -74,7 +75,8 @@ private struct VideoLibrarySection: View {
                                 asset: asset,
                                 fileURL: viewModel.videoURL(for: asset),
                                 isSelected: viewModel.isBackgroundSelected(asset),
-                                showsDuration: true
+                                showsDuration: true,
+                                onRemove: { viewModel.deleteMediaAsset(asset) }
                             )
                             .onTapGesture {
                                 viewModel.selectBackgroundMedia(asset)
@@ -121,6 +123,7 @@ private struct MediaThumbnailView: View {
     let fileURL: URL
     var isSelected: Bool = false
     var showsDuration: Bool = false
+    let onRemove: () -> Void
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -161,6 +164,18 @@ private struct MediaThumbnailView: View {
         .frame(height: 88)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .glassEffect(.clear, in: .rect(cornerRadius: 14))
+        .overlay(alignment: .topTrailing) {
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.body)
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(.white, .black.opacity(0.55))
+                    .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+            }
+            .buttonStyle(.plain)
+            .padding(6)
+            .accessibilityLabel("Remove from library")
+        }
         .overlay {
             if isSelected {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)

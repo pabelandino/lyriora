@@ -35,16 +35,10 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
 
     var previewSnippet: String {
         let firstSlide = slides.first?.text ?? content
-        let singleLine = firstSlide
+        return firstSlide
             .components(separatedBy: .newlines)
             .first?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-
-        if singleLine.count <= 60 {
-            return singleLine
-        }
-
-        return String(singleLine.prefix(57)) + "..."
     }
 
     static func parseSlides(from content: String) -> [LyricSlide] {

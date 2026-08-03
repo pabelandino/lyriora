@@ -58,6 +58,7 @@ struct GlassIconButton: View {
     let accessibilityLabel: String
     var size: GlassToolbarIconSize = .regular
     var isActive: Bool = false
+    var isEnabled: Bool = true
     let action: () -> Void
 
     var body: some View {
@@ -68,8 +69,15 @@ struct GlassIconButton: View {
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .foregroundStyle(isActive ? Color.green : .primary)
+        .foregroundStyle(foregroundColor)
+        .opacity(isEnabled ? 1 : 0.45)
+        .disabled(!isEnabled)
         .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var foregroundColor: Color {
+        guard isEnabled else { return .secondary }
+        return isActive ? .green : .primary
     }
 }
 

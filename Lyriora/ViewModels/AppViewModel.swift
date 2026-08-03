@@ -177,6 +177,10 @@ final class AppViewModel {
         externalDisplayManager.setPresentationEnabled(newValue, viewModel: self)
     }
 
+    func refreshExternalPresentation() {
+        externalDisplayManager.refreshPresentation()
+    }
+
     func imageURL(for asset: MediaAsset) -> URL {
         mediaRepository.fileURL(for: asset)
     }
@@ -187,6 +191,25 @@ final class AppViewModel {
 
     func isBackgroundSelected(_ asset: MediaAsset) -> Bool {
         selectedBackgroundAssetID == asset.id
+    }
+
+    func deleteMediaAsset(_ asset: MediaAsset) {
+        do {
+            try mediaRepository.delete(asset)
+        } catch {
+            return
+        }
+
+        switch asset.kind {
+        case .image:
+            imageAssets.removeAll { $0.id == asset.id }
+        case .video:
+            videoAssets.removeAll { $0.id == asset.id }
+        }
+
+        if selectedBackgroundAssetID == asset.id {
+            selectedBackgroundAssetID = nil
+        }
     }
 
     private func importSelectedPhotos() async {

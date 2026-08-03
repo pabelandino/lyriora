@@ -68,11 +68,13 @@ private struct SlideThumbnailView: View {
                 .font(.caption.weight(.semibold))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.white)
-                .lineLimit(4)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
                 .padding(10)
                 .shadow(color: .black.opacity(0.35), radius: 4, y: 2)
         }
-        .frame(height: 88)
+        .frame(minHeight: 72)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .glassEffect(.clear, in: .rect(cornerRadius: cornerRadius))
         .overlay {
