@@ -35,6 +35,8 @@ final class ExternalDisplayManager {
     private var containerViewController: ExternalPresentationContainerViewController?
     private weak var externalScene: UIWindowScene?
     private weak var hostedViewModel: AppViewModel?
+    private var lastKnownExternalBounds: CGSize = .zero
+    private nonisolated(unsafe) var displayMonitorTask: Task<Void, Never>?
     private nonisolated(unsafe) var observers: [NSObjectProtocol] = []
     #endif
 
@@ -48,6 +50,7 @@ final class ExternalDisplayManager {
         #if canImport(UIKit)
         ExternalDisplaySceneCoordinator.shared.register(manager: self)
         registerScreenObservers()
+        startDisplayMonitorIfNeeded()
         #elseif os(macOS)
         registerObservers()
         #endif
@@ -55,6 +58,9 @@ final class ExternalDisplayManager {
     }
 
     deinit {
+        #if canImport(UIKit)
+        displayMonitorTask?.cancel()
+        #endif
         #if canImport(UIKit) || os(macOS)
         for observer in observers {
             NotificationCenter.default.removeObserver(observer)
@@ -64,27 +70,29 @@ final class ExternalDisplayManager {
 
     func refreshDisplayInfo() {
         #if canImport(UIKit)
-        if let scene = discoverExternalScene() {
-            externalScene = scene
-            updateDisplayInfo(from: scene)
+        invalidateCachedExternalSceneIfNeeded()
+
+        if let metrics = currentExternalMetrics() {
+            applyMetrics(metrics)
             return
         }
 
-        if let screen = discoverExternalScreen() {
-            externalScene = nil
-            presentationCanvasSize = screen.bounds.size
+        if let liveContainerSize = liveContainerSize() {
+            presentationCanvasSize = liveContainerSize
             displayInfo = ExternalDisplayInfo(
                 name: "External Display",
-                resolution: screen.bounds.size,
-                scale: screen.scale,
+                resolution: liveContainerSize,
+                scale: displayInfo.scale > 0 ? displayInfo.scale : 1,
                 isConnected: true
             )
+            lastKnownExternalBounds = liveContainerSize
             return
         }
 
         externalScene = nil
         displayInfo = .unavailable
         presentationCanvasSize = .zero
+        lastKnownExternalBounds = .zero
         #elseif os(macOS)
         if let screen = externalScreen() {
             displayInfo = ExternalDisplayInfo(
@@ -115,9 +123,14 @@ final class ExternalDisplayManager {
             teardownPresentationWindow()
             isPresentationActive = false
         }
+
+        #if canImport(UIKit)
+        startDisplayMonitorIfNeeded()
+        #endif
     }
 
     func refreshPresentation() {
+        invalidateCachedExternalSceneIfNeeded()
         refreshDisplayInfo()
         bumpLayoutRevision()
 
@@ -129,36 +142,39 @@ final class ExternalDisplayManager {
 
     #if canImport(UIKit)
     func handleExternalSceneConnected(_ scene: UIWindowScene) {
-        externalScene = scene
-        ExternalDisplaySceneCoordinator.shared.setActiveScene(scene)
-        updateDisplayInfo(from: scene)
+        configureConnectedExternalScreens()
+        invalidateCachedExternalSceneIfNeeded()
+        externalScene = preferredExternalScene() ?? scene
+        ExternalDisplaySceneCoordinator.shared.setActiveScene(externalScene ?? scene)
+        refreshDisplayInfo()
         handleDisplayAvailabilityChanged()
     }
 
     func handleExternalSceneDisconnected(_ scene: UIWindowScene) {
-        guard externalScene == nil || externalScene === scene else { return }
-
         externalScene = nil
         ExternalDisplaySceneCoordinator.shared.clearActiveScene(scene)
+        lastKnownExternalBounds = .zero
         refreshDisplayInfo()
         teardownPresentationWindow()
     }
 
     func handleExternalSceneGeometryChanged(_ scene: UIWindowScene) {
-        guard externalScene === scene || discoverExternalScene() === scene else { return }
+        invalidateCachedExternalSceneIfNeeded()
+        externalScene = preferredExternalScene() ?? scene
+        refreshDisplayInfo()
 
-        externalScene = scene
-        updateDisplayInfo(from: scene)
+        guard externalBoundsChanged() else { return }
+
         bumpLayoutRevision()
 
         guard isPresentationEnabled, hostedViewModel != nil else { return }
 
         teardownPresentationWindow()
-        presentIfPossible(on: scene)
-        scheduleDeferredRelayout(on: scene)
+        presentIfPossible()
     }
 
     private func handleDisplayAvailabilityChanged() {
+        invalidateCachedExternalSceneIfNeeded()
         refreshDisplayInfo()
         bumpLayoutRevision()
 
@@ -182,7 +198,7 @@ final class ExternalDisplayManager {
             return
         }
 
-        let targetScene = scene ?? discoverExternalScene()
+        let targetScene = scene ?? preferredExternalScene()
         guard let targetScene else {
             isPresentationActive = false
             schedulePresentationRetry(viewModel: viewModel)
@@ -202,14 +218,7 @@ final class ExternalDisplayManager {
     private func showPresentation(on scene: UIWindowScene, viewModel: AppViewModel) -> Bool {
         hostedViewModel = viewModel
         externalScene = scene
-
-        let bounds = scene.screen.bounds
-        guard bounds.width > 1, bounds.height > 1 else {
-            return false
-        }
-
-        presentationCanvasSize = bounds.size
-        updateDisplayInfo(from: scene)
+        configureConnectedExternalScreens()
 
         teardownPresentationWindow()
 
@@ -224,9 +233,18 @@ final class ExternalDisplayManager {
         window.rootViewController = container
         window.isHidden = false
         window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+        container.view.layoutIfNeeded()
 
         externalWindow = window
         containerViewController = container
+
+        guard currentExternalMetrics(for: scene) != nil else {
+            teardownPresentationWindow()
+            return false
+        }
+
+        applyLivePresentationMetrics(for: scene)
         return true
     }
 
@@ -248,6 +266,7 @@ final class ExternalDisplayManager {
         guard size != presentationCanvasSize else { return }
 
         presentationCanvasSize = size
+        lastKnownExternalBounds = size
         displayInfo = ExternalDisplayInfo(
             name: displayInfo.name,
             resolution: size,
@@ -264,38 +283,17 @@ final class ExternalDisplayManager {
     private func scheduleDeferredRelayout(on scene: UIWindowScene) {
         guard let viewModel = hostedViewModel else { return }
 
-        for delayMilliseconds in [0, 150, 400, 800] {
+        for delayMilliseconds in [0, 150, 400, 800, 1_500] {
             Task { @MainActor in
                 if delayMilliseconds > 0 {
                     try? await Task.sleep(for: .milliseconds(delayMilliseconds))
                 }
-                guard isPresentationEnabled,
-                      hostedViewModel === viewModel,
-                      externalScene === scene else { return }
+                guard isPresentationEnabled, hostedViewModel === viewModel else { return }
 
-                containerViewController?.view.layoutIfNeeded()
-                let containerSize = containerViewController?.view.bounds.size ?? .zero
-                let sceneSize = scene.screen.bounds.size
-                let resolvedSize = containerSize.width > 1 ? containerSize : sceneSize
+                invalidateCachedExternalSceneIfNeeded()
+                applyLivePresentationMetrics(for: scene)
 
-                guard resolvedSize.width > 1, resolvedSize.height > 1 else { return }
-
-                if resolvedSize != presentationCanvasSize {
-                    presentationCanvasSize = resolvedSize
-                    displayInfo = ExternalDisplayInfo(
-                        name: displayInfo.name,
-                        resolution: resolvedSize,
-                        scale: scene.screen.scale,
-                        isConnected: true
-                    )
-                    bumpLayoutRevision()
-                }
-
-                if let container = containerViewController {
-                    updatePresentationContent(in: container, viewModel: viewModel)
-                } else {
-                    _ = showPresentation(on: scene, viewModel: viewModel)
-                }
+                guard isPresentationEnabled, hostedViewModel === viewModel else { return }
             }
         }
     }
@@ -311,9 +309,10 @@ final class ExternalDisplayManager {
             try? await Task.sleep(for: .milliseconds(350))
             guard hostedViewModel === viewModel, isPresentationEnabled else { return }
 
+            invalidateCachedExternalSceneIfNeeded()
             refreshDisplayInfo()
 
-            if let scene = discoverExternalScene(),
+            if let scene = preferredExternalScene(),
                showPresentation(on: scene, viewModel: viewModel) {
                 isPresentationActive = true
                 scheduleDeferredRelayout(on: scene)
@@ -324,42 +323,151 @@ final class ExternalDisplayManager {
         }
     }
 
-    private func discoverExternalScene() -> UIWindowScene? {
-        if let externalScene {
-            return externalScene
-        }
-
-        if let coordinatorScene = ExternalDisplaySceneCoordinator.shared.activeScene {
-            return coordinatorScene
-        }
-
-        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-
-        if let externalScene = scenes.first(where: { $0.session.role == .windowExternalDisplayNonInteractive }) {
-            return externalScene
-        }
-
-        return scenes.first { $0.screen != UIScreen.main }
+    private func preferredExternalScene() -> UIWindowScene? {
+        ExternalDisplayDiscovery.preferredExternalScene()
+            ?? ExternalDisplaySceneCoordinator.shared.activeScene
     }
 
-    private func discoverExternalScreen() -> UIScreen? {
-        if let scene = discoverExternalScene() {
-            return scene.screen
-        }
-
-        return UIScreen.screens.first { $0 != UIScreen.main }
+    private func currentExternalMetrics(for scene: UIWindowScene? = nil) -> ExternalDisplayMetrics? {
+        ExternalDisplayDiscovery.resolvedMetrics(
+            for: scene ?? preferredExternalScene(),
+            window: externalWindow,
+            containerBounds: liveContainerSize()
+        )
     }
 
-    private func updateDisplayInfo(from scene: UIWindowScene) {
-        let screen = scene.screen
-        let bounds = screen.bounds.size
-        presentationCanvasSize = bounds
+    private func applyLivePresentationMetrics(for scene: UIWindowScene) {
+        externalWindow?.layoutIfNeeded()
+        containerViewController?.view.layoutIfNeeded()
+
+        guard let metrics = ExternalDisplayDiscovery.resolvedMetrics(
+            for: scene,
+            window: externalWindow,
+            containerBounds: liveContainerSize()
+        ) else { return }
+
+        let didChange = metrics.bounds != presentationCanvasSize
+        applyMetrics(metrics)
+
+        if didChange, isPresentationEnabled, hostedViewModel != nil {
+            bumpLayoutRevision()
+            if let container = containerViewController, let viewModel = hostedViewModel {
+                updatePresentationContent(in: container, viewModel: viewModel)
+            }
+        }
+    }
+
+    private func configureConnectedExternalScreens() {
+        ExternalDisplayDiscovery.configureExternalScreensForFullBounds()
+    }
+
+    private func applyMetrics(_ metrics: ExternalDisplayMetrics) {
+        presentationCanvasSize = metrics.bounds
+        lastKnownExternalBounds = metrics.bounds
         displayInfo = ExternalDisplayInfo(
             name: "External Display",
-            resolution: bounds,
-            scale: screen.scale,
+            resolution: metrics.bounds,
+            scale: metrics.scale,
             isConnected: true
         )
+    }
+
+    private func liveContainerSize() -> CGSize? {
+        guard let size = containerViewController?.view.bounds.size,
+              size.width > 1,
+              size.height > 1 else {
+            return nil
+        }
+        return size
+    }
+
+    private func externalBoundsChanged() -> Bool {
+        guard let metrics = currentExternalMetrics() else {
+            return lastKnownExternalBounds != .zero
+        }
+        return metrics.bounds != lastKnownExternalBounds
+    }
+
+    private func invalidateCachedExternalSceneIfNeeded() {
+        guard let cachedScene = externalScene else { return }
+
+        let preferredScreen = ExternalDisplayDiscovery.preferredExternalScreen()
+        let preferredScene = ExternalDisplayDiscovery.preferredExternalScene(matching: preferredScreen)
+
+        if preferredScene == nil {
+            externalScene = nil
+            return
+        }
+
+        if preferredScene !== cachedScene {
+            externalScene = preferredScene
+            return
+        }
+
+        if let preferredScreen,
+           cachedScene.screen !== preferredScreen {
+            externalScene = preferredScene
+        }
+    }
+
+    private func syncExternalDisplayState() {
+        let wasConnected = isExternalDisplayConnected
+        let previousBounds = lastKnownExternalBounds
+
+        invalidateCachedExternalSceneIfNeeded()
+        refreshDisplayInfo()
+
+        let isConnectedNow = isExternalDisplayConnected
+        let boundsChanged = presentationCanvasSize != previousBounds && presentationCanvasSize != .zero
+
+        if !wasConnected && isConnectedNow {
+            handleDisplayAvailabilityChanged()
+            return
+        }
+
+        if wasConnected && !isConnectedNow {
+            externalScene = nil
+            ExternalDisplaySceneCoordinator.shared.clearAllScenes()
+            teardownPresentationWindow()
+            return
+        }
+
+        if boundsChanged {
+            if let scene = preferredExternalScene() ?? externalScene {
+                handleExternalSceneGeometryChanged(scene)
+            } else if isPresentationEnabled, hostedViewModel != nil {
+                bumpLayoutRevision()
+                teardownPresentationWindow()
+                presentIfPossible()
+            }
+            return
+        }
+
+        if isPresentationEnabled,
+           isConnectedNow,
+           !isPresentationActive,
+           hostedViewModel != nil {
+            presentIfPossible()
+        }
+    }
+
+    private func startDisplayMonitorIfNeeded() {
+        guard displayMonitorTask == nil else { return }
+
+        displayMonitorTask = Task { @MainActor in
+            while !Task.isCancelled {
+                syncExternalDisplayState()
+                try? await Task.sleep(for: .seconds(displayMonitorInterval))
+            }
+        }
+    }
+
+    private var displayMonitorInterval: TimeInterval {
+        #if targetEnvironment(simulator)
+        1.0
+        #else
+        2.0
+        #endif
     }
 
     private func registerScreenObservers() {
@@ -369,7 +477,12 @@ final class ExternalDisplayManager {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
+                self?.configureConnectedExternalScreens()
+                self?.externalScene = nil
+                ExternalDisplaySceneCoordinator.shared.clearAllScenes()
+                try? await Task.sleep(for: .milliseconds(150))
                 self?.handleDisplayAvailabilityChanged()
+                self?.startDisplayMonitorIfNeeded()
             }
         }
 
@@ -382,6 +495,7 @@ final class ExternalDisplayManager {
                 self?.externalScene = nil
                 ExternalDisplaySceneCoordinator.shared.clearAllScenes()
                 self?.handleDisplayAvailabilityChanged()
+                self?.startDisplayMonitorIfNeeded()
             }
         }
 
@@ -391,12 +505,8 @@ final class ExternalDisplayManager {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                guard let self else { return }
-                guard let scene = self.discoverExternalScene() else {
-                    self.refreshDisplayInfo()
-                    return
-                }
-                self.handleExternalSceneGeometryChanged(scene)
+                self?.externalScene = nil
+                self?.syncExternalDisplayState()
             }
         }
 
@@ -407,8 +517,9 @@ final class ExternalDisplayManager {
         ) { [weak self] notification in
             Task { @MainActor in
                 guard let scene = notification.object as? UIWindowScene,
-                      scene.screen != UIScreen.main else { return }
+                      ExternalDisplayDiscovery.isExternalWindowScene(scene) else { return }
                 self?.handleExternalSceneConnected(scene)
+                self?.startDisplayMonitorIfNeeded()
             }
         }
 
@@ -419,8 +530,9 @@ final class ExternalDisplayManager {
         ) { [weak self] notification in
             Task { @MainActor in
                 guard let scene = notification.object as? UIWindowScene,
-                      scene.screen != UIScreen.main else { return }
+                      ExternalDisplayDiscovery.isExternalWindowScene(scene) else { return }
                 self?.handleExternalSceneConnected(scene)
+                self?.startDisplayMonitorIfNeeded()
             }
         }
 
