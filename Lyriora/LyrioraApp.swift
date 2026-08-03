@@ -2,31 +2,16 @@
 //  LyrioraApp.swift
 //  Lyriora
 //
-//  Created by Pabel Andino on 8/3/26.
-//
 
 import SwiftUI
-import SwiftData
 
 @main
 struct LyrioraApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    @State private var viewModel = AppViewModel()
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainView(viewModel: viewModel)
         }
-        .modelContainer(sharedModelContainer)
     }
 }
