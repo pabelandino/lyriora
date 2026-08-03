@@ -8,8 +8,8 @@ import SwiftUI
 struct AppBackgroundView: View {
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
-    /// When false, keeps the shell background sharp so Liquid Glass panels can refract it.
-    var blurBackground: Bool = false
+    /// When true, blurs the shell background so it reads as ambient context behind glass panels.
+    var blurBackground: Bool = true
 
     private var layerIdentity: String {
         background?.url.absoluteString ?? "default-\(defaultBackgroundSettings.preset.rawValue)"

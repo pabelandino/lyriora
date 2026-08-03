@@ -13,7 +13,7 @@ struct MainView: View {
             AppBackgroundView(
                 background: viewModel.activePresentationBackground,
                 defaultBackgroundSettings: viewModel.settings.defaultBackground,
-                blurBackground: false
+                blurBackground: true
             )
 
             HStack(spacing: 20) {
