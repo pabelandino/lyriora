@@ -38,11 +38,10 @@ private struct ImageLibrarySection: View {
                                 asset: asset,
                                 fileURL: viewModel.imageURL(for: asset),
                                 isSelected: viewModel.isBackgroundSelected(asset),
+                                onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
                                 onRemove: { viewModel.deleteMediaAsset(asset) }
                             )
-                            .onTapGesture {
-                                viewModel.selectBackgroundMedia(asset)
-                            }
+                            .id(asset.id)
                         }
                     }
                     .padding(.horizontal, 12)
@@ -77,11 +76,10 @@ private struct VideoLibrarySection: View {
                                 fileURL: viewModel.videoURL(for: asset),
                                 isSelected: viewModel.isBackgroundSelected(asset),
                                 showsDuration: true,
+                                onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
                                 onRemove: { viewModel.deleteMediaAsset(asset) }
                             )
-                            .onTapGesture {
-                                viewModel.selectBackgroundMedia(asset)
-                            }
+                            .id(asset.id)
                         }
                     }
                     .padding(.horizontal, 12)
@@ -125,46 +123,41 @@ private struct MediaThumbnailView: View {
     let fileURL: URL
     var isSelected: Bool = false
     var showsDuration: Bool = false
+    let onSelect: () -> Void
     let onRemove: () -> Void
 
+    private let cornerRadius: CGFloat = 14
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+    }
+
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            if asset.kind == .image {
-                AsyncImage(url: fileURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    default:
-                        Image(systemName: "photo")
-                            .font(.title2)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                }
-            } else {
-                ZStack {
-                    Color.black.opacity(0.25)
+        Button(action: onSelect) {
+            ZStack(alignment: .bottomLeading) {
+                thumbnailContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
 
-                    Image(systemName: "play.rectangle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.secondary)
+                if showsDuration {
+                    Text("00:00")
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .glassEffect(.regular, in: .capsule)
+                        .padding(8)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-
-            if showsDuration {
-                Text("00:00")
-                    .font(.caption2.weight(.semibold))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .glassEffect(.regular, in: .capsule)
-                    .padding(8)
+            .frame(height: 88)
+            .clipShape(shape)
+            .overlay {
+                if isSelected {
+                    shape.strokeBorder(.white.opacity(0.9), lineWidth: 2.5)
+                }
             }
+            .contentShape(shape)
         }
-        .frame(height: 88)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .buttonStyle(.plain)
         .overlay(alignment: .topTrailing) {
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
@@ -177,12 +170,44 @@ private struct MediaThumbnailView: View {
             .padding(6)
             .accessibilityLabel("Remove from library")
         }
-        .overlay {
-            if isSelected {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(.white.opacity(0.9), lineWidth: 2.5)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    @ViewBuilder
+    private var thumbnailContent: some View {
+        if asset.kind == .image {
+            LocalFileThumbnailImage(url: fileURL)
+        } else {
+            ZStack {
+                Color.black.opacity(0.25)
+
+                Image(systemName: "play.rectangle.fill")
+                    .font(.largeTitle)
+                    .foregroundStyle(.secondary)
             }
         }
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+}
+
+private struct LocalFileThumbnailImage: View {
+    let url: URL
+    @State private var image: Image?
+
+    var body: some View {
+        Group {
+            if let image {
+                image
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Image(systemName: "photo")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .task(id: url) {
+            image = LocalFileImageBackground.loadImage(from: url)
+        }
     }
 }

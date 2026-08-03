@@ -133,7 +133,11 @@ final class AppViewModel {
     }
 
     func selectBackgroundMedia(_ asset: MediaAsset) {
-        selectedBackgroundAssetID = asset.id
+        selectBackgroundMedia(withID: asset.id)
+    }
+
+    func selectBackgroundMedia(withID id: UUID) {
+        selectedBackgroundAssetID = id
         showBackground = true
     }
 
