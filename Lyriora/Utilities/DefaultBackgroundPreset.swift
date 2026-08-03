@@ -91,8 +91,8 @@ struct DefaultBackgroundSettings: Codable, Equatable, Sendable {
 
     static let `default` = DefaultBackgroundSettings(
         preset: .oceanBlue,
-        blurRadius: 52,
-        overlayOpacity: 0.28
+        blurRadius: 72,
+        overlayOpacity: 0.32
     )
 }
 
