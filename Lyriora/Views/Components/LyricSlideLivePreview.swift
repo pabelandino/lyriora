@@ -5,6 +5,11 @@
 
 import SwiftUI
 
+enum LyricPreviewBackgroundStyle: Equatable {
+    case borderOnly
+    case settingsDefault(DefaultBackgroundSettings)
+}
+
 struct LyricSlideLivePreview: View {
     let slide: LyricSlide?
     let style: SlideTextStyle
@@ -12,6 +17,7 @@ struct LyricSlideLivePreview: View {
     let scopeLabel: String
     var compact: Bool = false
     var previewText: String?
+    var backgroundStyle: LyricPreviewBackgroundStyle = .settingsDefault(.default)
 
     @Environment(\.previewContainerSize) private var previewContainerSize
 
@@ -72,26 +78,30 @@ struct LyricSlideLivePreview: View {
         let size = resolvedContainerSize
 
         ZStack {
-            shape
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.05, green: 0.11, blue: 0.24),
-                            Color(red: 0.10, green: 0.22, blue: 0.44),
-                            Color(red: 0.04, green: 0.08, blue: 0.20)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+            previewBackground
 
             previewCardContent(containerSize: size)
         }
         .frame(width: size.width, height: size.height)
         .clipShape(shape)
-        .glassEffect(.regular, in: .rect(cornerRadius: cornerRadius, style: .continuous))
         .overlay {
-            shape.strokeBorder(.white.opacity(0.15), lineWidth: 1)
+            if backgroundStyle == .borderOnly {
+                shape.strokeBorder(Color.primary.opacity(0.18), lineWidth: 1.5)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var previewBackground: some View {
+        switch backgroundStyle {
+        case .borderOnly:
+            Color.clear
+        case .settingsDefault(let settings):
+            PresentationBackgroundLayer(
+                background: nil,
+                defaultBackgroundSettings: settings,
+                blurDefaultBackground: false
+            )
         }
     }
 
@@ -107,7 +117,7 @@ struct LyricSlideLivePreview: View {
             Text("Select a slide or import lyrics to preview.")
                 .font(compact ? .callout : .body)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.white.opacity(0.65))
+                .foregroundStyle(backgroundStyle == .borderOnly ? Color.secondary : Color.white.opacity(0.65))
                 .padding(24)
                 .frame(width: containerSize.width, height: containerSize.height, alignment: .center)
         }

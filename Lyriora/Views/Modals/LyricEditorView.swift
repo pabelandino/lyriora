@@ -14,39 +14,70 @@ struct LyricEditorView: View {
     @State private var title = ""
     @State private var author = ""
     @State private var rawContent = ""
+    @State private var sourceSections: [LyricSectionSource] = []
     @State private var slides: [LyricSlide] = []
     @State private var styleProfile = LyricStyleProfile.default
     @State private var language: LyricLanguage = .unknown
     @State private var importError: String?
     @State private var didLoadInitialState = false
     @State private var preferredColumn: NavigationSplitViewColumn = .detail
+    @State private var selectedPage: LyricEditorNavigationOption = .lyrics
     @State private var path = NavigationPath()
     @State private var selectedThemeID: UUID?
-    @State private var typographyStyleSnapshot: SlideTextStyle = .default
+    @State private var styleSnapshotAtLoad: SlideTextStyle = .default
+    @State private var showSaveThemePrompt = false
+    @State private var themeNameDraft = ""
+    @State private var suppressMaxLinesReparse = true
 
     private let contentMaxWidth: CGFloat = 700
 
     private var isEditing: Bool { existingLyricID != nil }
+
+    private var referenceStyle: SlideTextStyle {
+        if let activeTheme {
+            return activeTheme.style
+        }
+        return styleSnapshotAtLoad
+    }
+
+    private var hasStyleChanges: Bool {
+        styleProfile.defaultStyle != referenceStyle
+    }
 
     private var activeTheme: LyricTheme? {
         if let selectedThemeID,
            let theme = viewModel.themes.first(where: { $0.id == selectedThemeID }) {
             return theme
         }
+        if let match = viewModel.themes.first(where: { $0.style == styleProfile.defaultStyle }) {
+            return match
+        }
         return viewModel.themes.first { $0.name == styleProfile.name }
+    }
+
+    private var activeThemeName: String {
+        if let activeTheme {
+            return activeTheme.name
+        }
+
+        let profileName = styleProfile.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if profileName.isEmpty {
+            return "Custom Style"
+        }
+        return profileName
     }
 
     var body: some View {
         NavigationSplitView(preferredCompactColumn: $preferredColumn) {
             sidebarList
         } detail: {
-            detailNavigationStack(for: .lyrics)
+            detailNavigationStack(for: selectedPage)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel") { closeEditor() }
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") { performSaveLyric() }
+                        Button("Save") { handleSaveTapped() }
                             .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || slides.isEmpty)
                     }
                 }
@@ -56,13 +87,34 @@ struct LyricEditorView: View {
             guard !didLoadInitialState else { return }
             didLoadInitialState = true
             loadInitialState()
-            typographyStyleSnapshot = styleProfile.defaultStyle
+            styleSnapshotAtLoad = styleProfile.defaultStyle
             syncSelectedThemeID()
+            suppressMaxLinesReparse = false
         }
         .alert("Import Error", isPresented: importErrorBinding) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(importError ?? "")
+        }
+        .alert("Save as Theme?", isPresented: $showSaveThemePrompt) {
+            TextField("Theme name", text: $themeNameDraft)
+            Button("Save Theme") {
+                saveThemeAndLyric()
+            }
+            Button("Save Lyric Only") {
+                performSaveLyric()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You changed the text style. Save it as a theme to reuse with other lyrics?")
+        }
+        .onChange(of: styleProfile.defaultStyle.maxLinesPerSlide) { _, _ in
+            guard !suppressMaxLinesReparse else { return }
+            rechunkSlides()
+        }
+        .onChange(of: styleProfile.defaultStyle.maxFontSize) { _, _ in
+            guard !suppressMaxLinesReparse else { return }
+            rechunkSlides()
         }
     }
 
@@ -78,9 +130,18 @@ struct LyricEditorView: View {
 
             Section {
                 ForEach(LyricEditorNavigationOption.mainPages) { page in
-                    NavigationLink(value: page) {
+                    Button {
+                        selectPage(page)
+                    } label: {
                         Label(page.title, systemImage: page.systemImage)
+                            .font(.body.weight(selectedPage == page ? .semibold : .regular))
+                            .foregroundStyle(selectedPage == page ? Color.accentColor : .primary)
                     }
+                    .listRowBackground(
+                        selectedPage == page
+                            ? Color.accentColor.opacity(0.12)
+                            : Color.clear
+                    )
                 }
             }
 
@@ -91,10 +152,18 @@ struct LyricEditorView: View {
                     .listRowSeparator(.hidden)
             }
         }
-        .navigationDestination(for: LyricEditorNavigationOption.self) { page in
-            detailNavigationStack(for: page)
-        }
         .frame(minWidth: 200)
+    }
+
+    private func selectPage(_ page: LyricEditorNavigationOption) {
+        guard selectedPage != page else {
+            preferredColumn = .detail
+            return
+        }
+
+        path = NavigationPath()
+        selectedPage = page
+        preferredColumn = .detail
     }
 
     @ViewBuilder
@@ -129,25 +198,29 @@ struct LyricEditorView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
                 ThemeMiniPreview(
-                    style: activeTheme?.style ?? styleProfile.defaultStyle,
-                    height: 48
+                    style: styleProfile.defaultStyle,
+                    height: 48,
+                    defaultBackgroundSettings: viewModel.settings.defaultBackground
                 )
                 .frame(width: 56)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(activeTheme?.name ?? styleProfile.name)
+                    Text(activeThemeName)
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(1)
 
-                    Text("Active Theme")
+                    Text(styleProfile.defaultStyle.fontFamily.label)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
 
                 Spacer(minLength: 0)
             }
 
-            NavigationLink(value: LyricEditorNavigationOption.typography) {
+            Button {
+                selectPage(.typography)
+            } label: {
                 Label("Preview", systemImage: "eye")
                     .font(.caption.weight(.semibold))
                     .frame(maxWidth: .infinity)
@@ -177,14 +250,13 @@ struct LyricEditorView: View {
                     viewModel: viewModel,
                     style: $styleProfile.defaultStyle,
                     profileName: $styleProfile.name,
-                    selectedThemeID: $selectedThemeID
+                    selectedThemeID: $selectedThemeID,
+                    onLayoutStyleChange: rechunkSlides
                 )
             }
         }
-        .onAppear {
-            if page == .typography {
-                typographyStyleSnapshot = styleProfile.defaultStyle
-            }
+        .onChange(of: styleProfile.defaultStyle) { _, _ in
+            syncSelectedThemeID()
         }
     }
 
@@ -195,7 +267,9 @@ struct LyricEditorView: View {
                 slide: $slides[index],
                 styleProfile: $styleProfile,
                 language: language,
-                onDelete: { deleteSlide(id: slideID) }
+                defaultBackgroundSettings: viewModel.settings.defaultBackground,
+                onDelete: { deleteSlide(id: slideID) },
+                onSlideContentChanged: { syncSectionFromEditedSlide(slideID) }
             )
         }
     }
@@ -230,7 +304,8 @@ struct LyricEditorView: View {
             LyricEditorSlideHorizontalListView(
                 slides: slides,
                 styleProfile: styleProfile,
-                language: language
+                language: language,
+                defaultBackgroundSettings: viewModel.settings.defaultBackground
             )
         }
     }
@@ -261,7 +336,7 @@ struct LyricEditorView: View {
                 }
                 .buttonStyle(.plain)
 
-                Text("Paste lyrics with section headers (Coro, Puente, Chorus, Verse 1). Slides are created automatically with up to 4 lines each.")
+                Text("Paste lyrics with section headers (Coro, Puente, Chorus, Verse 1). Slides are created automatically with up to \(styleProfile.defaultStyle.maxLinesPerSlide) lines each.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -302,7 +377,7 @@ struct LyricEditorView: View {
                 HStack {
                     Spacer()
                     Button {
-                        reparseSlides()
+                        reparseFromRawContent()
                     } label: {
                         Label("Re-parse Slides", systemImage: "arrow.clockwise")
                             .font(.subheadline.weight(.medium))
@@ -350,10 +425,23 @@ struct LyricEditorView: View {
             return
         }
         title = existingLyric.title
-        rawContent = existingLyric.content
-        slides = existingLyric.slides
         styleProfile = existingLyric.styleProfile
         language = existingLyric.language
+
+        if !existingLyric.sourceSections.isEmpty {
+            sourceSections = existingLyric.sourceSections
+        } else if !existingLyric.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            sourceSections = LyricImportParser.parseSections(existingLyric.content).sections
+        } else {
+            sourceSections = LyricImportParser.sections(from: existingLyric.slides)
+        }
+
+        slides = existingLyric.slides
+        if slides.isEmpty, !sourceSections.isEmpty {
+            rechunkSlides()
+        }
+
+        syncRawContentFromSections()
     }
 
     private func importFromClipboard() {
@@ -369,31 +457,113 @@ struct LyricEditorView: View {
         if let inferredTitle = result.title, title.isEmpty {
             title = inferredTitle
         }
-        slides = result.slides
+        sourceSections = result.sections
         language = result.language
-        rawContent = rebuildRawContent(from: result.slides)
+        rechunkSlides()
+        syncRawContentFromSections()
         if let warning = result.warnings.first, result.slides.isEmpty {
             importError = warning
         }
     }
 
-    private func reparseSlides() {
-        let result = LyricImportParser.parse(rawContent, styleProfile: styleProfile)
-        slides = result.slides
+    private func rechunkSlides() {
+        guard !sourceSections.isEmpty else {
+            slides = []
+            return
+        }
+
+        slides = LyricImportParser.makeSlides(
+            from: sourceSections,
+            style: styleProfile.defaultStyle
+        )
+    }
+
+    private func reparseFromRawContent() {
+        let result = LyricImportParser.parseSections(rawContent)
+        sourceSections = result.sections
         language = result.language
-        if slides.isEmpty {
+        rechunkSlides()
+        syncRawContentFromSections()
+        if sourceSections.isEmpty {
             importError = LyricImportError.empty.errorDescription
         }
     }
 
-    private func deleteSlide(id: UUID) {
-        slides.removeAll { $0.id == id }
-        slides = slides.enumerated().map { index, slide in
-            var updated = slide
-            updated.order = index
-            return updated
+    private func syncRawContentFromSections() {
+        rawContent = LyricImportParser.rawText(from: sourceSections, language: language)
+    }
+
+    private func syncSectionFromEditedSlide(_ slideID: UUID) {
+        guard let slide = slides.first(where: { $0.id == slideID }),
+              let sectionID = slide.sourceSectionID,
+              let sectionIndex = sourceSections.firstIndex(where: { $0.id == sectionID }) else {
+            sourceSections = LyricImportParser.sections(from: slides)
+            syncRawContentFromSections()
+            return
         }
-        rawContent = rebuildRawContent(from: slides)
+
+        let sectionSlides = slides
+            .filter { $0.sourceSectionID == sectionID }
+            .sorted { $0.order < $1.order }
+
+        sourceSections[sectionIndex].lines = sectionSlides.flatMap { LyricImportParser.lines(from: $0.text) }
+        sourceSections[sectionIndex].tag = sectionSlides.first?.tag ?? sourceSections[sectionIndex].tag
+
+        rechunkSlides()
+        syncRawContentFromSections()
+    }
+
+    private func deleteSlide(id: UUID) {
+        if let slide = slides.first(where: { $0.id == id }),
+           let sectionID = slide.sourceSectionID,
+           let sectionIndex = sourceSections.firstIndex(where: { $0.id == sectionID }) {
+            let sectionSlides = slides
+                .filter { $0.sourceSectionID == sectionID }
+                .sorted { $0.order < $1.order }
+
+            var lineOffset = 0
+            for sectionSlide in sectionSlides {
+                let slideLines = LyricImportParser.lines(from: sectionSlide.text)
+                if sectionSlide.id == id {
+                    let end = lineOffset + slideLines.count
+                    if lineOffset < end, end <= sourceSections[sectionIndex].lines.count {
+                        sourceSections[sectionIndex].lines.removeSubrange(lineOffset..<end)
+                    }
+                    if sourceSections[sectionIndex].lines.isEmpty {
+                        sourceSections.remove(at: sectionIndex)
+                    }
+                    break
+                }
+                lineOffset += slideLines.count
+            }
+        } else {
+            slides.removeAll { $0.id == id }
+            sourceSections = LyricImportParser.sections(from: slides)
+        }
+
+        rechunkSlides()
+        syncRawContentFromSections()
+    }
+
+    private func handleSaveTapped() {
+        if hasStyleChanges {
+            themeNameDraft = styleProfile.name.isEmpty ? "My Theme" : styleProfile.name
+            showSaveThemePrompt = true
+        } else {
+            performSaveLyric()
+        }
+    }
+
+    private func saveThemeAndLyric() {
+        let trimmed = themeNameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        viewModel.saveTheme(name: trimmed, style: styleProfile.defaultStyle)
+        styleProfile.name = trimmed
+        if let saved = viewModel.themes.first(where: { $0.name == trimmed }) {
+            selectedThemeID = saved.id
+        }
+        performSaveLyric()
     }
 
     private func performSaveLyric() {
@@ -403,7 +573,8 @@ struct LyricEditorView: View {
             slides: slides,
             styleProfile: styleProfile,
             language: language,
-            rawContent: rawContent
+            rawContent: rawContent,
+            sourceSections: sourceSections
         )
         closeEditor()
     }
@@ -413,14 +584,6 @@ struct LyricEditorView: View {
         viewModel.dismissLyricEditor()
         #endif
         dismiss()
-    }
-
-    private func rebuildRawContent(from slides: [LyricSlide]) -> String {
-        slides.map { slide in
-            let header = slide.tag.localizedName(for: language)
-            return "\(header)\n\(slide.text)"
-        }
-        .joined(separator: "\n\n")
     }
 }
 

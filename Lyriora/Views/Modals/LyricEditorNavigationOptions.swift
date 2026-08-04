@@ -16,7 +16,7 @@ enum LyricEditorNavigationOption: Equatable, Hashable, Identifiable {
     var title: String {
         switch self {
         case .lyrics: "Lyrics"
-        case .typography: "Global Typography"
+        case .typography: "Text Style"
         }
     }
 

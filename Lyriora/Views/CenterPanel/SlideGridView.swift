@@ -14,9 +14,10 @@ struct SlideGridView: View {
     let defaultBackgroundSettings: DefaultBackgroundSettings
     let onSelect: (LyricSlide) -> Void
 
+    private let thumbnailMaxWidth: CGFloat = 188
     private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
+        GridItem(.flexible(), spacing: 14),
+        GridItem(.flexible(), spacing: 14)
     ]
 
     var body: some View {
@@ -29,7 +30,7 @@ struct SlideGridView: View {
                 )
             } else {
                 ScrollView {
-                    LazyVGrid(columns: columns, spacing: 12) {
+                    LazyVGrid(columns: columns, spacing: 14) {
                         ForEach(slides) { slide in
                             SlideThumbnailView(
                                 slide: slide,
@@ -39,13 +40,16 @@ struct SlideGridView: View {
                                 presentationState: presentationState,
                                 defaultBackgroundSettings: defaultBackgroundSettings
                             )
+                            .frame(maxWidth: thumbnailMaxWidth)
+                            .frame(maxWidth: .infinity)
                             .onTapGesture {
                                 onSelect(slide)
                             }
                             .id(slide.id)
                         }
                     }
-                    .padding(16)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
                 }
                 .transparentScrollContent()
             }
@@ -61,13 +65,21 @@ private struct SlideThumbnailView: View {
     let presentationState: PresentationState
     let defaultBackgroundSettings: DefaultBackgroundSettings
 
-    private let cornerRadius: CGFloat = 16
+    private let cornerRadius: CGFloat = 14
+    private let textAreaMinHeight: CGFloat = 84
+    private let textInset: CGFloat = 12
 
     private var textConfiguration: PresentationTextConfiguration {
-        if let style {
-            return style.presentationConfiguration(isPreview: true)
-        }
-        return PresentationTextConfiguration(style: .previewDefault)
+        PresentationTextConfiguration(style: thumbnailStyle)
+    }
+
+    private var thumbnailStyle: SlideTextStyle {
+        var resolved = style ?? .previewDefault
+        resolved.paddingRatio = max(resolved.paddingRatio, 0.12)
+        resolved.maxFontSize = min(resolved.maxFontSize, 24)
+        resolved.minFontSize = min(resolved.minFontSize, 11)
+        resolved.isAdaptiveScalingEnabled = true
+        return resolved
     }
 
     var body: some View {
@@ -75,8 +87,8 @@ private struct SlideThumbnailView: View {
             Text(slide.tag.localizedName(for: language))
                 .font(.caption2.weight(.bold))
                 .foregroundStyle(.white.opacity(0.85))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
                 .frame(maxWidth: .infinity)
                 .background(Color.black.opacity(0.35))
 
@@ -85,7 +97,8 @@ private struct SlideThumbnailView: View {
                     isVisible: presentationState.showBackground,
                     background: presentationState.background,
                     defaultBackgroundSettings: defaultBackgroundSettings,
-                    blurDefaultBackground: false
+                    blurDefaultBackground: false,
+                    showsDefaultWhenEmpty: false
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -93,15 +106,17 @@ private struct SlideThumbnailView: View {
                     text: slide.text,
                     configuration: textConfiguration
                 )
+                .padding(textInset)
             }
-            .frame(minHeight: 72)
+            .frame(minHeight: textAreaMinHeight)
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay {
-            if isSelected {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(.white.opacity(0.9), lineWidth: 2)
-            }
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .strokeBorder(
+                    isSelected ? Color.white.opacity(0.9) : Color.white.opacity(0.08),
+                    lineWidth: isSelected ? 2 : 1
+                )
         }
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }

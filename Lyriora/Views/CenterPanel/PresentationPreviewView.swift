@@ -27,7 +27,8 @@ struct PresentationPreviewView: View {
                 isVisible: state.showBackground,
                 background: state.background,
                 defaultBackgroundSettings: defaultBackgroundSettings,
-                blurDefaultBackground: false
+                blurDefaultBackground: false,
+                showsDefaultWhenEmpty: false
             )
 
             lyricsOverlay
@@ -86,9 +87,9 @@ struct PresentationContentView: View {
             ZStack {
                 Color.black
 
-                if state.showBackground {
-                    PresentationBackgroundLayer(
-                        background: state.background,
+                if state.showBackground, let background = state.background {
+                    PresentationBackgroundView(
+                        background: background,
                         defaultBackgroundSettings: defaultBackgroundSettings
                     )
                     .frame(width: geometry.size.width, height: geometry.size.height)

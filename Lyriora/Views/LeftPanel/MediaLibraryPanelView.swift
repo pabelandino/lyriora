@@ -108,11 +108,9 @@ private func sectionHeader(
         Spacer()
 
         PhotosPicker(selection: pickerSelection, maxSelectionCount: 10, matching: matching) {
-            Image(systemName: "plus.circle.fill")
-                .font(.title3)
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(.green, .white.opacity(0.85))
+            GlassCircleIcon(systemName: "plus")
         }
+        .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
     }
     .padding(.horizontal, 16)

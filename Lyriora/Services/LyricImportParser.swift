@@ -7,7 +7,15 @@ import Foundation
 
 struct LyricImportResult: Equatable, Sendable {
     var title: String?
+    var sections: [LyricSectionSource]
     var slides: [LyricSlide]
+    var language: LyricLanguage
+    var warnings: [String]
+}
+
+struct LyricSectionParseResult: Equatable, Sendable {
+    var title: String?
+    var sections: [LyricSectionSource]
     var language: LyricLanguage
     var warnings: [String]
 }
@@ -37,12 +45,141 @@ enum LyricImportParser {
         styleProfile: LyricStyleProfile = .default,
         maxLinesPerSlide: Int? = nil
     ) -> LyricImportResult {
-        let maxLines = maxLinesPerSlide ?? styleProfile.defaultStyle.maxLinesPerSlide
+        let sectionResult = parseSections(rawText)
+        let slides = LyricSlideLayoutEngine.makeSlides(
+            from: sectionResult.sections,
+            style: styleProfile.defaultStyle
+        )
+
+        return LyricImportResult(
+            title: sectionResult.title,
+            sections: sectionResult.sections,
+            slides: slides,
+            language: sectionResult.language,
+            warnings: sectionResult.warnings.isEmpty && slides.isEmpty
+                ? ["No slides could be generated"]
+                : sectionResult.warnings
+        )
+    }
+
+    static func parseSections(_ rawText: String) -> LyricSectionParseResult {
         let normalized = normalize(rawText)
         guard !normalized.isEmpty else {
-            return LyricImportResult(title: nil, slides: [], language: .unknown, warnings: ["Empty content"])
+            return LyricSectionParseResult(
+                title: nil,
+                sections: [],
+                language: .unknown,
+                warnings: ["Empty content"]
+            )
         }
 
+        let parsedSections = extractSections(from: normalized)
+        let sections = parsedSections.sections.map { item in
+            LyricSectionSource(tag: item.tag, lines: item.lines)
+        }
+
+        let language = detectLanguage(
+            spanishScore: parsedSections.spanishScore,
+            englishScore: parsedSections.englishScore,
+            text: normalized
+        )
+
+        return LyricSectionParseResult(
+            title: inferTitle(from: normalized),
+            sections: sections,
+            language: language,
+            warnings: sections.isEmpty ? ["No slides could be generated"] : []
+        )
+    }
+
+    static func makeSlides(
+        from sections: [LyricSectionSource],
+        style: SlideTextStyle,
+        containerSize: CGSize = PresentationLayout.referenceCanvasSize
+    ) -> [LyricSlide] {
+        LyricSlideLayoutEngine.makeSlides(
+            from: sections,
+            style: style,
+            containerSize: containerSize
+        )
+    }
+
+    /// Legacy helper kept for callers that only know the configured max-lines value.
+    static func makeSlides(from sections: [LyricSectionSource], maxLines: Int) -> [LyricSlide] {
+        var style = SlideTextStyle.default
+        style.maxLinesPerSlide = maxLines
+        style.minFontSize = style.maxFontSize
+        return makeSlides(from: sections, style: style)
+    }
+
+    static func rawText(from sections: [LyricSectionSource], language: LyricLanguage) -> String {
+        sections.map { section in
+            let header = section.tag.localizedName(for: language)
+            return "\(header)\n\(section.lines.joined(separator: "\n"))"
+        }
+        .joined(separator: "\n\n")
+    }
+
+    /// Rebuilds canonical sections by merging consecutive slide chunks that share a section ID.
+    static func sections(from slides: [LyricSlide]) -> [LyricSectionSource] {
+        var sections: [LyricSectionSource] = []
+        var sectionOrder: [UUID] = []
+        var sectionLines: [UUID: [String]] = [:]
+        var sectionTags: [UUID: LyricSlideTag] = [:]
+
+        for slide in slides.sorted(by: { $0.order < $1.order }) {
+            let sectionID = slide.sourceSectionID ?? slide.id
+            let slideLines = lines(from: slide.text)
+
+            if sectionLines[sectionID] == nil {
+                sectionOrder.append(sectionID)
+                sectionTags[sectionID] = slide.tag
+                sectionLines[sectionID] = slideLines
+            } else if sectionTags[sectionID] == slide.tag {
+                sectionLines[sectionID, default: []].append(contentsOf: slideLines)
+            } else {
+                let newID = UUID()
+                sectionOrder.append(newID)
+                sectionTags[newID] = slide.tag
+                sectionLines[newID] = slideLines
+            }
+        }
+
+        return sectionOrder.compactMap { id in
+            guard let tag = sectionTags[id], let lines = sectionLines[id], !lines.isEmpty else {
+                return nil
+            }
+            return LyricSectionSource(id: id, tag: tag, lines: lines)
+        }
+    }
+
+    static func parseLegacyContent(_ content: String) -> [LyricSlide] {
+        parse(content).slides
+    }
+
+    static func isLikelyText(_ text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count >= 2 else { return false }
+
+        let letters = trimmed.unicodeScalars.filter { CharacterSet.letters.contains($0) }.count
+        let ratio = Double(letters) / Double(trimmed.unicodeScalars.count)
+        return ratio > 0.35
+    }
+
+    static func lines(from text: String) -> [String] {
+        text
+            .components(separatedBy: "\n")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+    }
+
+    private struct ParsedSections {
+        var sections: [(tag: LyricSlideTag, lines: [String])]
+        var spanishScore: Int
+        var englishScore: Int
+    }
+
+    private static func extractSections(from normalized: String) -> ParsedSections {
         let lines = normalized.components(separatedBy: "\n")
         var sections: [(tag: LyricSlideTag, lines: [String])] = []
         var currentTag: LyricSlideTag = .verse
@@ -51,9 +188,7 @@ enum LyricImportParser {
         var detectedEnglish = 0
 
         func flushSection() {
-            let trimmed = currentLines
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
+            let trimmed = Self.lines(from: currentLines.joined(separator: "\n"))
             if !trimmed.isEmpty {
                 sections.append((currentTag, trimmed))
             }
@@ -82,48 +217,11 @@ enum LyricImportParser {
             sections = fallbackSections(from: normalized)
         }
 
-        var slides: [LyricSlide] = []
-        var order = 0
-
-        for section in sections {
-            let chunks = chunkLines(section.lines, maxLines: max(1, maxLines))
-            for chunk in chunks {
-                slides.append(
-                    LyricSlide(
-                        order: order,
-                        text: chunk.joined(separator: "\n"),
-                        tag: section.tag
-                    )
-                )
-                order += 1
-            }
-        }
-
-        let language = detectLanguage(
+        return ParsedSections(
+            sections: sections,
             spanishScore: detectedSpanish,
-            englishScore: detectedEnglish,
-            text: normalized
+            englishScore: detectedEnglish
         )
-
-        return LyricImportResult(
-            title: inferTitle(from: normalized),
-            slides: slides,
-            language: language,
-            warnings: slides.isEmpty ? ["No slides could be generated"] : []
-        )
-    }
-
-    static func parseLegacyContent(_ content: String) -> [LyricSlide] {
-        parse(content).slides
-    }
-
-    static func isLikelyText(_ text: String) -> Bool {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count >= 2 else { return false }
-
-        let letters = trimmed.unicodeScalars.filter { CharacterSet.letters.contains($0) }.count
-        let ratio = Double(letters) / Double(trimmed.unicodeScalars.count)
-        return ratio > 0.35
     }
 
     private static func normalize(_ text: String) -> String {
@@ -137,13 +235,15 @@ enum LyricImportParser {
         var cleaned = line
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .trimmingCharacters(in: CharacterSet(charactersIn: "[](){}"))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
 
         if cleaned.hasSuffix(":") {
             cleaned.removeLast()
+            cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
-        cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !cleaned.isEmpty, cleaned.count <= 40 else { return nil }
+        let lowered = cleaned.lowercased()
+        guard !lowered.isEmpty, lowered.count <= 40 else { return nil }
 
         let mappings: [(keys: [String], tag: LyricSlideTag)] = [
             (["intro", "introducción", "introduccion", "introduction"], .intro),
@@ -160,12 +260,12 @@ enum LyricImportParser {
         ]
 
         for mapping in mappings {
-            if mapping.keys.contains(cleaned) {
+            if mapping.keys.contains(lowered) {
                 return mapping.tag
             }
         }
 
-        if cleaned.allSatisfy({ $0.isNumber || $0.isWhitespace }) {
+        if lowered.allSatisfy({ $0.isNumber || $0.isWhitespace }) {
             return nil
         }
 
@@ -195,10 +295,10 @@ enum LyricImportParser {
 
         if separatorParts.count > 1 {
             return separatorParts.map { part in
-                let lines = part.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-                let tag = parseSectionHeader(lines.first ?? "") ?? .unknown
-                let body = tag == .unknown ? lines : Array(lines.dropFirst())
-                return (tag, body.isEmpty ? lines : body)
+                let partLines = part.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+                let tag = parseSectionHeader(partLines.first ?? "") ?? .unknown
+                let body = tag == .unknown ? partLines : Array(partLines.dropFirst())
+                return (tag, body.isEmpty ? partLines : body)
             }
         }
 
@@ -209,15 +309,15 @@ enum LyricImportParser {
 
         if paragraphs.count > 1 {
             return paragraphs.map { paragraph in
-                let lines = paragraph.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-                let tag = parseSectionHeader(lines.first ?? "") ?? .verse
-                let body = parseSectionHeader(lines.first ?? "") == nil ? lines : Array(lines.dropFirst())
-                return (tag, body.isEmpty ? lines : body)
+                let partLines = paragraph.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+                let tag = parseSectionHeader(partLines.first ?? "") ?? .verse
+                let body = parseSectionHeader(partLines.first ?? "") == nil ? partLines : Array(partLines.dropFirst())
+                return (tag, body.isEmpty ? partLines : body)
             }
         }
 
-        let lines = text.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-        return [(LyricSlideTag.verse, lines)]
+        let allLines = text.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+        return [(LyricSlideTag.verse, allLines)]
     }
 
     private static func inferTitle(from text: String) -> String? {

@@ -8,6 +8,19 @@ import SwiftUI
 struct SlideStyleControlsView: View {
     @Binding var style: SlideTextStyle
     var showsMaxLinesStepper = false
+    var onMaxLinesPerSlideChange: (() -> Void)? = nil
+    var onFontSizeChange: (() -> Void)? = nil
+
+    private var fontSizeBinding: Binding<Double> {
+        Binding(
+            get: { style.fontSize },
+            set: { newValue in
+                style.fontSize = newValue
+                style.isAdaptiveScalingEnabled = false
+                onFontSizeChange?()
+            }
+        )
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -18,16 +31,12 @@ struct SlideStyleControlsView: View {
             }
             .pickerStyle(.menu)
 
-            Toggle("Adaptive font size", isOn: $style.isAdaptiveScalingEnabled)
-
-            if style.isAdaptiveScalingEnabled {
-                HStack {
-                    Stepper("Min \(Int(style.minFontSize))", value: $style.minFontSize, in: 8...120, step: 1)
-                    Stepper("Max \(Int(style.maxFontSize))", value: $style.maxFontSize, in: 8...120, step: 1)
-                }
-            } else {
-                Stepper("Font size: \(Int(style.maxFontSize))", value: $style.maxFontSize, in: 8...120, step: 1)
-            }
+            Stepper(
+                "Font size: \(Int(style.fontSize))",
+                value: fontSizeBinding,
+                in: 8...240,
+                step: 1
+            )
 
             Picker("Weight", selection: $style.fontWeight) {
                 ForEach(PresentationFontWeight.allCases) { weight in
@@ -55,6 +64,9 @@ struct SlideStyleControlsView: View {
                     value: $style.maxLinesPerSlide,
                     in: 1...8
                 )
+                .onChange(of: style.maxLinesPerSlide) { _, _ in
+                    onMaxLinesPerSlideChange?()
+                }
             }
         }
     }
