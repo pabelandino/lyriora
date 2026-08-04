@@ -155,6 +155,9 @@ struct ThemePickerMenu: View {
                 .popover(isPresented: $isPickerPresented, arrowEdge: .bottom) {
                     themePickerPopover
                 }
+                #if os(iOS)
+                .presentationCompactAdaptation(.popover)
+                #endif
             }
         }
     }
