@@ -11,6 +11,12 @@ struct EditorAdaptivePresentationText: View {
     let text: String
     let configuration: PresentationTextConfiguration
     let containerSize: CGSize
+    /// When true, renders at the configured font size instead of auto-shrinking to fit.
+    var usesExactFontSize: Bool = true
+
+    private var lines: [String] {
+        PresentationTextMeasurer.explicitLines(from: text)
+    }
 
     var body: some View {
         let padding = min(containerSize.width, containerSize.height) * configuration.paddingRatio
@@ -19,31 +25,67 @@ struct EditorAdaptivePresentationText: View {
             height: max(containerSize.height - (padding * 2), 1)
         )
 
-        let fontSize = configuration.isAdaptiveScalingEnabled
-            ? PresentationTextMeasurer.fittingFontSize(
+        let fontSize: CGFloat = {
+            if usesExactFontSize || !configuration.isAdaptiveScalingEnabled {
+                return configuration.maxFontSize
+            }
+            return PresentationTextMeasurer.fittingFontSize(
                 text: text,
                 in: availableSize,
                 configuration: configuration
             )
-            : configuration.maxFontSize
+        }()
 
-        Text(text)
+        ExplicitLinePresentationText(
+            lines: lines,
+            fontSize: fontSize,
+            configuration: configuration,
+            availableSize: availableSize,
+            scalesToFitWidth: !usesExactFontSize && configuration.isAdaptiveScalingEnabled
+        )
+        .id(fontSize)
+        .padding(padding)
+        .frame(width: containerSize.width, height: containerSize.height, alignment: .center)
+    }
+}
+
+struct ExplicitLinePresentationText: View {
+    let lines: [String]
+    let fontSize: CGFloat
+    let configuration: PresentationTextConfiguration
+    let availableSize: CGSize
+    var scalesToFitWidth: Bool = false
+
+    var body: some View {
+        VStack(spacing: configuration.lineSpacing) {
+            ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                lineView(line)
+            }
+        }
+        .frame(width: availableSize.width, height: availableSize.height, alignment: .center)
+        .shadow(
+            color: configuration.shadowEnabled
+                ? configuration.shadowColor.opacity(configuration.shadowOpacity)
+                : .clear,
+            radius: configuration.shadowRadius,
+            y: configuration.shadowYOffset
+        )
+    }
+
+    @ViewBuilder
+    private func lineView(_ line: String) -> some View {
+        let content = Text(line.trimmingCharacters(in: .whitespaces).isEmpty ? " " : line)
             .font(configuration.font(size: fontSize))
             .multilineTextAlignment(.center)
             .foregroundStyle(configuration.textColor)
-            .lineSpacing(configuration.lineSpacing)
-            .lineLimit(nil)
-            .minimumScaleFactor(0.5)
-            .frame(width: availableSize.width, height: availableSize.height, alignment: .center)
-            .padding(padding)
-            .frame(width: containerSize.width, height: containerSize.height, alignment: .center)
-            .shadow(
-                color: configuration.shadowEnabled
-                    ? configuration.shadowColor.opacity(configuration.shadowOpacity)
-                    : .clear,
-                radius: configuration.shadowRadius,
-                y: configuration.shadowYOffset
-            )
+            .lineLimit(1)
+            .frame(maxWidth: availableSize.width)
+
+        if scalesToFitWidth {
+            content.minimumScaleFactor(0.5)
+        } else {
+            content
+        }
     }
 }
 

@@ -9,7 +9,9 @@ struct SlideDetailEditorView: View {
     @Binding var slide: LyricSlide
     @Binding var styleProfile: LyricStyleProfile
     let language: LyricLanguage
+    let defaultBackgroundSettings: DefaultBackgroundSettings
     let onDelete: () -> Void
+    var onSlideContentChanged: (() -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
     @State private var usesCustomStyle: Bool
@@ -18,12 +20,16 @@ struct SlideDetailEditorView: View {
         slide: Binding<LyricSlide>,
         styleProfile: Binding<LyricStyleProfile>,
         language: LyricLanguage,
-        onDelete: @escaping () -> Void
+        defaultBackgroundSettings: DefaultBackgroundSettings = .default,
+        onDelete: @escaping () -> Void,
+        onSlideContentChanged: (() -> Void)? = nil
     ) {
         _slide = slide
         _styleProfile = styleProfile
         self.language = language
+        self.defaultBackgroundSettings = defaultBackgroundSettings
         self.onDelete = onDelete
+        self.onSlideContentChanged = onSlideContentChanged
         _usesCustomStyle = State(initialValue: slide.wrappedValue.style != nil)
     }
 
@@ -46,7 +52,8 @@ struct SlideDetailEditorView: View {
                 style: activeStyle.wrappedValue,
                 language: language,
                 scopeLabel: "Live Preview",
-                compact: true
+                compact: true,
+                backgroundStyle: .settingsDefault(defaultBackgroundSettings)
             )
         } content: {
             VStack(alignment: .leading, spacing: 24) {
@@ -99,5 +106,8 @@ struct SlideDetailEditorView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        .onDisappear {
+            onSlideContentChanged?()
+        }
     }
 }

@@ -105,13 +105,6 @@ extension PresentationFontWeight {
 
 extension SlideTextStyle {
     func presentationConfiguration(isPreview: Bool) -> PresentationTextConfiguration {
-        PresentationTextConfiguration(style: isPreview ? previewAdjusted() : self)
-    }
-
-    private func previewAdjusted() -> SlideTextStyle {
-        var copy = self
-        copy.maxFontSize = min(maxFontSize, SlideTextStyle.previewDefault.maxFontSize)
-        copy.minFontSize = min(minFontSize, copy.maxFontSize)
-        return copy
+        PresentationTextConfiguration(style: self)
     }
 }

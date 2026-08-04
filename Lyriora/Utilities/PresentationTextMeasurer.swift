@@ -13,12 +13,17 @@ import AppKit
 #endif
 
 enum PresentationTextMeasurer {
+    static func explicitLines(from text: String) -> [String] {
+        text.components(separatedBy: "\n")
+    }
+
     static func fittingFontSize(
         text: String,
         in size: CGSize,
         configuration: PresentationTextConfiguration
     ) -> CGFloat {
-        guard size.width > 0, size.height > 0 else {
+        let lines = explicitLines(from: text)
+        guard size.width > 0, size.height > 0, !lines.isEmpty else {
             return configuration.minFontSize
         }
 
@@ -30,7 +35,7 @@ enum PresentationTextMeasurer {
             let mid = (low + high) / 2
 
             if textFits(
-                text,
+                lines: lines,
                 fontSize: mid,
                 configuration: configuration,
                 in: size
@@ -51,14 +56,70 @@ enum PresentationTextMeasurer {
         configuration: PresentationTextConfiguration,
         in size: CGSize
     ) -> Bool {
-        let measured = measure(
-            text: text,
+        textFits(
+            lines: explicitLines(from: text),
             fontSize: fontSize,
             configuration: configuration,
-            maxWidth: size.width
+            in: size
         )
+    }
 
-        return measured.width <= size.width && measured.height <= size.height
+    static func textFits(
+        lines: [String],
+        fontSize: CGFloat,
+        configuration: PresentationTextConfiguration,
+        in size: CGSize
+    ) -> Bool {
+        guard !lines.isEmpty else { return true }
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { continue }
+
+            let lineSize = measureSingleLine(
+                trimmed,
+                fontSize: fontSize,
+                configuration: configuration
+            )
+            if lineSize.width > size.width {
+                return false
+            }
+        }
+
+        return totalHeight(
+            for: lines,
+            fontSize: fontSize,
+            configuration: configuration
+        ) <= size.height
+    }
+
+    static func totalHeight(
+        for lines: [String],
+        fontSize: CGFloat,
+        configuration: PresentationTextConfiguration
+    ) -> CGFloat {
+        guard !lines.isEmpty else { return 0 }
+
+        var height: CGFloat = 0
+        var renderedLineCount = 0
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { continue }
+
+            if renderedLineCount > 0 {
+                height += configuration.lineSpacing
+            }
+
+            height += measureSingleLine(
+                trimmed,
+                fontSize: fontSize,
+                configuration: configuration
+            ).height
+            renderedLineCount += 1
+        }
+
+        return height
     }
 
     static func measure(
@@ -67,9 +128,12 @@ enum PresentationTextMeasurer {
         configuration: PresentationTextConfiguration,
         maxWidth: CGFloat
     ) -> CGSize {
+        let attributes = measurementAttributes(
+            fontSize: fontSize,
+            configuration: configuration
+        )
+
         #if canImport(UIKit)
-        let font = configuration.fontFamily.uiFont(size: fontSize, weight: configuration.fontWeight)
-        let attributes: [NSAttributedString.Key: Any] = [.font: font]
         let bounds = (text as NSString).boundingRect(
             with: CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading],
@@ -78,8 +142,6 @@ enum PresentationTextMeasurer {
         )
         return CGSize(width: ceil(bounds.width), height: ceil(bounds.height))
         #elseif os(macOS)
-        let font = configuration.fontFamily.nsFont(size: fontSize, weight: configuration.fontWeight)
-        let attributes: [NSAttributedString.Key: Any] = [.font: font]
         let bounds = (text as NSString).boundingRect(
             with: CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading],
@@ -90,5 +152,39 @@ enum PresentationTextMeasurer {
         #else
         return .zero
         #endif
+    }
+
+    static func measureSingleLine(
+        _ text: String,
+        fontSize: CGFloat,
+        configuration: PresentationTextConfiguration
+    ) -> CGSize {
+        measure(
+            text: text,
+            fontSize: fontSize,
+            configuration: configuration,
+            maxWidth: .greatestFiniteMagnitude
+        )
+    }
+
+    private static func measurementAttributes(
+        fontSize: CGFloat,
+        configuration: PresentationTextConfiguration
+    ) -> [NSAttributedString.Key: Any] {
+        #if canImport(UIKit)
+        let font = configuration.fontFamily.uiFont(size: fontSize, weight: configuration.fontWeight)
+        #elseif os(macOS)
+        let font = configuration.fontFamily.nsFont(size: fontSize, weight: configuration.fontWeight)
+        #endif
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 0
+        paragraphStyle.alignment = .center
+        paragraphStyle.lineBreakMode = .byTruncatingTail
+
+        return [
+            .font: font,
+            .paragraphStyle: paragraphStyle
+        ]
     }
 }

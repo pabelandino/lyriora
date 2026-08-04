@@ -26,10 +26,22 @@ struct LyricTheme: Identifiable, Codable, Equatable, Sendable {
         self.updatedAt = updatedAt
     }
 
-    static let previewSampleText = """
-    Lorem ipsum dolor sit amet
-    consectetur adipiscing elit
-    sed do eiusmod tempor incididunt
-    ut labore et dolore magna aliqua
-    """
+    static let previewSampleLines = [
+        "Lorem ipsum dolor sit amet",
+        "consectetur adipiscing elit",
+        "sed do eiusmod tempor incididunt",
+        "ut labore et dolore magna aliqua",
+        "Ut enim ad minim veniam",
+        "quis nostrud exercitation ullamco",
+        "laboris nisi ut aliquip ex ea",
+        "commodo consequat duis aute irure"
+    ]
+
+    static let previewSampleText = previewSampleLines.prefix(4).joined(separator: "\n")
+
+    static func previewSampleText(maxLines: Int) -> String {
+        previewSampleLines
+            .prefix(max(1, maxLines))
+            .joined(separator: "\n")
+    }
 }

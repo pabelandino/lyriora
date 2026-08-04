@@ -76,9 +76,10 @@ struct PresentationBackgroundLayer: View {
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
     var blurDefaultBackground: Bool = true
+    var showsDefaultWhenEmpty: Bool = true
 
     private var layerIdentity: String {
-        background?.url.absoluteString ?? "default-\(defaultBackgroundSettings.preset.rawValue)"
+        background?.url.absoluteString ?? "default-\(defaultBackgroundSettings.preset.rawValue)-\(showsDefaultWhenEmpty)"
     }
 
     var body: some View {
@@ -90,17 +91,23 @@ struct PresentationBackgroundLayer: View {
                 )
                 .transition(.opacity)
                 .id(layerIdentity)
-            } else if blurDefaultBackground {
-                BlurredBackgroundLayer(
-                    blurRadius: defaultBackgroundSettings.blurRadius,
-                    overlayOpacity: defaultBackgroundSettings.overlayOpacity
-                ) {
+            } else if showsDefaultWhenEmpty {
+                if blurDefaultBackground {
+                    BlurredBackgroundLayer(
+                        blurRadius: defaultBackgroundSettings.blurRadius,
+                        overlayOpacity: defaultBackgroundSettings.overlayOpacity
+                    ) {
+                        ConfigurableDefaultGradientView(settings: defaultBackgroundSettings)
+                    }
+                    .transition(.opacity)
+                    .id(layerIdentity)
+                } else {
                     ConfigurableDefaultGradientView(settings: defaultBackgroundSettings)
+                        .transition(.opacity)
+                        .id(layerIdentity)
                 }
-                .transition(.opacity)
-                .id(layerIdentity)
             } else {
-                ConfigurableDefaultGradientView(settings: defaultBackgroundSettings)
+                Color.clear
                     .transition(.opacity)
                     .id(layerIdentity)
             }
@@ -114,6 +121,7 @@ struct ToggleablePresentationBackgroundLayer: View {
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
     var blurDefaultBackground: Bool = true
+    var showsDefaultWhenEmpty: Bool = true
 
     var body: some View {
         Group {
@@ -121,7 +129,8 @@ struct ToggleablePresentationBackgroundLayer: View {
                 PresentationBackgroundLayer(
                     background: background,
                     defaultBackgroundSettings: defaultBackgroundSettings,
-                    blurDefaultBackground: blurDefaultBackground
+                    blurDefaultBackground: blurDefaultBackground,
+                    showsDefaultWhenEmpty: showsDefaultWhenEmpty
                 )
             } else {
                 Color.black.opacity(0.35)

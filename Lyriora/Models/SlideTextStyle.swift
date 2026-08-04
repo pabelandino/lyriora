@@ -40,9 +40,9 @@ struct SlideTextStyle: Codable, Equatable, Sendable {
     var shadowYOffset: Double
 
     static let `default` = SlideTextStyle(
-        isAdaptiveScalingEnabled: true,
-        minFontSize: 16,
-        maxFontSize: 40,
+        isAdaptiveScalingEnabled: false,
+        minFontSize: 30,
+        maxFontSize: 30,
         fontWeight: .bold,
         fontFamily: .systemRounded,
         textColor: .white,
@@ -152,6 +152,16 @@ struct SlideTextStyle: Codable, Equatable, Sendable {
         try container.encode(shadowRadius, forKey: .shadowRadius)
         try container.encode(shadowOpacity, forKey: .shadowOpacity)
         try container.encode(shadowYOffset, forKey: .shadowYOffset)
+    }
+}
+
+extension SlideTextStyle {
+    var fontSize: Double {
+        get { maxFontSize }
+        set {
+            maxFontSize = newValue
+            minFontSize = newValue
+        }
     }
 }
 

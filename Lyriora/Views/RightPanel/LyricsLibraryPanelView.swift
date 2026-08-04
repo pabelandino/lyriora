@@ -8,6 +8,8 @@ import SwiftUI
 struct LyricsLibraryPanelView: View {
     @Bindable var viewModel: AppViewModel
 
+    @State private var lyricPendingDeletion: LyricDocument?
+
     #if os(macOS)
     @Environment(\.openWindow) private var openWindow
     #endif
@@ -24,11 +26,9 @@ struct LyricsLibraryPanelView: View {
                     Button {
                         openLyricEditor(existingLyricID: nil)
                     } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title3)
-                            .symbolRenderingMode(.palette)
-                            .foregroundStyle(.green, .white.opacity(0.85))
+                        GlassCircleIcon(systemName: "plus")
                     }
+                    .buttonStyle(.plain)
                     .accessibilityLabel("Create new lyric")
                 }
                 .padding(.horizontal, 16)
@@ -42,6 +42,9 @@ struct LyricsLibraryPanelView: View {
                                 isSelected: lyric.id == viewModel.selectedLyricID,
                                 onEdit: {
                                     openLyricEditor(existingLyricID: lyric.id)
+                                },
+                                onDelete: {
+                                    lyricPendingDeletion = lyric
                                 }
                             )
                             .onTapGesture {
@@ -54,6 +57,28 @@ struct LyricsLibraryPanelView: View {
                 .transparentScrollContent()
             }
         }
+        .alert(
+            "Delete Lyric Permanently?",
+            isPresented: deleteAlertBinding,
+            presenting: lyricPendingDeletion
+        ) { lyric in
+            Button("Delete Permanently", role: .destructive) {
+                viewModel.deleteLyric(lyric)
+                lyricPendingDeletion = nil
+            }
+            Button("Cancel", role: .cancel) {
+                lyricPendingDeletion = nil
+            }
+        } message: { lyric in
+            Text("\"\(lyric.title)\" will be permanently deleted. This action cannot be undone.")
+        }
+    }
+
+    private var deleteAlertBinding: Binding<Bool> {
+        Binding(
+            get: { lyricPendingDeletion != nil },
+            set: { if !$0 { lyricPendingDeletion = nil } }
+        )
     }
 
     private func openLyricEditor(existingLyricID: UUID?) {
@@ -75,6 +100,7 @@ private struct LyricCardView: View {
     let lyric: LyricDocument
     let isSelected: Bool
     let onEdit: () -> Void
+    let onDelete: () -> Void
 
     private let cornerRadius: CGFloat = 18
 
@@ -96,17 +122,25 @@ private struct LyricCardView: View {
             VStack {
                 HStack {
                     Spacer()
-                    Button(action: onEdit) {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.title3)
-                            .symbolRenderingMode(.palette)
-                            .foregroundStyle(.white, .black.opacity(0.35))
-                            .shadow(color: .black.opacity(0.25), radius: 2, y: 1)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Edit lyric")
-                    .padding(8)
+
+                    GlassOverflowMenu(
+                        actions: [
+                            .init(
+                                title: "Edit",
+                                systemImage: "pencil",
+                                handler: onEdit
+                            ),
+                            .init(
+                                title: "Delete",
+                                systemImage: "trash",
+                                role: .destructive,
+                                handler: onDelete
+                            )
+                        ],
+                        iconSize: 36
+                    )
                 }
+                .padding(10)
 
                 Spacer()
 

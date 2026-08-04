@@ -10,6 +10,7 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
     var title: String
     var content: String
     var storedSlides: [LyricSlide]
+    var sourceSections: [LyricSectionSource]
     var styleProfile: LyricStyleProfile
     var language: LyricLanguage
     var colorSeed: UInt64
@@ -21,6 +22,7 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
         title: String,
         content: String = "",
         storedSlides: [LyricSlide] = [],
+        sourceSections: [LyricSectionSource] = [],
         styleProfile: LyricStyleProfile = .default,
         language: LyricLanguage = .unknown,
         colorSeed: UInt64 = UInt64.random(in: 0...UInt64.max),
@@ -31,6 +33,7 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
         self.title = title
         self.content = content
         self.storedSlides = storedSlides
+        self.sourceSections = sourceSections
         self.styleProfile = styleProfile
         self.language = language
         self.colorSeed = colorSeed
@@ -54,17 +57,26 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
     }
 
     mutating func syncContentFromSlides() {
-        content = slides
-            .map { slide in
-                let header = "[\(slide.tag.localizedName(for: language))]"
-                return "\(header)\n\(slide.text)"
-            }
-            .joined(separator: "\n\n---\n\n")
+        if !sourceSections.isEmpty {
+            content = LyricImportParser.rawText(from: sourceSections, language: language)
+        } else if !storedSlides.isEmpty {
+            let sections = LyricImportParser.sections(from: storedSlides)
+            content = LyricImportParser.rawText(from: sections, language: language)
+            sourceSections = sections
+        } else {
+            content = storedSlides
+                .sorted { $0.order < $1.order }
+                .map { slide in
+                    let header = "[\(slide.tag.localizedName(for: language))]"
+                    return "\(header)\n\(slide.text)"
+                }
+                .joined(separator: "\n\n---\n\n")
+        }
         updatedAt = .now
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, title, content, storedSlides, styleProfile, language, colorSeed, createdAt, updatedAt
+        case id, title, content, storedSlides, sourceSections, styleProfile, language, colorSeed, createdAt, updatedAt
     }
 
     init(from decoder: Decoder) throws {
@@ -73,15 +85,27 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
         storedSlides = try container.decodeIfPresent([LyricSlide].self, forKey: .storedSlides) ?? []
+        sourceSections = try container.decodeIfPresent([LyricSectionSource].self, forKey: .sourceSections) ?? []
         styleProfile = try container.decodeIfPresent(LyricStyleProfile.self, forKey: .styleProfile) ?? .default
         language = try container.decodeIfPresent(LyricLanguage.self, forKey: .language) ?? .unknown
         colorSeed = try container.decodeIfPresent(UInt64.self, forKey: .colorSeed) ?? UInt64.random(in: 0...UInt64.max)
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? .now
         updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? .now
 
-        if storedSlides.isEmpty, !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if sourceSections.isEmpty, !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            sourceSections = LyricImportParser.parseSections(content).sections
+        }
+
+        if storedSlides.isEmpty, !sourceSections.isEmpty {
+            storedSlides = LyricImportParser.makeSlides(
+                from: sourceSections,
+                style: styleProfile.defaultStyle
+            )
+            language = LyricImportParser.parseSections(content).language
+        } else if storedSlides.isEmpty, !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let parsed = LyricImportParser.parse(content, styleProfile: styleProfile)
             storedSlides = parsed.slides
+            sourceSections = parsed.sections
             language = parsed.language
         }
     }

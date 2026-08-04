@@ -9,6 +9,7 @@ struct LyricEditorSlideHorizontalListView: View {
     let slides: [LyricSlide]
     let styleProfile: LyricStyleProfile
     let language: LyricLanguage
+    let defaultBackgroundSettings: DefaultBackgroundSettings
 
     private let cardWidth: CGFloat = 180
     private let rowHeight: CGFloat = 160
@@ -27,7 +28,8 @@ struct LyricEditorSlideHorizontalListView: View {
                             LyricEditorSlideCard(
                                 slide: slide,
                                 style: styleProfile.resolvedStyle(for: slide),
-                                language: language
+                                language: language,
+                                defaultBackgroundSettings: defaultBackgroundSettings
                             )
                             .frame(width: cardWidth)
                         }
@@ -37,7 +39,14 @@ struct LyricEditorSlideHorizontalListView: View {
                 .padding(.vertical, 2)
             }
             .frame(height: rowHeight)
+            .id(slidesRefreshID)
         }
+    }
+
+    private var slidesRefreshID: String {
+        let style = styleProfile.defaultStyle
+        return slides.map(\.id.uuidString).joined(separator: "-")
+            + "|\(slides.count)|\(style.maxLinesPerSlide)|\(style.lineSpacing)|\(style.maxFontSize)"
     }
 }
 
@@ -45,6 +54,7 @@ private struct LyricEditorSlideCard: View {
     let slide: LyricSlide
     let style: SlideTextStyle
     let language: LyricLanguage
+    let defaultBackgroundSettings: DefaultBackgroundSettings
 
     private let cornerRadius: CGFloat = 12
 
@@ -69,17 +79,11 @@ private struct LyricEditorSlideCard: View {
             }
 
             ZStack {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.05, green: 0.11, blue: 0.24),
-                                Color(red: 0.10, green: 0.22, blue: 0.44)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                PresentationBackgroundLayer(
+                    background: nil,
+                    defaultBackgroundSettings: defaultBackgroundSettings,
+                    blurDefaultBackground: false
+                )
 
                 EditorAdaptivePresentationText(
                     text: slide.text,

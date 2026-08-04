@@ -166,6 +166,26 @@ final class AppViewModel {
         showLyrics = true
     }
 
+    func deleteLyric(_ lyric: LyricDocument) {
+        do {
+            try lyricRepository.delete(lyric)
+        } catch {
+            return
+        }
+
+        lyrics.removeAll { $0.id == lyric.id }
+
+        if selectedLyricID == lyric.id {
+            if let next = lyrics.first {
+                selectLyric(next)
+            } else {
+                selectedLyricID = nil
+                selectedSlideIndex = nil
+                showLyrics = false
+            }
+        }
+    }
+
     func selectSlide(_ slide: LyricSlide) {
         selectedSlideIndex = slide.index
         showLyrics = true
@@ -198,24 +218,32 @@ final class AppViewModel {
         slides: [LyricSlide],
         styleProfile: LyricStyleProfile,
         language: LyricLanguage,
-        rawContent: String
+        rawContent: String,
+        sourceSections: [LyricSectionSource] = []
     ) {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty, !slides.isEmpty else { return }
 
+        let canonicalSections = sourceSections.isEmpty
+            ? LyricImportParser.parseSections(rawContent).sections
+            : sourceSections
+        let canonicalContent = canonicalSections.isEmpty
+            ? rawContent
+            : LyricImportParser.rawText(from: canonicalSections, language: language)
+
         var lyric = LyricDocument(
             id: id ?? UUID(),
             title: trimmedTitle,
-            content: rawContent,
+            content: canonicalContent,
             storedSlides: slides.enumerated().map { index, slide in
                 var normalized = slide
                 normalized.order = index
                 return normalized
             },
+            sourceSections: canonicalSections,
             styleProfile: styleProfile,
             language: language
         )
-        lyric.syncContentFromSlides()
 
         do {
             try lyricRepository.save(lyric)
@@ -243,7 +271,8 @@ final class AppViewModel {
             slides: parsed.slides,
             styleProfile: .default,
             language: parsed.language,
-            rawContent: content
+            rawContent: LyricImportParser.rawText(from: parsed.sections, language: parsed.language),
+            sourceSections: parsed.sections
         )
     }
 

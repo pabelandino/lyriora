@@ -10,12 +10,17 @@ struct GlobalStyleEditorContent: View {
     @Binding var style: SlideTextStyle
     @Binding var profileName: String
     @Binding var selectedThemeID: UUID?
+    var onLayoutStyleChange: (() -> Void)? = nil
 
     private let sampleSlide = LyricSlide(
         order: 0,
         text: LyricTheme.previewSampleText,
         tag: .chorus
     )
+
+    private var stylePreviewText: String {
+        LyricTheme.previewSampleText(maxLines: style.maxLinesPerSlide)
+    }
 
     var body: some View {
         StickyPreviewEditorLayout {
@@ -25,17 +30,24 @@ struct GlobalStyleEditorContent: View {
                 language: .english,
                 scopeLabel: "Live Preview",
                 compact: true,
-                previewText: LyricTheme.previewSampleText
+                previewText: stylePreviewText,
+                backgroundStyle: .borderOnly
             )
         } content: {
             VStack(alignment: .leading, spacing: 24) {
                 ThemePickerMenu(
                     themes: viewModel.themes,
                     selectedThemeID: $selectedThemeID,
+                    defaultBackgroundSettings: viewModel.settings.defaultBackground,
                     onSelect: applyTheme
                 )
 
-                SlideStyleControlsView(style: $style, showsMaxLinesStepper: true)
+                SlideStyleControlsView(
+                    style: $style,
+                    showsMaxLinesStepper: true,
+                    onMaxLinesPerSlideChange: onLayoutStyleChange,
+                    onFontSizeChange: onLayoutStyleChange
+                )
             }
         }
     }
@@ -70,7 +82,7 @@ struct GlobalStyleEditorView: View {
             profileName: $profileName,
             selectedThemeID: $selectedThemeID
         )
-        .navigationTitle("Global Typography")
+        .navigationTitle("Text Style")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif

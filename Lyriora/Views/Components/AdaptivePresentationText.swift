@@ -9,6 +9,10 @@ struct AdaptivePresentationText: View {
     let text: String
     let configuration: PresentationTextConfiguration
 
+    private var lines: [String] {
+        PresentationTextMeasurer.explicitLines(from: text)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             let padding = min(geometry.size.width, geometry.size.height) * configuration.paddingRatio
@@ -25,23 +29,15 @@ struct AdaptivePresentationText: View {
                 )
                 : configuration.maxFontSize
 
-            Text(text)
-                .font(configuration.font(size: fontSize))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(configuration.textColor)
-                .lineSpacing(configuration.lineSpacing)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(width: availableSize.width, alignment: .center)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .padding(padding)
-                .shadow(
-                    color: configuration.shadowEnabled
-                        ? configuration.shadowColor.opacity(configuration.shadowOpacity)
-                        : .clear,
-                    radius: configuration.shadowRadius,
-                    y: configuration.shadowYOffset
-                )
+            ExplicitLinePresentationText(
+                lines: lines,
+                fontSize: fontSize,
+                configuration: configuration,
+                availableSize: availableSize,
+                scalesToFitWidth: configuration.isAdaptiveScalingEnabled
+            )
+            .padding(padding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
     }
 }
