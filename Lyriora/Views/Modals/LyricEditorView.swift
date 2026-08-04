@@ -116,6 +116,18 @@ struct LyricEditorView: View {
             guard !suppressMaxLinesReparse else { return }
             rechunkSlides()
         }
+        .onChange(of: styleProfile.defaultStyle.lineSpacing) { _, _ in
+            guard !suppressMaxLinesReparse else { return }
+            rechunkSlides()
+        }
+        .onChange(of: styleProfile.defaultStyle.horizontalPaddingRatio) { _, _ in
+            guard !suppressMaxLinesReparse else { return }
+            rechunkSlides()
+        }
+        .onChange(of: styleProfile.defaultStyle.verticalPaddingRatio) { _, _ in
+            guard !suppressMaxLinesReparse else { return }
+            rechunkSlides()
+        }
     }
 
     @ViewBuilder
@@ -437,7 +449,7 @@ struct LyricEditorView: View {
         }
 
         slides = existingLyric.slides
-        if slides.isEmpty, !sourceSections.isEmpty {
+        if !sourceSections.isEmpty {
             rechunkSlides()
         }
 
@@ -567,6 +579,7 @@ struct LyricEditorView: View {
     }
 
     private func performSaveLyric() {
+        rechunkSlides()
         viewModel.saveLyric(
             id: existingLyricID,
             title: title,

@@ -61,7 +61,10 @@ enum LyricSlideLayoutEngine {
                 .filter { !$0.isEmpty }
         }
 
-        let availableWidth = availableTextWidth(in: containerSize, paddingRatio: configuration.paddingRatio)
+        let availableWidth = availableTextWidth(
+            in: containerSize,
+            horizontalPaddingRatio: configuration.horizontalPaddingRatio
+        )
         let fontSize = CGFloat(style.maxFontSize)
 
         return lines.flatMap { line in
@@ -86,7 +89,10 @@ enum LyricSlideLayoutEngine {
             return max(1, configuredMax)
         }
 
-        let availableHeight = availableTextHeight(in: containerSize, paddingRatio: configuration.paddingRatio)
+        let availableHeight = availableTextHeight(
+            in: containerSize,
+            verticalPaddingRatio: configuration.verticalPaddingRatio
+        )
         let fontSize = CGFloat(style.maxFontSize)
         let lineHeight = PresentationTextMeasurer.measureSingleLine(
             "Ag",
@@ -100,13 +106,13 @@ enum LyricSlideLayoutEngine {
         return max(1, min(configuredMax, verticalFit))
     }
 
-    private static func availableTextWidth(in containerSize: CGSize, paddingRatio: CGFloat) -> CGFloat {
-        let padding = min(containerSize.width, containerSize.height) * paddingRatio
+    private static func availableTextWidth(in containerSize: CGSize, horizontalPaddingRatio: CGFloat) -> CGFloat {
+        let padding = containerSize.width * horizontalPaddingRatio
         return max(containerSize.width - (padding * 2), 1)
     }
 
-    private static func availableTextHeight(in containerSize: CGSize, paddingRatio: CGFloat) -> CGFloat {
-        let padding = min(containerSize.width, containerSize.height) * paddingRatio
+    private static func availableTextHeight(in containerSize: CGSize, verticalPaddingRatio: CGFloat) -> CGFloat {
+        let padding = containerSize.height * verticalPaddingRatio
         return max(containerSize.height - (padding * 2), 1)
     }
 

@@ -10,7 +10,6 @@ struct StickyPreviewEditorLayout<Preview: View, Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     private let contentMaxWidth: CGFloat = 700
-    private let previewHeight: CGFloat = 200
     private let previewVerticalPadding: CGFloat = 12
     private let previewHorizontalPadding: CGFloat = 20
 
@@ -32,24 +31,34 @@ struct StickyPreviewEditorLayout<Preview: View, Content: View>: View {
 
     @ViewBuilder
     private var previewSection: some View {
-        GeometryReader { geometry in
-            let containerSize = CGSize(
-                width: max(geometry.size.width, 1),
-                height: previewHeight
+        Color.clear
+            .aspectRatio(
+                PresentationLayout.aspectRatio(for: PresentationLayout.textStylePreviewCanvasSize),
+                contentMode: .fit
             )
-
-            preview()
-                .environment(\.previewContainerSize, containerSize)
-                .frame(width: geometry.size.width, height: previewHeight, alignment: .center)
-        }
-        .frame(maxWidth: contentMaxWidth)
-        .frame(maxWidth: .infinity)
-        .frame(height: previewHeight)
-        .padding(.horizontal, previewHorizontalPadding)
-        .padding(.vertical, previewVerticalPadding)
-        .frame(maxWidth: .infinity)
-        .background(stickyBackground)
-        .zIndex(1)
+            .frame(maxWidth: contentMaxWidth)
+            .frame(maxWidth: .infinity)
+            .overlay {
+                GeometryReader { geometry in
+                    preview()
+                        .environment(
+                            \.previewContainerSize,
+                            CGSize(
+                                width: max(geometry.size.width, 1),
+                                height: max(geometry.size.height, 1)
+                            )
+                        )
+                        .frame(
+                            width: geometry.size.width,
+                            height: geometry.size.height,
+                            alignment: .center
+                        )
+                }
+            }
+            .padding(.horizontal, previewHorizontalPadding)
+            .padding(.vertical, previewVerticalPadding)
+            .background(stickyBackground)
+            .zIndex(1)
     }
 
     @ViewBuilder

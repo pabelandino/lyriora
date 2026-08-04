@@ -36,22 +36,29 @@ struct LyricSlideLivePreview: View {
         style.presentationConfiguration(isPreview: compact)
     }
 
+    private var referenceCanvasSize: CGSize {
+        PresentationLayout.textStylePreviewCanvasSize
+    }
+
     private var resolvedContainerSize: CGSize {
-        if let previewContainerSize {
+        if let previewContainerSize, previewContainerSize.width > 1 {
             return previewContainerSize
         }
         return CGSize(width: 640, height: compact ? compactHeight : 400)
     }
 
     var body: some View {
-        VStack(spacing: compact ? 8 : 12) {
-            if !compact {
+        if compact {
+            referenceCanvasPreview
+                .frame(maxWidth: resolvedContainerSize.width)
+                .frame(maxWidth: .infinity)
+        } else {
+            VStack(spacing: 12) {
                 headerRow
+                legacyPreviewCard
             }
-
-            previewCard
+            .frame(width: resolvedContainerSize.width, alignment: .center)
         }
-        .frame(width: resolvedContainerSize.width, alignment: .center)
     }
 
     @ViewBuilder
@@ -74,13 +81,59 @@ struct LyricSlideLivePreview: View {
     }
 
     @ViewBuilder
-    private var previewCard: some View {
+    private var referenceCanvasPreview: some View {
+        let canvas = referenceCanvasSize
+
+        GeometryReader { geometry in
+            let fittedSize = geometry.size
+            let scale = fittedSize.width / canvas.width
+
+            ZStack {
+                previewBackground
+                    .frame(width: canvas.width, height: canvas.height)
+                    .scaleEffect(scale)
+                    .frame(width: fittedSize.width, height: fittedSize.height)
+
+                if !displayText.isEmpty {
+                    EditorAdaptivePresentationText(
+                        text: displayText,
+                        configuration: previewConfiguration,
+                        containerSize: canvas,
+                        sizing: .exact
+                    )
+                    .frame(width: canvas.width, height: canvas.height)
+                    .scaleEffect(scale)
+                    .frame(width: fittedSize.width, height: fittedSize.height)
+                } else {
+                    Text("Select a slide or import lyrics to preview.")
+                        .font(.callout)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(
+                            backgroundStyle == .borderOnly
+                                ? Color.secondary
+                                : Color.white.opacity(0.65)
+                        )
+                        .padding(24)
+                }
+            }
+        }
+        .clipShape(shape)
+        .overlay {
+            if backgroundStyle == .borderOnly {
+                shape.strokeBorder(Color.primary.opacity(0.18), lineWidth: 1.5)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    @ViewBuilder
+    private var legacyPreviewCard: some View {
         let size = resolvedContainerSize
 
         ZStack {
             previewBackground
 
-            previewCardContent(containerSize: size)
+            previewCardContent(containerSize: size, sizing: .scaledApproximation)
         }
         .frame(width: size.width, height: size.height)
         .clipShape(shape)
@@ -106,16 +159,20 @@ struct LyricSlideLivePreview: View {
     }
 
     @ViewBuilder
-    private func previewCardContent(containerSize: CGSize) -> some View {
+    private func previewCardContent(
+        containerSize: CGSize,
+        sizing: EditorPreviewSizing
+    ) -> some View {
         if !displayText.isEmpty {
             EditorAdaptivePresentationText(
                 text: displayText,
                 configuration: previewConfiguration,
-                containerSize: containerSize
+                containerSize: containerSize,
+                sizing: sizing
             )
         } else {
             Text("Select a slide or import lyrics to preview.")
-                .font(compact ? .callout : .body)
+                .font(.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(backgroundStyle == .borderOnly ? Color.secondary : Color.white.opacity(0.65))
                 .padding(24)

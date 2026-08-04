@@ -15,11 +15,8 @@ struct AdaptivePresentationText: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let padding = min(geometry.size.width, geometry.size.height) * configuration.paddingRatio
-            let availableSize = CGSize(
-                width: max(geometry.size.width - (padding * 2), 1),
-                height: max(geometry.size.height - (padding * 2), 1)
-            )
+            let insets = configuration.contentInsets(for: geometry.size)
+            let availableSize = configuration.availableTextSize(in: geometry.size)
 
             let fontSize = configuration.isAdaptiveScalingEnabled
                 ? PresentationTextMeasurer.fittingFontSize(
@@ -36,7 +33,7 @@ struct AdaptivePresentationText: View {
                 availableSize: availableSize,
                 scalesToFitWidth: configuration.isAdaptiveScalingEnabled
             )
-            .padding(padding)
+            .padding(insets)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
     }

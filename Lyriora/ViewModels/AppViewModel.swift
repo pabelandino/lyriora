@@ -70,9 +70,22 @@ final class AppViewModel {
 
     var selectedSlide: LyricSlide? {
         guard let selectedSlideIndex, let lyric = selectedLyric else { return nil }
-        let slides = lyric.slides
+        let slides = resolvedSlides(for: lyric)
         guard slides.indices.contains(selectedSlideIndex) else { return nil }
         return slides[selectedSlideIndex]
+    }
+
+    var selectedLyricSlides: [LyricSlide] {
+        guard let lyric = selectedLyric else { return [] }
+        return resolvedSlides(for: lyric)
+    }
+
+    private var presentationLayoutCanvasSize: CGSize {
+        PresentationLayout.resolvedCanvasSize(externalDisplayManager.presentationCanvasSize)
+    }
+
+    func resolvedSlides(for lyric: LyricDocument) -> [LyricSlide] {
+        lyric.resolvedSlides(containerSize: presentationLayoutCanvasSize)
     }
 
     var selectedBackgroundAsset: MediaAsset? {
@@ -162,7 +175,7 @@ final class AppViewModel {
 
     func selectLyric(_ lyric: LyricDocument) {
         selectedLyricID = lyric.id
-        selectedSlideIndex = lyric.slides.first?.index
+        selectedSlideIndex = resolvedSlides(for: lyric).first?.index
         showLyrics = true
     }
 

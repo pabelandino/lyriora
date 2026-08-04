@@ -31,6 +31,8 @@ struct SlideTextStyle: Codable, Equatable, Sendable {
     var fontFamily: PresentationFontFamily
     var textColor: CodableColor
     var paddingRatio: Double
+    var horizontalPaddingRatio: Double
+    var verticalPaddingRatio: Double
     var lineSpacing: Double
     var maxLinesPerSlide: Int
     var shadowEnabled: Bool
@@ -47,6 +49,8 @@ struct SlideTextStyle: Codable, Equatable, Sendable {
         fontFamily: .systemRounded,
         textColor: .white,
         paddingRatio: 0.06,
+        horizontalPaddingRatio: 0.06,
+        verticalPaddingRatio: 0.06,
         lineSpacing: 4,
         maxLinesPerSlide: 4,
         shadowEnabled: true,
@@ -75,7 +79,8 @@ struct SlideTextStyle: Codable, Equatable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case isAdaptiveScalingEnabled, minFontSize, maxFontSize, fontWeight
-        case fontFamily, fontDesign, textColor, paddingRatio, lineSpacing
+        case fontFamily, fontDesign, textColor, paddingRatio
+        case horizontalPaddingRatio, verticalPaddingRatio, lineSpacing
         case maxLinesPerSlide, shadowEnabled, shadowColor, shadowRadius
         case shadowOpacity, shadowYOffset
     }
@@ -88,6 +93,8 @@ struct SlideTextStyle: Codable, Equatable, Sendable {
         fontFamily: PresentationFontFamily,
         textColor: CodableColor,
         paddingRatio: Double,
+        horizontalPaddingRatio: Double? = nil,
+        verticalPaddingRatio: Double? = nil,
         lineSpacing: Double,
         maxLinesPerSlide: Int,
         shadowEnabled: Bool,
@@ -103,6 +110,8 @@ struct SlideTextStyle: Codable, Equatable, Sendable {
         self.fontFamily = fontFamily
         self.textColor = textColor
         self.paddingRatio = paddingRatio
+        self.horizontalPaddingRatio = horizontalPaddingRatio ?? paddingRatio
+        self.verticalPaddingRatio = verticalPaddingRatio ?? paddingRatio
         self.lineSpacing = lineSpacing
         self.maxLinesPerSlide = maxLinesPerSlide
         self.shadowEnabled = shadowEnabled
@@ -127,6 +136,8 @@ struct SlideTextStyle: Codable, Equatable, Sendable {
         }
         textColor = try container.decode(CodableColor.self, forKey: .textColor)
         paddingRatio = try container.decode(Double.self, forKey: .paddingRatio)
+        horizontalPaddingRatio = try container.decodeIfPresent(Double.self, forKey: .horizontalPaddingRatio) ?? paddingRatio
+        verticalPaddingRatio = try container.decodeIfPresent(Double.self, forKey: .verticalPaddingRatio) ?? paddingRatio
         lineSpacing = try container.decode(Double.self, forKey: .lineSpacing)
         maxLinesPerSlide = try container.decode(Int.self, forKey: .maxLinesPerSlide)
         shadowEnabled = try container.decode(Bool.self, forKey: .shadowEnabled)
@@ -145,6 +156,8 @@ struct SlideTextStyle: Codable, Equatable, Sendable {
         try container.encode(fontFamily, forKey: .fontFamily)
         try container.encode(textColor, forKey: .textColor)
         try container.encode(paddingRatio, forKey: .paddingRatio)
+        try container.encode(horizontalPaddingRatio, forKey: .horizontalPaddingRatio)
+        try container.encode(verticalPaddingRatio, forKey: .verticalPaddingRatio)
         try container.encode(lineSpacing, forKey: .lineSpacing)
         try container.encode(maxLinesPerSlide, forKey: .maxLinesPerSlide)
         try container.encode(shadowEnabled, forKey: .shadowEnabled)

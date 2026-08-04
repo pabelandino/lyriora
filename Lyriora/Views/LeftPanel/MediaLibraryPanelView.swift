@@ -12,8 +12,12 @@ struct MediaLibraryPanelView: View {
     var body: some View {
         VStack(spacing: 16) {
             ImageLibrarySection(viewModel: viewModel)
+                .frame(maxHeight: .infinity)
+
             VideoLibrarySection(viewModel: viewModel)
+                .frame(maxHeight: .infinity)
         }
+        .frame(maxHeight: .infinity)
     }
 }
 

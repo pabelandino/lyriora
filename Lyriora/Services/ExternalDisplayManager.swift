@@ -225,6 +225,7 @@ final class ExternalDisplayManager {
         teardownPresentationWindow()
 
         let window = UIWindow(windowScene: scene)
+        window.frame = scene.coordinateSpace.bounds
         let container = ExternalPresentationContainerViewController()
         container.onBoundsChange = { [weak self] size in
             self?.handleContainerBoundsChange(size)

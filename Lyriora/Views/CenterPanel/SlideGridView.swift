@@ -31,7 +31,7 @@ struct SlideGridView: View {
             } else {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 14) {
-                        ForEach(slides) { slide in
+                        ForEach(slides, id: \.order) { slide in
                             SlideThumbnailView(
                                 slide: slide,
                                 style: styleProfile?.resolvedStyle(for: slide),
@@ -45,7 +45,6 @@ struct SlideGridView: View {
                             .onTapGesture {
                                 onSelect(slide)
                             }
-                            .id(slide.id)
                         }
                     }
                     .padding(.horizontal, 20)

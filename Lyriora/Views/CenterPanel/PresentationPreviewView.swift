@@ -9,47 +9,100 @@ struct PresentationPreviewView: View {
     let state: PresentationState
     let fallbackConfiguration: PresentationTextConfiguration
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    let presentationCanvasSize: CGSize
+    let displayInfo: ExternalDisplayInfo
 
     private let cornerRadius: CGFloat = 28
+    private let stageCornerRadius: CGFloat = 14
 
-    private var textConfiguration: PresentationTextConfiguration {
-        if let style = state.slideStyle {
-            return style.presentationConfiguration(isPreview: true)
-        }
-        return fallbackConfiguration
+    private var canvasSize: CGSize {
+        PresentationLayout.resolvedCanvasSize(presentationCanvasSize)
+    }
+
+    private var canvasAspectRatio: CGFloat {
+        PresentationLayout.aspectRatio(for: canvasSize)
+    }
+
+    private var showsSlidePlaceholder: Bool {
+        state.showLyrics && state.slideText == nil
     }
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-
-        ZStack {
-            ToggleablePresentationBackgroundLayer(
-                isVisible: state.showBackground,
-                background: state.background,
-                defaultBackgroundSettings: defaultBackgroundSettings,
-                blurDefaultBackground: false,
-                showsDefaultWhenEmpty: false
-            )
-
-            lyricsOverlay
+        VStack(spacing: 10) {
+            previewStage
+            previewMetadataBar
         }
-        .clipShape(shape)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(12)
         .glassEffect(.regular, in: .rect(cornerRadius: cornerRadius, style: .continuous))
+        .allowsHitTesting(false)
     }
 
-    @ViewBuilder
-    private var lyricsOverlay: some View {
-        if state.showLyrics, let slideText = state.slideText {
-            AdaptivePresentationText(
-                text: slideText,
-                configuration: textConfiguration
-            )
-        } else if state.showLyrics {
-            Text("Select a slide to preview")
-                .font(.title3.weight(.medium))
-                .foregroundStyle(.white.opacity(0.7))
+    private var previewStage: some View {
+        Color.clear
+            .aspectRatio(canvasAspectRatio, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .overlay {
+                GeometryReader { geometry in
+                    let fittedSize = geometry.size
+                    let scale = fittedSize.width / canvasSize.width
+
+                    ZStack {
+                        PresentationContentView(
+                            state: state,
+                            fallbackConfiguration: fallbackConfiguration,
+                            defaultBackgroundSettings: defaultBackgroundSettings
+                        )
+                        .frame(width: canvasSize.width, height: canvasSize.height)
+                        .scaleEffect(scale)
+                        .frame(width: fittedSize.width, height: fittedSize.height)
+                        .clipped()
+
+                        if showsSlidePlaceholder {
+                            RoundedRectangle(cornerRadius: stageCornerRadius, style: .continuous)
+                                .fill(.black.opacity(0.45))
+
+                            Text("Select a slide to preview")
+                                .font(.title3.weight(.medium))
+                                .foregroundStyle(.white.opacity(0.85))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                        }
+                    }
+                    .frame(width: fittedSize.width, height: fittedSize.height)
+                    .clipShape(RoundedRectangle(cornerRadius: stageCornerRadius, style: .continuous))
+                }
+                .allowsHitTesting(false)
+            }
+            .background(Color.black.opacity(0.92))
+            .clipShape(RoundedRectangle(cornerRadius: stageCornerRadius, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: stageCornerRadius, style: .continuous)
+                    .strokeBorder(.white.opacity(0.12), lineWidth: 1)
+            }
+            .allowsHitTesting(false)
+    }
+
+    private var previewMetadataBar: some View {
+        HStack(spacing: 8) {
+            Label("Live preview", systemImage: "play.rectangle")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Spacer(minLength: 8)
+
+            if displayInfo.isConnected {
+                Label(displayInfo.resolutionDescription, systemImage: "display")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            } else {
+                Text("1920 × 1080 reference")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
         }
+        .padding(.horizontal, 4)
     }
 }
 
@@ -64,8 +117,6 @@ struct ExternalPresentationView: View {
             defaultBackgroundSettings: viewModel.settings.defaultBackground
         )
         .id(layoutRevision)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.black)
         .ignoresSafeArea()
     }
 }
@@ -83,26 +134,26 @@ struct PresentationContentView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Color.black
+        Color.black
+            .ignoresSafeArea()
+            .overlay {
+                ZStack {
+                    if state.showBackground, let background = state.background {
+                        PresentationBackgroundView(
+                            background: background,
+                            defaultBackgroundSettings: defaultBackgroundSettings
+                        )
+                    }
 
-                if state.showBackground, let background = state.background {
-                    PresentationBackgroundView(
-                        background: background,
-                        defaultBackgroundSettings: defaultBackgroundSettings
-                    )
-                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    if state.showLyrics, let slideText = state.slideText {
+                        AdaptivePresentationText(
+                            text: slideText,
+                            configuration: textConfiguration
+                        )
+                    }
                 }
-
-                if state.showLyrics, let slideText = state.slideText {
-                    AdaptivePresentationText(
-                        text: slideText,
-                        configuration: textConfiguration
-                    )
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-        }
+            .ignoresSafeArea()
     }
 }
