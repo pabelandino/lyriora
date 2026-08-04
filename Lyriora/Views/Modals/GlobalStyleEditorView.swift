@@ -46,7 +46,8 @@ struct GlobalStyleEditorContent: View {
                     style: $style,
                     showsMaxLinesStepper: true,
                     onMaxLinesPerSlideChange: onLayoutStyleChange,
-                    onFontSizeChange: onLayoutStyleChange
+                    onFontSizeChange: onLayoutStyleChange,
+                    onLayoutStyleChange: onLayoutStyleChange
                 )
             }
         }

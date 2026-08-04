@@ -14,13 +14,16 @@ struct CenterPanelView: View {
 
             PresentationPreviewView(
                 state: viewModel.presentationState,
-                fallbackConfiguration: PresentationTextConfiguration(settings: viewModel.settings.preview),
-                defaultBackgroundSettings: viewModel.settings.defaultBackground
+                fallbackConfiguration: PresentationTextConfiguration(settings: viewModel.settings.externalDisplay),
+                defaultBackgroundSettings: viewModel.settings.defaultBackground,
+                presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
+                displayInfo: viewModel.externalDisplayManager.displayInfo
             )
-                .frame(maxHeight: .infinity)
+            .id(viewModel.externalDisplayManager.layoutRevision)
+            .frame(maxWidth: .infinity)
 
             SlideGridView(
-                slides: viewModel.selectedLyric?.slides ?? [],
+                slides: viewModel.selectedLyricSlides,
                 styleProfile: viewModel.selectedLyric?.styleProfile,
                 language: viewModel.selectedLyric?.language ?? .unknown,
                 selectedSlideIndex: viewModel.selectedSlideIndex,

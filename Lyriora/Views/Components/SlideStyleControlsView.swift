@@ -10,14 +10,39 @@ struct SlideStyleControlsView: View {
     var showsMaxLinesStepper = false
     var onMaxLinesPerSlideChange: (() -> Void)? = nil
     var onFontSizeChange: (() -> Void)? = nil
+    var onLayoutStyleChange: (() -> Void)? = nil
 
     private var fontSizeBinding: Binding<Double> {
         Binding(
             get: { style.fontSize },
             set: { newValue in
-                style.fontSize = newValue
+                let snapped = (newValue / 2).rounded() * 2
+                style.fontSize = min(max(snapped, 8), 240)
                 style.isAdaptiveScalingEnabled = false
                 onFontSizeChange?()
+                onLayoutStyleChange?()
+            }
+        )
+    }
+
+    private var horizontalMarginBinding: Binding<Double> {
+        Binding(
+            get: { style.horizontalPaddingRatio * 100 },
+            set: { newValue in
+                style.horizontalPaddingRatio = newValue / 100
+                style.paddingRatio = (style.horizontalPaddingRatio + style.verticalPaddingRatio) / 2
+                onLayoutStyleChange?()
+            }
+        )
+    }
+
+    private var verticalMarginBinding: Binding<Double> {
+        Binding(
+            get: { style.verticalPaddingRatio * 100 },
+            set: { newValue in
+                style.verticalPaddingRatio = newValue / 100
+                style.paddingRatio = (style.horizontalPaddingRatio + style.verticalPaddingRatio) / 2
+                onLayoutStyleChange?()
             }
         )
     }
@@ -35,7 +60,7 @@ struct SlideStyleControlsView: View {
                 "Font size: \(Int(style.fontSize))",
                 value: fontSizeBinding,
                 in: 8...240,
-                step: 1
+                step: 2
             )
 
             Picker("Weight", selection: $style.fontWeight) {
@@ -50,7 +75,24 @@ struct SlideStyleControlsView: View {
                 set: { style.textColor = CodableColor(from: $0) }
             ))
 
+            Stepper(
+                "Horizontal margin: \(Int(style.horizontalPaddingRatio * 100))%",
+                value: horizontalMarginBinding,
+                in: 0...20,
+                step: 1
+            )
+
+            Stepper(
+                "Vertical margin: \(Int(style.verticalPaddingRatio * 100))%",
+                value: verticalMarginBinding,
+                in: 0...20,
+                step: 1
+            )
+
             Stepper("Line spacing: \(Int(style.lineSpacing))", value: $style.lineSpacing, in: 0...24, step: 1)
+                .onChange(of: style.lineSpacing) { _, _ in
+                    onLayoutStyleChange?()
+                }
 
             Toggle("Shadow", isOn: $style.shadowEnabled)
 

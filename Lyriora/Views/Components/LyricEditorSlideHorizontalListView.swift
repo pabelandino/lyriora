@@ -88,7 +88,8 @@ private struct LyricEditorSlideCard: View {
                 EditorAdaptivePresentationText(
                     text: slide.text,
                     configuration: textConfiguration,
-                    containerSize: CGSize(width: 156, height: 88)
+                    containerSize: CGSize(width: 156, height: 88),
+                    sizing: .scaledApproximation
                 )
             }
             .frame(height: 96)

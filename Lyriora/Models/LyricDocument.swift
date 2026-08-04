@@ -48,14 +48,6 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
         return LyricImportParser.parseLegacyContent(content)
     }
 
-    var previewSnippet: String {
-        let firstSlide = slides.first?.text ?? content
-        return firstSlide
-            .components(separatedBy: .newlines)
-            .first?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-    }
-
     mutating func syncContentFromSlides() {
         if !sourceSections.isEmpty {
             content = LyricImportParser.rawText(from: sourceSections, language: language)
@@ -108,5 +100,29 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
             sourceSections = parsed.sections
             language = parsed.language
         }
+    }
+}
+
+extension LyricDocument {
+    var previewSnippet: String {
+        let firstSlide = slides.first?.text ?? content
+        return firstSlide
+            .components(separatedBy: .newlines)
+            .first?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+
+    /// Rebuilds slide chunks from canonical sections using the current style and canvas size.
+    func resolvedSlides(
+        containerSize: CGSize = PresentationLayout.referenceCanvasSize,
+        style: SlideTextStyle? = nil
+    ) -> [LyricSlide] {
+        let layoutStyle = style ?? styleProfile.defaultStyle
+        guard !sourceSections.isEmpty else { return slides }
+        return LyricImportParser.makeSlides(
+            from: sourceSections,
+            style: layoutStyle,
+            containerSize: containerSize
+        )
     }
 }

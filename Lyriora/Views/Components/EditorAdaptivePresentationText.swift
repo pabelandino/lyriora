@@ -5,46 +5,68 @@
 
 import SwiftUI
 
+enum EditorPreviewSizing {
+    /// Renders at the configured point size.
+    case exact
+    /// Scales typography to approximate on-screen output inside a small preview container.
+    case scaledApproximation
+}
+
 /// Renders adaptive presentation text for editor previews using an explicit container size.
 /// Avoids `GeometryReader`, which collapses width when nested inside glass/sticky layouts.
 struct EditorAdaptivePresentationText: View {
     let text: String
     let configuration: PresentationTextConfiguration
     let containerSize: CGSize
-    /// When true, renders at the configured font size instead of auto-shrinking to fit.
-    var usesExactFontSize: Bool = true
+    var sizing: EditorPreviewSizing = .scaledApproximation
 
     private var lines: [String] {
         PresentationTextMeasurer.explicitLines(from: text)
     }
 
+    private var resolvedConfiguration: PresentationTextConfiguration {
+        switch sizing {
+        case .exact:
+            configuration
+        case .scaledApproximation:
+            configuration.scaledApproximation(for: containerSize)
+        }
+    }
+
     var body: some View {
-        let padding = min(containerSize.width, containerSize.height) * configuration.paddingRatio
-        let availableSize = CGSize(
-            width: max(containerSize.width - (padding * 2), 1),
-            height: max(containerSize.height - (padding * 2), 1)
-        )
+        let activeConfiguration = resolvedConfiguration
+        let insets = activeConfiguration.contentInsets(for: containerSize)
+        let availableSize = activeConfiguration.availableTextSize(in: containerSize)
 
         let fontSize: CGFloat = {
-            if usesExactFontSize || !configuration.isAdaptiveScalingEnabled {
-                return configuration.maxFontSize
+            switch sizing {
+            case .exact:
+                if !activeConfiguration.isAdaptiveScalingEnabled {
+                    return activeConfiguration.maxFontSize
+                }
+                return PresentationTextMeasurer.fittingFontSize(
+                    text: text,
+                    in: availableSize,
+                    configuration: activeConfiguration
+                )
+            case .scaledApproximation:
+                return PresentationTextMeasurer.fittingFontSize(
+                    text: text,
+                    in: availableSize,
+                    configuration: activeConfiguration
+                )
             }
-            return PresentationTextMeasurer.fittingFontSize(
-                text: text,
-                in: availableSize,
-                configuration: configuration
-            )
         }()
 
         ExplicitLinePresentationText(
             lines: lines,
             fontSize: fontSize,
-            configuration: configuration,
+            configuration: activeConfiguration,
             availableSize: availableSize,
-            scalesToFitWidth: !usesExactFontSize && configuration.isAdaptiveScalingEnabled
+            scalesToFitWidth: activeConfiguration.isAdaptiveScalingEnabled
         )
-        .id(fontSize)
-        .padding(padding)
+        .id("\(fontSize)-\(sizing)-\(containerSize.width)-\(containerSize.height)")
+        .padding(insets)
         .frame(width: containerSize.width, height: containerSize.height, alignment: .center)
     }
 }

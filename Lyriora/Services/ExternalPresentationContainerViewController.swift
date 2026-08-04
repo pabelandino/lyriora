@@ -17,12 +17,14 @@ final class ExternalPresentationContainerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
+        view.insetsLayoutMarginsFromSafeArea = false
     }
 
     func setContent(_ content: some View) {
         let wrapped = AnyView(
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
         )
 
         if let hostingController {
@@ -36,9 +38,7 @@ final class ExternalPresentationContainerViewController: UIViewController {
         let controller = UIHostingController(rootView: wrapped)
         controller.view.backgroundColor = .black
         controller.view.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 16.0, *) {
-            controller.sizingOptions = []
-        }
+        controller.view.insetsLayoutMarginsFromSafeArea = false
         if #available(iOS 16.4, *) {
             controller.safeAreaRegions = []
         }
