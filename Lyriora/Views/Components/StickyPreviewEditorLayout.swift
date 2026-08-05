@@ -25,6 +25,7 @@ struct StickyPreviewEditorLayout<Preview: View, Content: View>: View {
                     .frame(maxWidth: contentMaxWidth)
                     .frame(maxWidth: .infinity)
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }

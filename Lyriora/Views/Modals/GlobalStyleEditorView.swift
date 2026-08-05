@@ -103,24 +103,27 @@ struct GlobalStyleEditorView: View {
         .onChange(of: style) { _, _ in
             syncSelectedThemeID()
         }
-        .alert("Save as Theme?", isPresented: $showExitThemePrompt) {
-            TextField("Theme name", text: $themeNameDraft)
-            Button("Save Theme") {
-                saveTheme(named: themeNameDraft)
-                dismiss()
-            }
-            Button("Don't Save") {
-                dismiss()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Save this typography as a Theme to reuse with other lyrics?")
+        .sheet(isPresented: $showExitThemePrompt) {
+            ThemeSavePromptSheet(
+                isPresented: $showExitThemePrompt,
+                themeName: $themeNameDraft,
+                message: "Save this typography as a Theme to reuse with other lyrics?",
+                secondaryButtonTitle: "Don't Save",
+                onSaveTheme: {
+                    saveTheme(named: themeNameDraft)
+                    dismiss()
+                },
+                onSecondary: {
+                    dismiss()
+                }
+            )
         }
     }
 
     private func handleBack() {
         if hasStyleChanges {
             themeNameDraft = profileName.isEmpty ? "My Theme" : profileName
+            KeyboardDismissal.dismissIfNeeded()
             showExitThemePrompt = true
         } else {
             dismiss()

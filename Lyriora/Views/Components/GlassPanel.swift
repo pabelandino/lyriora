@@ -127,7 +127,9 @@ struct GlassOverflowMenu: View {
                 ForEach(actions) { action in
                     Button(role: action.role) {
                         isPresented = false
-                        action.handler()
+                        DispatchQueue.main.async {
+                            action.handler()
+                        }
                     } label: {
                         Label(action.title, systemImage: action.systemImage)
                             .font(.body.weight(.medium))
@@ -142,5 +144,8 @@ struct GlassOverflowMenu: View {
             .frame(minWidth: 168)
             .glassEffect(.regular, in: .rect(cornerRadius: 14, style: .continuous))
         }
+        #if os(iOS)
+        .presentationCompactAdaptation(.popover)
+        #endif
     }
 }

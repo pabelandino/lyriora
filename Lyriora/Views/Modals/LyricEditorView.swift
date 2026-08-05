@@ -96,17 +96,15 @@ struct LyricEditorView: View {
         } message: {
             Text(importError ?? "")
         }
-        .alert("Save as Theme?", isPresented: $showSaveThemePrompt) {
-            TextField("Theme name", text: $themeNameDraft)
-            Button("Save Theme") {
-                saveThemeAndLyric()
-            }
-            Button("Save Lyric Only") {
-                performSaveLyric()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("You changed the text style. Save it as a theme to reuse with other lyrics?")
+        .sheet(isPresented: $showSaveThemePrompt) {
+            ThemeSavePromptSheet(
+                isPresented: $showSaveThemePrompt,
+                themeName: $themeNameDraft,
+                message: "You changed the text style. Save it as a theme to reuse with other lyrics?",
+                secondaryButtonTitle: "Save Lyric Only",
+                onSaveTheme: saveThemeAndLyric,
+                onSecondary: performSaveLyric
+            )
         }
         .onChange(of: styleProfile.defaultStyle.maxLinesPerSlide) { _, _ in
             guard !suppressMaxLinesReparse else { return }
@@ -299,6 +297,7 @@ struct LyricEditorView: View {
             .frame(maxWidth: contentMaxWidth)
             .frame(maxWidth: .infinity)
         }
+        .scrollDismissesKeyboard(.interactively)
     }
 
     @ViewBuilder
@@ -560,6 +559,7 @@ struct LyricEditorView: View {
     private func handleSaveTapped() {
         if hasStyleChanges {
             themeNameDraft = styleProfile.name.isEmpty ? "My Theme" : styleProfile.name
+            KeyboardDismissal.dismissIfNeeded()
             showSaveThemePrompt = true
         } else {
             performSaveLyric()
