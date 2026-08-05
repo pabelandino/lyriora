@@ -11,13 +11,33 @@ import UIKit
 
 struct LoopingVideoBackground: UIViewRepresentable {
     let url: URL
+    var contentMode: BackgroundContentMode = .fill
+    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
 
     func makeUIView(context: Context) -> LoopingVideoPlayerView {
         LoopingVideoPlayerView()
     }
 
     func updateUIView(_ uiView: LoopingVideoPlayerView, context: Context) {
-        uiView.configure(url: url)
+        uiView.configure(
+            url: url,
+            videoGravity: Self.videoGravity(for: contentMode, canvasSize: canvasSize)
+        )
+    }
+
+    private static func videoGravity(
+        for contentMode: BackgroundContentMode,
+        canvasSize: CGSize
+    ) -> AVLayerVideoGravity {
+        switch contentMode.resolved(
+            mediaSize: CGSize(width: 16, height: 9),
+            canvasSize: canvasSize
+        ) {
+        case .fill:
+            return .resizeAspectFill
+        case .fit:
+            return .resizeAspect
+        }
     }
 
     final class LoopingVideoPlayerView: UIView {
@@ -41,7 +61,9 @@ struct LoopingVideoBackground: UIViewRepresentable {
             playerLayer.frame = bounds
         }
 
-        func configure(url: URL) {
+        func configure(url: URL, videoGravity: AVLayerVideoGravity) {
+            playerLayer.videoGravity = videoGravity
+
             guard currentURL != url else {
                 player?.play()
                 return
@@ -93,13 +115,33 @@ import AppKit
 
 struct LoopingVideoBackground: NSViewRepresentable {
     let url: URL
+    var contentMode: BackgroundContentMode = .fill
+    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
 
     func makeNSView(context: Context) -> LoopingVideoPlayerView {
         LoopingVideoPlayerView()
     }
 
     func updateNSView(_ nsView: LoopingVideoPlayerView, context: Context) {
-        nsView.configure(url: url)
+        nsView.configure(
+            url: url,
+            videoGravity: Self.videoGravity(for: contentMode, canvasSize: canvasSize)
+        )
+    }
+
+    private static func videoGravity(
+        for contentMode: BackgroundContentMode,
+        canvasSize: CGSize
+    ) -> AVLayerVideoGravity {
+        switch contentMode.resolved(
+            mediaSize: CGSize(width: 16, height: 9),
+            canvasSize: canvasSize
+        ) {
+        case .fill:
+            return .resizeAspectFill
+        case .fit:
+            return .resizeAspect
+        }
     }
 
     final class LoopingVideoPlayerView: NSView {
@@ -124,7 +166,9 @@ struct LoopingVideoBackground: NSViewRepresentable {
             playerLayer.frame = bounds
         }
 
-        func configure(url: URL) {
+        func configure(url: URL, videoGravity: AVLayerVideoGravity) {
+            playerLayer.videoGravity = videoGravity
+
             guard currentURL != url else {
                 player?.play()
                 return
