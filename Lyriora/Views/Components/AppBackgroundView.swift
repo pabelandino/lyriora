@@ -11,27 +11,35 @@ struct AppBackgroundView: View {
     /// When true, blurs the shell background so it reads as ambient context behind glass panels.
     var blurBackground: Bool = true
 
+    private var shellBackground: PresentationBackground? {
+        guard let background, background.kind != .video else { return nil }
+        return background
+    }
+
     private var layerIdentity: String {
-        background?.url.absoluteString ?? "default-\(defaultBackgroundSettings.preset.rawValue)"
+        if let shellBackground {
+            return shellBackground.url.absoluteString
+        }
+        return "default-\(defaultBackgroundSettings.preset.rawValue)"
     }
 
     var body: some View {
         ZStack {
-            if let background {
+            if let shellBackground {
                 Group {
                     if blurBackground {
                         BlurredBackgroundLayer(
                             blurRadius: defaultBackgroundSettings.blurRadius,
-                            overlayOpacity: defaultBackgroundSettings.overlayOpacity
+                            overlayOpacity: 0
                         ) {
                             PresentationBackgroundView(
-                                background: background,
+                                background: shellBackground,
                                 defaultBackgroundSettings: defaultBackgroundSettings
                             )
                         }
                     } else {
                         PresentationBackgroundView(
-                            background: background,
+                            background: shellBackground,
                             defaultBackgroundSettings: defaultBackgroundSettings
                         )
                     }

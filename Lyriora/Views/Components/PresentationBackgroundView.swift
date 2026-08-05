@@ -3,6 +3,7 @@
 //  Lyriora
 //
 
+import AVFoundation
 import SwiftUI
 
 #if canImport(UIKit)
@@ -16,6 +17,7 @@ struct PresentationBackgroundView: View {
     var defaultBackgroundSettings: DefaultBackgroundSettings = .default
     var contentMode: BackgroundContentMode = .fill
     var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
+    var sharedVideoPlayer: AVPlayer?
 
     var body: some View {
         GeometryReader { geometry in
@@ -37,11 +39,19 @@ struct PresentationBackgroundView: View {
                     canvasSize: canvasSize
                 )
             case .video:
-                LoopingVideoBackground(
-                    url: background.url,
-                    contentMode: contentMode,
-                    canvasSize: canvasSize
-                )
+                if let sharedVideoPlayer {
+                    AVPlayerLayerView(
+                        player: sharedVideoPlayer,
+                        contentMode: contentMode,
+                        canvasSize: canvasSize
+                    )
+                } else {
+                    LoopingVideoBackground(
+                        url: background.url,
+                        contentMode: contentMode,
+                        canvasSize: canvasSize
+                    )
+                }
             }
         } else {
             ConfigurableDefaultGradientView(settings: defaultBackgroundSettings)
@@ -82,8 +92,19 @@ struct LocalFileImageBackground: View {
             }
         }
         .task(id: url) {
-            image = Self.loadImage(from: url)
-            mediaSize = Self.loadImageSize(from: url) ?? .zero
+            if let cached = LocalImageCache.entry(for: url) {
+                image = cached.image
+                mediaSize = cached.size
+                return
+            }
+
+            let loadedImage = Self.loadImage(from: url)
+            let loadedSize = Self.loadImageSize(from: url) ?? .zero
+            if let loadedImage {
+                LocalImageCache.store(image: loadedImage, size: loadedSize, for: url)
+            }
+            image = loadedImage
+            mediaSize = loadedSize
         }
     }
 

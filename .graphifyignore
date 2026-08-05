@@ -1,0 +1,19 @@
+# Xcode build artifacts and user-specific data
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.build/
+
+# Large binary assets (not useful for code graph)
+*.mp4
+*.mov
+*.m4v
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.heic
+
+# Git
+.git/

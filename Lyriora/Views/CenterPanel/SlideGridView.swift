@@ -20,11 +20,12 @@ struct SlideGridView: View {
         PresentationLayout.resolvedCanvasSize(presentationCanvasSize)
     }
 
-    private let thumbnailMaxWidth: CGFloat = 188
-    private let columns = [
-        GridItem(.flexible(), spacing: 14),
-        GridItem(.flexible(), spacing: 14)
-    ]
+    private let thumbnailWidth: CGFloat = 168
+    private let gridSpacing: CGFloat = 8
+
+    private var columns: [GridItem] {
+        [GridItem(.adaptive(minimum: thumbnailWidth, maximum: thumbnailWidth), spacing: gridSpacing)]
+    }
 
     var body: some View {
         GlassPanel(cornerRadius: 22) {
@@ -36,7 +37,7 @@ struct SlideGridView: View {
                 )
             } else {
                 ScrollView {
-                    LazyVGrid(columns: columns, spacing: 14) {
+                    LazyVGrid(columns: columns, alignment: .leading, spacing: gridSpacing) {
                         ForEach(slides, id: \.order) { slide in
                             SlideThumbnailView(
                                 slide: slide,
@@ -48,15 +49,14 @@ struct SlideGridView: View {
                                 backgroundContentMode: backgroundContentMode,
                                 canvasSize: layoutCanvasSize
                             )
-                            .frame(maxWidth: thumbnailMaxWidth)
-                            .frame(maxWidth: .infinity)
+                            .frame(width: thumbnailWidth)
                             .onTapGesture {
                                 onSelect(slide)
                             }
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
                 }
                 .transparentScrollContent()
             }
@@ -91,6 +91,10 @@ private struct SlideThumbnailView: View {
         return resolved
     }
 
+    private var usesDefaultGradientBackground: Bool {
+        presentationState.background?.kind == .video
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Text(slide.tag.localizedName(for: language))
@@ -104,12 +108,12 @@ private struct SlideThumbnailView: View {
             ZStack {
                 ToggleablePresentationBackgroundLayer(
                     isVisible: presentationState.showBackground,
-                    background: presentationState.background,
+                    background: usesDefaultGradientBackground ? nil : presentationState.background,
                     defaultBackgroundSettings: defaultBackgroundSettings,
                     contentMode: backgroundContentMode,
                     canvasSize: canvasSize,
                     blurDefaultBackground: false,
-                    showsDefaultWhenEmpty: false
+                    showsDefaultWhenEmpty: usesDefaultGradientBackground
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 

@@ -17,9 +17,10 @@ struct LyricsLibraryPanelView: View {
     var body: some View {
         GlassPanel(cornerRadius: 22) {
             VStack(spacing: 12) {
-                HStack {
-                    Text("Lyrics")
+                HStack(spacing: 8) {
+                    Label("Lyrics", systemImage: "append.page")
                         .font(.headline)
+                        .foregroundStyle(.primary)
 
                     Spacer()
 
@@ -31,11 +32,12 @@ struct LyricsLibraryPanelView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Create new lyric")
                 }
-                .padding(.horizontal, 16)
+                .padding(.leading, Layout.contentHorizontalInset)
+                .padding(.trailing, Layout.trailingControlInset)
                 .padding(.top, 12)
 
                 ScrollView {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(spacing: 10) {
                         ForEach(viewModel.lyrics) { lyric in
                             LyricCardView(
                                 lyric: lyric,
@@ -52,7 +54,7 @@ struct LyricsLibraryPanelView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 12)
+                    .padding(.horizontal, Layout.contentHorizontalInset)
                 }
                 .transparentScrollContent()
             }
@@ -96,6 +98,14 @@ struct LyricsLibraryPanelView: View {
     }
 }
 
+private enum Layout {
+    static let contentHorizontalInset: CGFloat = 8
+    static let cardMenuInset: CGFloat = 8
+    static var trailingControlInset: CGFloat {
+        contentHorizontalInset + cardMenuInset
+    }
+}
+
 private struct LyricCardView: View {
     let lyric: LyricDocument
     let isSelected: Bool
@@ -119,57 +129,43 @@ private struct LyricCardView: View {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(LyricGradient.linearGradient(for: lyric.colorSeed))
 
-            VStack {
-                HStack {
-                    Spacer()
-
-                    GlassOverflowMenu(
-                        actions: [
-                            .init(
-                                title: "Edit",
-                                systemImage: "pencil",
-                                handler: onEdit
-                            ),
-                            .init(
-                                title: "Delete",
-                                systemImage: "trash",
-                                role: .destructive,
-                                handler: onDelete
-                            )
-                        ],
-                        iconSize: 36
-                    )
-                }
-                .padding(10)
-
-                Spacer()
-
-                Image(systemName: "music.note")
-                    .font(.title2)
-                    .foregroundStyle(.white.opacity(0.22))
-                    .padding(.bottom, 8)
-
-                Spacer()
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(lyric.title.uppercased())
-                    .font(.subheadline.weight(.bold))
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
                 Text(lyric.previewSnippet)
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.white.opacity(0.88))
                     .lineLimit(1)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
             .glassEffect(.regular, in: footerShape)
         }
-        .frame(height: 132)
+        .frame(height: 98)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        .overlay(alignment: .topTrailing) {
+            GlassOverflowMenu(
+                actions: [
+                    .init(
+                        title: "Edit",
+                        systemImage: "pencil",
+                        handler: onEdit
+                    ),
+                    .init(
+                        title: "Delete",
+                        systemImage: "trash",
+                        role: .destructive,
+                        handler: onDelete
+                    )
+                ],
+                iconSize: 36
+            )
+            .padding(Layout.cardMenuInset)
+        }
         .overlay {
             if isSelected {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)

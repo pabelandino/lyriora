@@ -20,12 +20,25 @@ struct GlassCapsuleToolbar<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        HStack(spacing: 24) {
+        HStack(spacing: GlassToolbarMetrics.itemSpacing) {
             content()
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 10)
+        .padding(.horizontal, GlassToolbarMetrics.horizontalPadding)
+        .padding(.vertical, GlassToolbarMetrics.verticalPadding)
         .glassEffect(.regular.interactive(), in: .capsule)
+    }
+}
+
+enum GlassToolbarMetrics {
+    static let horizontalPadding: CGFloat = 20
+    static let verticalPadding: CGFloat = 6
+    static let itemSpacing: CGFloat = 20
+    static let iconSize: CGFloat = 36
+    static let iconFontSize: CGFloat = 17
+    static let prominentIconFontSize: CGFloat = 18
+
+    static var controlHeight: CGFloat {
+        iconSize + verticalPadding * 2
     }
 }
 
@@ -36,18 +49,31 @@ enum GlassToolbarIconSize {
     var iconFont: Font {
         switch self {
         case .regular:
-            .system(size: 18, weight: .semibold)
+            .system(size: GlassToolbarMetrics.iconFontSize, weight: .semibold)
         case .prominent:
-            .system(size: 20, weight: .semibold)
+            .system(size: GlassToolbarMetrics.prominentIconFontSize, weight: .semibold)
         }
     }
 
     var frameSize: CGFloat {
-        switch self {
-        case .regular: 40
-        case .prominent: 40
+        GlassToolbarMetrics.iconSize
+    }
+}
+
+enum GlassToolbarIconStyle {
+    static func foreground(isActive: Bool, colorScheme: ColorScheme) -> Color {
+        switch colorScheme {
+        case .light:
+            isActive ? activeLight : inactiveLight
+        case .dark:
+            isActive ? .green : .primary
+        @unknown default:
+            isActive ? .green : .primary
         }
     }
+
+    private static let activeLight = Color(red: 0.10, green: 0.72, blue: 0.34)
+    private static let inactiveLight = Color(white: 0.42)
 }
 
 struct GlassIconButton: View {
@@ -57,6 +83,8 @@ struct GlassIconButton: View {
     var isActive: Bool = false
     var isEnabled: Bool = true
     let action: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Button(action: action) {
@@ -74,7 +102,7 @@ struct GlassIconButton: View {
 
     private var foregroundColor: Color {
         guard isEnabled else { return .secondary }
-        return isActive ? .green : .primary
+        return GlassToolbarIconStyle.foreground(isActive: isActive, colorScheme: colorScheme)
     }
 }
 

@@ -80,10 +80,14 @@ private struct VideoLibrarySection: View {
                                 fileURL: viewModel.videoURL(for: asset),
                                 isSelected: viewModel.isBackgroundSelected(asset),
                                 showsDuration: true,
+                                durationLabel: viewModel.videoDurationLabel(for: asset),
+                                onEnsureDuration: {
+                                    await viewModel.ensureVideoDuration(for: asset)
+                                },
                                 onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
                                 onRemove: { viewModel.deleteMediaAsset(asset) }
                             )
-                            .id(asset.id)
+                            .id(asset.fileName)
                         }
                     }
                     .padding(.horizontal, 12)
@@ -125,8 +129,12 @@ private struct MediaThumbnailView: View {
     let fileURL: URL
     var isSelected: Bool = false
     var showsDuration: Bool = false
+    var durationLabel: String? = nil
+    var onEnsureDuration: (() async -> Void)? = nil
     let onSelect: () -> Void
     let onRemove: () -> Void
+
+    @State private var displayedDurationLabel: String?
 
     private let cornerRadius: CGFloat = 14
 
@@ -134,32 +142,35 @@ private struct MediaThumbnailView: View {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
     }
 
+    private var resolvedDurationLabel: String {
+        displayedDurationLabel ?? durationLabel ?? "--:--"
+    }
+
     var body: some View {
         Button(action: onSelect) {
-            ZStack(alignment: .bottomLeading) {
-                thumbnailContent
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
-
-                if showsDuration {
-                    Text("00:00")
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .glassEffect(.regular, in: .capsule)
-                        .padding(8)
+            thumbnailContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(height: 88)
+                .clipShape(shape)
+                .overlay {
+                    if isSelected {
+                        shape.strokeBorder(.white.opacity(0.9), lineWidth: 2.5)
+                    }
                 }
-            }
-            .frame(height: 88)
-            .clipShape(shape)
-            .overlay {
-                if isSelected {
-                    shape.strokeBorder(.white.opacity(0.9), lineWidth: 2.5)
-                }
-            }
-            .contentShape(shape)
+                .contentShape(shape)
         }
         .buttonStyle(.plain)
+        .overlay(alignment: .bottomLeading) {
+            if showsDuration {
+                Text(resolvedDurationLabel)
+                    .font(.caption2.weight(.semibold))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .glassEffect(.regular, in: .capsule)
+                    .padding(8)
+                    .allowsHitTesting(false)
+            }
+        }
         .overlay(alignment: .topTrailing) {
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
@@ -173,6 +184,20 @@ private struct MediaThumbnailView: View {
             .accessibilityLabel("Remove from library")
         }
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .onAppear {
+            if let durationLabel {
+                displayedDurationLabel = durationLabel
+            }
+        }
+        .onChange(of: durationLabel) { _, newValue in
+            if let newValue {
+                displayedDurationLabel = newValue
+            }
+        }
+        .task(id: asset.fileName) {
+            guard showsDuration else { return }
+            await onEnsureDuration?()
+        }
     }
 
     @ViewBuilder
@@ -180,13 +205,33 @@ private struct MediaThumbnailView: View {
         if asset.kind == .image {
             LocalFileThumbnailImage(url: fileURL)
         } else {
-            ZStack {
-                Color.black.opacity(0.25)
+            LocalFileVideoThumbnail(url: fileURL)
+        }
+    }
+}
 
-                Image(systemName: "play.rectangle.fill")
-                    .font(.largeTitle)
-                    .foregroundStyle(.secondary)
+private struct LocalFileVideoThumbnail: View {
+    let url: URL
+
+    @State private var image: Image?
+
+    var body: some View {
+        ZStack {
+            Group {
+                if let image {
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Color.black.opacity(0.35)
+                }
             }
+
+            GlassCircleIcon(systemName: "play.fill", diameter: 42, symbolSize: 16)
+        }
+        .task(id: url) {
+            let metadata = await VideoAssetMetadataLoader.load(from: url)
+            image = metadata.thumbnail
         }
     }
 }
@@ -209,7 +254,16 @@ private struct LocalFileThumbnailImage: View {
             }
         }
         .task(id: url) {
-            image = LocalFileImageBackground.loadImage(from: url)
+            if let cached = LocalImageCache.entry(for: url) {
+                image = cached.image
+                return
+            }
+
+            if let loadedImage = LocalFileImageBackground.loadImage(from: url) {
+                let size = LocalFileImageBackground.loadImageSize(from: url) ?? .zero
+                LocalImageCache.store(image: loadedImage, size: size, for: url)
+                image = loadedImage
+            }
         }
     }
 }
