@@ -24,6 +24,11 @@ final class AppViewModel {
     var showLyrics = true
     var settings = AppSettings.default
 
+    var videoPlaybackMode: VideoPlaybackMode = .loop
+    var isVideoPlaying = true
+    let videoPlayback = VideoPlaybackController()
+    private(set) var videoDurationByFileName: [String: TimeInterval] = [:]
+
     private(set) var themes: [LyricTheme] = []
 
     var lyricEditorLaunch: LyricEditorLaunch?
@@ -61,6 +66,10 @@ final class AppViewModel {
         self.settingsRepository = settingsRepository ?? SettingsRepository()
         self.themeRepository = themeRepository ?? ThemeRepository()
         self.externalDisplayManager = externalDisplayManager ?? ExternalDisplayManager()
+        self.videoPlayback.onDurationUpdate = { [weak self] duration in
+            guard let self, let asset = selectedBackgroundAsset else { return }
+            videoDurationByFileName[asset.fileName] = duration
+        }
     }
 
     var selectedLyric: LyricDocument? {
@@ -106,7 +115,9 @@ final class AppViewModel {
             slideText: slide?.text,
             lyricTitle: selectedLyric?.title,
             background: activePresentationBackground,
-            slideStyle: slideStyle
+            slideStyle: slideStyle,
+            videoLoops: hasVideoBackgroundSelected ? videoPlaybackMode.loopsVideo : true,
+            isVideoPlaying: hasVideoBackgroundSelected ? isVideoPlaying : true
         )
     }
 
@@ -136,6 +147,7 @@ final class AppViewModel {
         }
 
         loadThemes()
+        Task { await preloadVideoDurations() }
     }
 
     func loadThemes() {
@@ -209,8 +221,38 @@ final class AppViewModel {
     }
 
     func selectBackgroundMedia(withID id: UUID) {
-        selectedBackgroundAssetID = id
-        showBackground = true
+        withAnimation(GlassMorphAnimation.standard) {
+            selectedBackgroundAssetID = id
+            showBackground = true
+            resetVideoPlaybackState()
+
+            if let asset = selectedBackgroundAsset, asset.kind == .video {
+                videoPlaybackMode = .loop
+                isVideoPlaying = true
+                loadSelectedVideoBackground(asset)
+            } else {
+                videoPlayback.teardown()
+            }
+        }
+    }
+
+    private func resetVideoPlaybackState() {
+        videoPlayback.teardown()
+    }
+
+    private func loadSelectedVideoBackground(_ asset: MediaAsset) {
+        let url = videoURL(for: asset)
+        videoPlayback.loops = videoPlaybackMode.loopsVideo
+        videoPlayback.isPlaying = isVideoPlaying
+        videoPlayback.isMuted = false
+        videoPlayback.load(url: url)
+    }
+
+    private func syncVideoPlaybackSettings() {
+        guard hasVideoBackgroundSelected else { return }
+        videoPlayback.loops = videoPlaybackMode.loopsVideo
+        videoPlayback.isPlaying = isVideoPlaying
+        videoPlayback.applyPlaybackSettings()
     }
 
     func presentNewLyricEditor() {
@@ -290,14 +332,20 @@ final class AppViewModel {
     }
 
     func clearAll() {
-        selectedBackgroundAssetID = nil
-        showBackground = true
-        showLyrics = false
+        withAnimation(GlassMorphAnimation.standard) {
+            selectedBackgroundAssetID = nil
+            showBackground = true
+            showLyrics = false
+            resetVideoPlaybackState()
+        }
     }
 
     func clearBackground() {
-        selectedBackgroundAssetID = nil
-        showBackground = true
+        withAnimation(GlassMorphAnimation.standard) {
+            selectedBackgroundAssetID = nil
+            showBackground = true
+            resetVideoPlaybackState()
+        }
     }
 
     func clearLyrics() {
@@ -306,6 +354,54 @@ final class AppViewModel {
 
     var hasCustomBackgroundSelected: Bool {
         selectedBackgroundAssetID != nil
+    }
+
+    var hasVideoBackgroundSelected: Bool {
+        selectedBackgroundAsset?.kind == .video
+    }
+
+    func toggleVideoPlaybackMode() {
+        videoPlaybackMode = videoPlaybackMode.toggled
+        syncVideoPlaybackSettings()
+    }
+
+    func toggleVideoPlayback() {
+        isVideoPlaying.toggle()
+        syncVideoPlaybackSettings()
+    }
+
+    func stopVideo() {
+        isVideoPlaying = false
+        videoPlayback.stop()
+    }
+
+    func seekVideo(to time: TimeInterval) {
+        let clamped = max(0, min(time, max(videoPlayback.duration, 0)))
+        videoPlayback.seek(to: clamped)
+    }
+
+    func videoDuration(for asset: MediaAsset) -> TimeInterval? {
+        videoDurationByFileName[asset.fileName]
+    }
+
+    func videoDurationLabel(for asset: MediaAsset) -> String? {
+        guard let duration = videoDuration(for: asset) else { return nil }
+        return VideoDurationFormatter.string(for: duration)
+    }
+
+    func ensureVideoDuration(for asset: MediaAsset) async {
+        guard asset.kind == .video, videoDuration(for: asset) == nil else { return }
+
+        let url = videoURL(for: asset)
+        if let duration = await VideoAssetMetadataLoader.loadDuration(from: url) {
+            videoDurationByFileName[asset.fileName] = duration
+        }
+    }
+
+    private func preloadVideoDurations() async {
+        for asset in videoAssets {
+            await ensureVideoDuration(for: asset)
+        }
     }
 
     func toggleExternalDisplay() {
@@ -345,7 +441,10 @@ final class AppViewModel {
 
         if selectedBackgroundAssetID == asset.id {
             selectedBackgroundAssetID = nil
+            resetVideoPlaybackState()
         }
+
+        videoDurationByFileName.removeValue(forKey: asset.fileName)
     }
 
     private func importSelectedPhotos() async {
@@ -370,6 +469,7 @@ final class AppViewModel {
             do {
                 let asset = try mediaRepository.importData(data, kind: .video, preferredExtension: "mp4")
                 videoAssets.insert(asset, at: 0)
+                await ensureVideoDuration(for: asset)
             } catch {
                 continue
             }

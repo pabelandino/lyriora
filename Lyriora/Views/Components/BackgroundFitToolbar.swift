@@ -15,15 +15,15 @@ struct BackgroundFitToolbar: View {
 
     var body: some View {
         GlassEffectContainer(spacing: Constants.badgeGlassSpacing) {
-            VStack(alignment: .center, spacing: Constants.badgeSpacing) {
+            VStack(spacing: Constants.badgeSpacing) {
                 toggleButton
 
                 if isExpanded {
                     VStack(spacing: Constants.badgeSpacing) {
                         ForEach(BackgroundContentMode.allCases) { mode in
                             Button {
-                                withAnimation {
-                                    contentMode = mode
+                                contentMode = mode
+                                withAnimation(GlassMorphAnimation.standard) {
                                     isExpanded = false
                                 }
                                 onChange()
@@ -38,7 +38,7 @@ struct BackgroundFitToolbar: View {
                                 )
                             }
                             .buttonStyle(.plain)
-                            .glassEffect(.regular, in: .rect(cornerRadius: Constants.badgeCornerRadius))
+                            .glassEffect(.regular.interactive(), in: .circle)
                             .glassEffectID(mode.id, in: glassNamespace)
                             .accessibilityLabel(mode.label)
                             .accessibilityHint(mode.subtitle)
@@ -47,35 +47,31 @@ struct BackgroundFitToolbar: View {
                     }
                 }
             }
-            .frame(width: Constants.badgeFrameWidth, alignment: .top)
+            .frame(width: Constants.badgeFrameWidth)
         }
-        // Reserve only the toggle footprint in layout; badges overflow downward as an overlay.
-        .frame(
-            width: Constants.badgeSize,
-            height: Constants.badgeSize,
-            alignment: .top
-        )
-        .zIndex(isExpanded ? 100 : 0)
+        .frame(width: Constants.badgeSize, alignment: .top)
+        .zIndex(isExpanded ? 100 : 1)
         .opacity(isEnabled ? 1 : 0.45)
         .allowsHitTesting(isEnabled)
     }
 
     private var toggleButton: some View {
         Button {
-            withAnimation {
+            withAnimation(GlassMorphAnimation.standard) {
                 isExpanded.toggle()
             }
         } label: {
             BackgroundFitToggleLabel(mode: contentMode, isExpanded: isExpanded)
-            .frame(
-                width: Constants.badgeSize,
-                height: Constants.badgeSize
-            )
+                .frame(
+                    width: Constants.badgeSize,
+                    height: Constants.badgeSize
+                )
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.plain)
         #if os(macOS)
         .tint(.clear)
         #endif
+        .glassEffect(.regular.interactive(), in: .circle)
         .glassEffectID("background-fit-toggle", in: glassNamespace)
         .accessibilityLabel("Background fit")
         .accessibilityValue(contentMode.label)
@@ -87,12 +83,16 @@ private struct BackgroundFitBadgeLabel: View {
     let mode: BackgroundContentMode
     let isSelected: Bool
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         Image(systemName: mode.systemImage)
-            .font(.system(size: 17, weight: .semibold))
-            .foregroundStyle(isSelected ? .green : .primary)
+            .font(.system(size: GlassToolbarMetrics.iconFontSize, weight: .semibold))
+            .foregroundStyle(
+                GlassToolbarIconStyle.foreground(isActive: isSelected, colorScheme: colorScheme)
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(RoundedRectangle(cornerRadius: BackgroundFitToolbar.Constants.badgeCornerRadius))
+            .contentShape(Circle())
     }
 }
 
@@ -100,12 +100,16 @@ private struct BackgroundFitToggleLabel: View {
     let mode: BackgroundContentMode
     let isExpanded: Bool
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         Image(systemName: isExpanded ? "xmark" : mode.systemImage)
-            .font(.system(size: 17, weight: .semibold))
-            .foregroundStyle(isExpanded ? .green : .primary)
+            .font(.system(size: GlassToolbarMetrics.iconFontSize, weight: .semibold))
+            .foregroundStyle(
+                GlassToolbarIconStyle.foreground(isActive: isExpanded, colorScheme: colorScheme)
+            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(RoundedRectangle(cornerRadius: BackgroundFitToolbar.Constants.badgeCornerRadius))
+            .contentShape(Circle())
     }
 }
 
@@ -115,12 +119,11 @@ extension BackgroundFitToolbar {
     }
 }
 
-private extension BackgroundFitToolbar {
-    enum Constants {
-        static let badgeCornerRadius: CGFloat = 12
-        static let badgeSize: CGFloat = 44
+extension BackgroundFitToolbar {
+    fileprivate enum Constants {
+        static let badgeSize: CGFloat = GlassToolbarMetrics.controlHeight
         static let badgeSpacing: CGFloat = 8
         static let badgeGlassSpacing: CGFloat = 8
-        static let badgeFrameWidth: CGFloat = 44
+        static let badgeFrameWidth: CGFloat = GlassToolbarMetrics.controlHeight
     }
 }

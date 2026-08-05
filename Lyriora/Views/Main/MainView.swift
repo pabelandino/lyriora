@@ -44,18 +44,25 @@ struct MainView: View {
     }
 
     private var mainWorkspace: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: WorkspaceLayout.panelSpacing) {
             MediaLibraryPanelView(viewModel: viewModel)
-                .frame(width: 280)
+                .frame(width: WorkspaceLayout.leftPanelWidth)
 
             CenterPanelView(viewModel: viewModel)
                 .frame(maxWidth: .infinity)
 
             LyricsLibraryPanelView(viewModel: viewModel)
-                .frame(width: 300)
+                .frame(width: WorkspaceLayout.rightPanelWidth)
         }
-        .padding(24)
+        .padding(WorkspaceLayout.outerPadding)
     }
+}
+
+private enum WorkspaceLayout {
+    static let leftPanelWidth: CGFloat = 236
+    static let rightPanelWidth: CGFloat = 256
+    static let panelSpacing: CGFloat = 16
+    static let outerPadding: CGFloat = 20
 }
 
 #Preview {

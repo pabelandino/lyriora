@@ -13,6 +13,7 @@ struct CenterPanelView: View {
             presentationToolbar
 
             PresentationPreviewView(
+                viewModel: viewModel,
                 state: viewModel.presentationState,
                 fallbackConfiguration: PresentationTextConfiguration(settings: viewModel.settings.externalDisplay),
                 defaultBackgroundSettings: viewModel.settings.defaultBackground,
@@ -22,6 +23,9 @@ struct CenterPanelView: View {
             )
             .id(viewModel.externalDisplayManager.layoutRevision)
             .frame(maxWidth: .infinity)
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
 
             SlideGridView(
                 slides: viewModel.selectedLyricSlides,
@@ -35,43 +39,39 @@ struct CenterPanelView: View {
                 onSelect: viewModel.selectSlide
             )
             .frame(height: 220)
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
 
             displayToolbar
         }
         .overlay(alignment: .topTrailing) {
             BackgroundFitToolbar(
                 contentMode: $viewModel.settings.backgroundContentMode,
-                isEnabled: viewModel.hasCustomBackgroundSelected && viewModel.showBackground
-            ) {
-                viewModel.saveSettings()
-                viewModel.refreshExternalPresentation()
-            }
+                isEnabled: viewModel.hasCustomBackgroundSelected && viewModel.showBackground,
+                onChange: {
+                    viewModel.saveSettings()
+                    viewModel.refreshExternalPresentation()
+                }
+            )
         }
     }
 
     private var presentationToolbar: some View {
         HStack(alignment: .top, spacing: 16) {
-            GlassCapsuleToolbar {
-                GlassIconButton(systemName: "xmark.circle", accessibilityLabel: "Clear all") {
-                    viewModel.clearAll()
-                }
-
-                GlassIconButton(
-                    systemName: "photo",
-                    accessibilityLabel: "Clear background",
-                    isActive: viewModel.hasCustomBackgroundSelected
-                ) {
-                    viewModel.clearBackground()
-                }
-
-                GlassIconButton(
-                    systemName: "doc.text",
-                    accessibilityLabel: "Clear lyrics",
-                    isActive: viewModel.showLyrics
-                ) {
-                    viewModel.clearLyrics()
-                }
-            }
+            PresentationActionsToolbar(
+                showsVideoControls: viewModel.hasVideoBackgroundSelected && viewModel.showBackground,
+                playbackMode: viewModel.videoPlaybackMode,
+                isVideoPlaying: viewModel.isVideoPlaying,
+                hasCustomBackgroundSelected: viewModel.hasCustomBackgroundSelected,
+                showLyrics: viewModel.showLyrics,
+                onClearAll: viewModel.clearAll,
+                onClearBackground: viewModel.clearBackground,
+                onClearLyrics: viewModel.clearLyrics,
+                onToggleVideoMode: viewModel.toggleVideoPlaybackMode,
+                onToggleVideoPlayback: viewModel.toggleVideoPlayback,
+                onStopVideo: viewModel.stopVideo
+            )
 
             Spacer(minLength: 0)
 
@@ -86,16 +86,6 @@ struct CenterPanelView: View {
 
     private var displayToolbar: some View {
         GlassCapsuleToolbar {
-            GlassIconButton(
-                systemName: "arrow.up.left.and.arrow.down.right",
-                accessibilityLabel: "Rescale external display content",
-                isActive: viewModel.externalDisplayManager.isPresentationActive,
-                isEnabled: viewModel.externalDisplayManager.isExternalDisplayConnected
-                    && viewModel.externalDisplayManager.isPresentationEnabled
-            ) {
-                viewModel.refreshExternalPresentation()
-            }
-
             GlassIconButton(systemName: "info.circle", accessibilityLabel: "Display information") {
                 viewModel.externalDisplayManager.refreshDisplayInfo()
                 viewModel.isDisplayInfoSheetPresented = true
