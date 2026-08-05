@@ -15,6 +15,8 @@ final class VideoPlaybackController {
     private(set) var player: AVPlayer?
 
     private var currentURL: URL?
+    private var configuredLoops = false
+    private var playerLooper: AVPlayerLooper?
     private var timeObserver: Any?
     private var endObserver: NSObjectProtocol?
 
@@ -25,28 +27,41 @@ final class VideoPlaybackController {
     var onDurationUpdate: ((TimeInterval) -> Void)?
 
     func load(url: URL) {
-        if currentURL == url {
+        if currentURL == url, configuredLoops == loops {
             applyPlaybackSettings()
             return
         }
 
         teardownObservers()
+        teardownLooper()
 
         let item = AVPlayerItem(url: url)
-        let newPlayer = AVPlayer(playerItem: item)
-        newPlayer.actionAtItemEnd = .none
+        let queuePlayer = AVQueuePlayer()
+        queuePlayer.actionAtItemEnd = .none
 
-        player = newPlayer
+        if loops {
+            playerLooper = AVPlayerLooper(player: queuePlayer, templateItem: item)
+        } else {
+            queuePlayer.insert(item, after: nil)
+            installEndObserver(for: item, player: queuePlayer)
+        }
+
+        player = queuePlayer
         currentURL = url
+        configuredLoops = loops
         currentTime = 0
         duration = 0
 
-        installEndObserver(for: item, player: newPlayer)
-        installProgressObserver(for: newPlayer)
+        installProgressObserver(for: queuePlayer)
         applyPlaybackSettings()
     }
 
     func applyPlaybackSettings() {
+        if let currentURL, configuredLoops != loops {
+            load(url: currentURL)
+            return
+        }
+
         player?.isMuted = isMuted
 
         guard let player else { return }
@@ -79,9 +94,11 @@ final class VideoPlaybackController {
 
     func teardown() {
         teardownObservers()
+        teardownLooper()
         player?.pause()
         player = nil
         currentURL = nil
+        configuredLoops = false
         currentTime = 0
         duration = 0
     }
@@ -135,6 +152,11 @@ final class VideoPlaybackController {
                 }
             }
         }
+    }
+
+    private func teardownLooper() {
+        playerLooper?.disableLooping()
+        playerLooper = nil
     }
 
     private func teardownObservers() {

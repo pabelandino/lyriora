@@ -44,6 +44,11 @@ final class ExternalDisplayManager {
     private var externalWindowController: NSWindowController?
     private weak var hostedViewModel: AppViewModel?
     private nonisolated(unsafe) var observers: [NSObjectProtocol] = []
+
+    private final class ExternalPresentationWindow: NSWindow {
+        override var canBecomeKey: Bool { false }
+        override var canBecomeMain: Bool { false }
+    }
     #endif
 
     init() {
@@ -574,7 +579,7 @@ final class ExternalDisplayManager {
         if let existingWindow = externalWindowController?.window {
             window = existingWindow
         } else {
-            window = NSWindow(
+            window = ExternalPresentationWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 1280, height: 720),
                 styleMask: [.borderless, .fullSizeContentView],
                 backing: .buffered,
@@ -583,6 +588,7 @@ final class ExternalDisplayManager {
             window.level = .screenSaver
             window.backgroundColor = .black
             window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            window.isReleasedWhenClosed = false
             externalWindowController = NSWindowController(window: window)
         }
 
@@ -597,7 +603,7 @@ final class ExternalDisplayManager {
                 layoutRevision: layoutRevision
             )
         )
-        externalWindowController?.showWindow(nil)
+        window.orderFrontRegardless()
         return true
     }
 
