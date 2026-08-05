@@ -12,7 +12,13 @@ struct SlideGridView: View {
     let selectedSlideIndex: Int?
     let presentationState: PresentationState
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    var backgroundContentMode: BackgroundContentMode = .fill
+    var presentationCanvasSize: CGSize = .zero
     let onSelect: (LyricSlide) -> Void
+
+    private var layoutCanvasSize: CGSize {
+        PresentationLayout.resolvedCanvasSize(presentationCanvasSize)
+    }
 
     private let thumbnailMaxWidth: CGFloat = 188
     private let columns = [
@@ -38,7 +44,9 @@ struct SlideGridView: View {
                                 language: language,
                                 isSelected: slide.index == selectedSlideIndex,
                                 presentationState: presentationState,
-                                defaultBackgroundSettings: defaultBackgroundSettings
+                                defaultBackgroundSettings: defaultBackgroundSettings,
+                                backgroundContentMode: backgroundContentMode,
+                                canvasSize: layoutCanvasSize
                             )
                             .frame(maxWidth: thumbnailMaxWidth)
                             .frame(maxWidth: .infinity)
@@ -63,6 +71,8 @@ private struct SlideThumbnailView: View {
     let isSelected: Bool
     let presentationState: PresentationState
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    var backgroundContentMode: BackgroundContentMode = .fill
+    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
 
     private let cornerRadius: CGFloat = 14
     private let textAreaMinHeight: CGFloat = 84
@@ -96,6 +106,8 @@ private struct SlideThumbnailView: View {
                     isVisible: presentationState.showBackground,
                     background: presentationState.background,
                     defaultBackgroundSettings: defaultBackgroundSettings,
+                    contentMode: backgroundContentMode,
+                    canvasSize: canvasSize,
                     blurDefaultBackground: false,
                     showsDefaultWhenEmpty: false
                 )

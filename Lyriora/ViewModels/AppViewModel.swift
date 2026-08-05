@@ -175,8 +175,8 @@ final class AppViewModel {
 
     func selectLyric(_ lyric: LyricDocument) {
         selectedLyricID = lyric.id
-        selectedSlideIndex = resolvedSlides(for: lyric).first?.index
-        showLyrics = true
+        selectedSlideIndex = nil
+        showLyrics = false
     }
 
     func deleteLyric(_ lyric: LyricDocument) {

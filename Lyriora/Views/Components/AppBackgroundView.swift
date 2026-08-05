@@ -75,6 +75,8 @@ enum AppBackgroundAnimation {
 struct PresentationBackgroundLayer: View {
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    var contentMode: BackgroundContentMode = .fill
+    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
     var blurDefaultBackground: Bool = true
     var showsDefaultWhenEmpty: Bool = true
 
@@ -87,7 +89,9 @@ struct PresentationBackgroundLayer: View {
             if let background {
                 PresentationBackgroundView(
                     background: background,
-                    defaultBackgroundSettings: defaultBackgroundSettings
+                    defaultBackgroundSettings: defaultBackgroundSettings,
+                    contentMode: contentMode,
+                    canvasSize: canvasSize
                 )
                 .transition(.opacity)
                 .id(layerIdentity)
@@ -120,6 +124,8 @@ struct ToggleablePresentationBackgroundLayer: View {
     let isVisible: Bool
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    var contentMode: BackgroundContentMode = .fill
+    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
     var blurDefaultBackground: Bool = true
     var showsDefaultWhenEmpty: Bool = true
 
@@ -129,6 +135,8 @@ struct ToggleablePresentationBackgroundLayer: View {
                 PresentationBackgroundLayer(
                     background: background,
                     defaultBackgroundSettings: defaultBackgroundSettings,
+                    contentMode: contentMode,
+                    canvasSize: canvasSize,
                     blurDefaultBackground: blurDefaultBackground,
                     showsDefaultWhenEmpty: showsDefaultWhenEmpty
                 )

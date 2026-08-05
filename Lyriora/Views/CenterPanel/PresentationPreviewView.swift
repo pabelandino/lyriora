@@ -9,6 +9,7 @@ struct PresentationPreviewView: View {
     let state: PresentationState
     let fallbackConfiguration: PresentationTextConfiguration
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    let backgroundContentMode: BackgroundContentMode
     let presentationCanvasSize: CGSize
     let displayInfo: ExternalDisplayInfo
 
@@ -50,7 +51,9 @@ struct PresentationPreviewView: View {
                         PresentationContentView(
                             state: state,
                             fallbackConfiguration: fallbackConfiguration,
-                            defaultBackgroundSettings: defaultBackgroundSettings
+                            defaultBackgroundSettings: defaultBackgroundSettings,
+                            backgroundContentMode: backgroundContentMode,
+                            canvasSize: canvasSize
                         )
                         .frame(width: canvasSize.width, height: canvasSize.height)
                         .scaleEffect(scale)
@@ -114,7 +117,11 @@ struct ExternalPresentationView: View {
         PresentationContentView(
             state: viewModel.presentationState,
             fallbackConfiguration: PresentationTextConfiguration(settings: viewModel.settings.externalDisplay),
-            defaultBackgroundSettings: viewModel.settings.defaultBackground
+            defaultBackgroundSettings: viewModel.settings.defaultBackground,
+            backgroundContentMode: viewModel.settings.backgroundContentMode,
+            canvasSize: PresentationLayout.resolvedCanvasSize(
+                viewModel.externalDisplayManager.presentationCanvasSize
+            )
         )
         .id(layoutRevision)
         .ignoresSafeArea()
@@ -125,6 +132,8 @@ struct PresentationContentView: View {
     let state: PresentationState
     let fallbackConfiguration: PresentationTextConfiguration
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    var backgroundContentMode: BackgroundContentMode = .fill
+    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
 
     private var textConfiguration: PresentationTextConfiguration {
         if let style = state.slideStyle {
@@ -141,7 +150,9 @@ struct PresentationContentView: View {
                     if state.showBackground, let background = state.background {
                         PresentationBackgroundView(
                             background: background,
-                            defaultBackgroundSettings: defaultBackgroundSettings
+                            defaultBackgroundSettings: defaultBackgroundSettings,
+                            contentMode: backgroundContentMode,
+                            canvasSize: canvasSize
                         )
                     }
 

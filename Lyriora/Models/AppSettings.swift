@@ -9,21 +9,25 @@ struct AppSettings: Codable, Equatable, Sendable {
     var externalDisplay: PresentationTextSettings
     var preview: PresentationTextSettings
     var defaultBackground: DefaultBackgroundSettings
+    var backgroundContentMode: BackgroundContentMode
 
     static let `default` = AppSettings(
         externalDisplay: .externalDefault,
         preview: .previewDefault,
-        defaultBackground: .default
+        defaultBackground: .default,
+        backgroundContentMode: .fill
     )
 
     init(
         externalDisplay: PresentationTextSettings,
         preview: PresentationTextSettings,
-        defaultBackground: DefaultBackgroundSettings
+        defaultBackground: DefaultBackgroundSettings,
+        backgroundContentMode: BackgroundContentMode = .fill
     ) {
         self.externalDisplay = externalDisplay
         self.preview = preview
         self.defaultBackground = defaultBackground
+        self.backgroundContentMode = backgroundContentMode
     }
 
     init(from decoder: Decoder) throws {
@@ -34,6 +38,10 @@ struct AppSettings: Codable, Equatable, Sendable {
             DefaultBackgroundSettings.self,
             forKey: .defaultBackground
         ) ?? .default
+        backgroundContentMode = try container.decodeIfPresent(
+            BackgroundContentMode.self,
+            forKey: .backgroundContentMode
+        ) ?? .fill
     }
 }
 

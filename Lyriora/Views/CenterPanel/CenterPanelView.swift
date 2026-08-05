@@ -16,6 +16,7 @@ struct CenterPanelView: View {
                 state: viewModel.presentationState,
                 fallbackConfiguration: PresentationTextConfiguration(settings: viewModel.settings.externalDisplay),
                 defaultBackgroundSettings: viewModel.settings.defaultBackground,
+                backgroundContentMode: viewModel.settings.backgroundContentMode,
                 presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
                 displayInfo: viewModel.externalDisplayManager.displayInfo
             )
@@ -29,35 +30,57 @@ struct CenterPanelView: View {
                 selectedSlideIndex: viewModel.selectedSlideIndex,
                 presentationState: viewModel.presentationState,
                 defaultBackgroundSettings: viewModel.settings.defaultBackground,
+                backgroundContentMode: viewModel.settings.backgroundContentMode,
+                presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
                 onSelect: viewModel.selectSlide
             )
             .frame(height: 220)
 
             displayToolbar
         }
+        .overlay(alignment: .topTrailing) {
+            BackgroundFitToolbar(
+                contentMode: $viewModel.settings.backgroundContentMode,
+                isEnabled: viewModel.hasCustomBackgroundSelected && viewModel.showBackground
+            ) {
+                viewModel.saveSettings()
+                viewModel.refreshExternalPresentation()
+            }
+        }
     }
 
     private var presentationToolbar: some View {
-        GlassCapsuleToolbar {
-            GlassIconButton(systemName: "xmark.circle", accessibilityLabel: "Clear all") {
-                viewModel.clearAll()
+        HStack(alignment: .top, spacing: 16) {
+            GlassCapsuleToolbar {
+                GlassIconButton(systemName: "xmark.circle", accessibilityLabel: "Clear all") {
+                    viewModel.clearAll()
+                }
+
+                GlassIconButton(
+                    systemName: "photo",
+                    accessibilityLabel: "Clear background",
+                    isActive: viewModel.hasCustomBackgroundSelected
+                ) {
+                    viewModel.clearBackground()
+                }
+
+                GlassIconButton(
+                    systemName: "doc.text",
+                    accessibilityLabel: "Clear lyrics",
+                    isActive: viewModel.showLyrics
+                ) {
+                    viewModel.clearLyrics()
+                }
             }
 
-            GlassIconButton(
-                systemName: "photo",
-                accessibilityLabel: "Clear background",
-                isActive: viewModel.hasCustomBackgroundSelected
-            ) {
-                viewModel.clearBackground()
-            }
+            Spacer(minLength: 0)
 
-            GlassIconButton(
-                systemName: "doc.text",
-                accessibilityLabel: "Clear lyrics",
-                isActive: viewModel.showLyrics
-            ) {
-                viewModel.clearLyrics()
-            }
+            Color.clear
+                .frame(
+                    width: BackgroundFitToolbar.Layout.reservedSize,
+                    height: BackgroundFitToolbar.Layout.reservedSize
+                )
+                .accessibilityHidden(true)
         }
     }
 
