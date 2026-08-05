@@ -22,7 +22,7 @@ enum LyricEditorNavigationOption: Equatable, Hashable, Identifiable {
 
     var systemImage: String {
         switch self {
-        case .lyrics: "doc.text"
+        case .lyrics: "append.page"
         case .typography: "textformat"
         }
     }

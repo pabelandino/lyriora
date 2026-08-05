@@ -21,7 +21,7 @@ struct LyricEditorView: View {
     @State private var importError: String?
     @State private var didLoadInitialState = false
     @State private var preferredColumn: NavigationSplitViewColumn = .detail
-    @State private var selectedPage: LyricEditorNavigationOption = .lyrics
+    @State private var selectedPage: LyricEditorNavigationOption? = .lyrics
     @State private var path = NavigationPath()
     @State private var selectedThemeID: UUID?
     @State private var styleSnapshotAtLoad: SlideTextStyle = .default
@@ -71,7 +71,7 @@ struct LyricEditorView: View {
         NavigationSplitView(preferredCompactColumn: $preferredColumn) {
             sidebarList
         } detail: {
-            detailNavigationStack(for: selectedPage)
+            detailNavigationStack(for: selectedPage ?? .lyrics)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel") { closeEditor() }
@@ -130,43 +130,44 @@ struct LyricEditorView: View {
 
     @ViewBuilder
     private var sidebarList: some View {
-        List {
-            Section {
-                sidebarHeader
-                    .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-            }
+        List(selection: $selectedPage) {
+            sidebarSections
+        }
+        .listStyle(.sidebar)
+        .frame(minWidth: 200)
+        .onChange(of: selectedPage) { _, newValue in
+            guard newValue != nil else { return }
+            path = NavigationPath()
+            preferredColumn = .detail
+        }
+    }
 
-            Section {
-                ForEach(LyricEditorNavigationOption.mainPages) { page in
-                    Button {
-                        selectPage(page)
-                    } label: {
-                        Label(page.title, systemImage: page.systemImage)
-                            .font(.body.weight(selectedPage == page ? .semibold : .regular))
-                            .foregroundStyle(selectedPage == page ? Color.accentColor : .primary)
-                    }
-                    .listRowBackground(
-                        selectedPage == page
-                            ? Color.accentColor.opacity(0.12)
-                            : Color.clear
-                    )
-                }
-            }
+    @ViewBuilder
+    private var sidebarSections: some View {
+        Section {
+            sidebarHeader
+                .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+        }
 
-            Section {
-                sidebarActiveTheme
-                    .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+        Section {
+            ForEach(LyricEditorNavigationOption.mainPages) { page in
+                Label(page.title, systemImage: page.systemImage)
+                    .tag(page)
             }
         }
-        .frame(minWidth: 200)
+
+        Section {
+            sidebarActiveTheme
+                .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+        }
     }
 
     private func selectPage(_ page: LyricEditorNavigationOption) {
-        guard selectedPage != page else {
+        if selectedPage == page {
             preferredColumn = .detail
             return
         }

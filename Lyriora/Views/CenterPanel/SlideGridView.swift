@@ -22,10 +22,8 @@ struct SlideGridView: View {
 
     private let thumbnailWidth: CGFloat = 168
     private let gridSpacing: CGFloat = 8
-
-    private var columns: [GridItem] {
-        [GridItem(.adaptive(minimum: thumbnailWidth, maximum: thumbnailWidth), spacing: gridSpacing)]
-    }
+    private let horizontalPadding: CGFloat = 16
+    private let verticalPadding: CGFloat = 14
 
     var body: some View {
         GlassPanel(cornerRadius: 22) {
@@ -35,31 +33,69 @@ struct SlideGridView: View {
                     systemImage: "rectangle.on.rectangle.slash",
                     description: Text("Select a lyric from the library to see its slides.")
                 )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
-                    LazyVGrid(columns: columns, alignment: .leading, spacing: gridSpacing) {
-                        ForEach(slides, id: \.order) { slide in
-                            SlideThumbnailView(
-                                slide: slide,
-                                style: styleProfile?.resolvedStyle(for: slide),
-                                language: language,
-                                isSelected: slide.index == selectedSlideIndex,
-                                presentationState: presentationState,
-                                defaultBackgroundSettings: defaultBackgroundSettings,
-                                backgroundContentMode: backgroundContentMode,
-                                canvasSize: layoutCanvasSize
-                            )
-                            .frame(width: thumbnailWidth)
-                            .onTapGesture {
-                                onSelect(slide)
-                            }
+                GeometryReader { geometry in
+                    ScrollView {
+                        slideRows(in: geometry.size.width)
+                            .padding(.horizontal, horizontalPadding)
+                            .padding(.vertical, verticalPadding)
+                    }
+                    .transparentScrollContent()
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func slideRows(in totalWidth: CGFloat) -> some View {
+        let availableWidth = max(0, totalWidth - (horizontalPadding * 2))
+        let columnCount = Self.columnCount(
+            for: availableWidth,
+            thumbnailWidth: thumbnailWidth,
+            spacing: gridSpacing
+        )
+        let rows = Self.rowChunks(from: slides, columnCount: columnCount)
+
+        VStack(spacing: gridSpacing) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, rowSlides in
+                HStack(spacing: gridSpacing) {
+                    ForEach(rowSlides, id: \.order) { slide in
+                        SlideThumbnailView(
+                            slide: slide,
+                            style: styleProfile?.resolvedStyle(for: slide),
+                            language: language,
+                            isSelected: slide.index == selectedSlideIndex,
+                            presentationState: presentationState,
+                            defaultBackgroundSettings: defaultBackgroundSettings,
+                            backgroundContentMode: backgroundContentMode,
+                            canvasSize: layoutCanvasSize
+                        )
+                        .frame(width: thumbnailWidth)
+                        .onTapGesture {
+                            onSelect(slide)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
                 }
-                .transparentScrollContent()
+                .frame(maxWidth: .infinity, alignment: .center)
             }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private static func columnCount(
+        for availableWidth: CGFloat,
+        thumbnailWidth: CGFloat,
+        spacing: CGFloat
+    ) -> Int {
+        max(1, Int((availableWidth + spacing) / (thumbnailWidth + spacing)))
+    }
+
+    private static func rowChunks(from slides: [LyricSlide], columnCount: Int) -> [[LyricSlide]] {
+        guard !slides.isEmpty else { return [] }
+
+        return stride(from: 0, to: slides.count, by: columnCount).map { start in
+            Array(slides[start..<min(start + columnCount, slides.count)])
         }
     }
 }

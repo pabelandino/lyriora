@@ -13,6 +13,9 @@ struct LyrioraApp: App {
         WindowGroup {
             MainView(viewModel: viewModel)
         }
+        #if os(macOS)
+        .defaultSize(width: 1320, height: 880)
+        #endif
 
         #if os(macOS)
         WindowGroup(id: "lyric-editor", for: LyricEditorLaunch.self) { $launch in
