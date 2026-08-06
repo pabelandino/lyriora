@@ -12,7 +12,12 @@ struct GlassPanel<Content: View>: View {
     var body: some View {
         content()
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .clipShape(panelShape)
             .glassEffect(.regular, in: .rect(cornerRadius: cornerRadius, style: .continuous))
+    }
+
+    private var panelShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
     }
 }
 
@@ -109,6 +114,12 @@ struct GlassIconButton: View {
 extension View {
     func transparentScrollContent() -> some View {
         scrollContentBackground(.hidden)
+            .scrollClipDisabled(false)
+    }
+
+    func clippedPanelScrollContent() -> some View {
+        frame(maxHeight: .infinity)
+            .transparentScrollContent()
     }
 }
 

@@ -15,44 +15,48 @@ struct BackgroundFitToolbar: View {
 
     var body: some View {
         GlassEffectContainer(spacing: Constants.badgeGlassSpacing) {
-            VStack(spacing: Constants.badgeSpacing) {
-                toggleButton
-
-                if isExpanded {
-                    VStack(spacing: Constants.badgeSpacing) {
-                        ForEach(BackgroundContentMode.allCases) { mode in
-                            Button {
-                                contentMode = mode
-                                withAnimation(GlassMorphAnimation.standard) {
-                                    isExpanded = false
-                                }
-                                onChange()
-                            } label: {
-                                BackgroundFitBadgeLabel(
-                                    mode: mode,
-                                    isSelected: contentMode == mode
-                                )
-                                .frame(
-                                    width: Constants.badgeSize,
-                                    height: Constants.badgeSize
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .glassEffect(.regular.interactive(), in: .circle)
-                            .glassEffectID(mode.id, in: glassNamespace)
-                            .accessibilityLabel(mode.label)
-                            .accessibilityHint(mode.subtitle)
-                            .accessibilityAddTraits(contentMode == mode ? .isSelected : [])
-                        }
+            toggleButton
+                .frame(width: Constants.badgeSize, height: Constants.badgeSize)
+                .overlay(alignment: .top) {
+                    if isExpanded {
+                        expandedOptions
+                            .padding(.top, Constants.badgeSize + Constants.badgeSpacing)
                     }
                 }
-            }
-            .frame(width: Constants.badgeFrameWidth)
         }
-        .frame(width: Constants.badgeSize, alignment: .top)
+        .frame(width: Constants.badgeSize, height: Constants.badgeSize, alignment: .top)
         .zIndex(isExpanded ? 100 : 1)
         .opacity(isEnabled ? 1 : 0.45)
         .allowsHitTesting(isEnabled)
+    }
+
+    private var expandedOptions: some View {
+        VStack(spacing: Constants.badgeSpacing) {
+            ForEach(BackgroundContentMode.allCases) { mode in
+                Button {
+                    contentMode = mode
+                    withAnimation(GlassMorphAnimation.standard) {
+                        isExpanded = false
+                    }
+                    onChange()
+                } label: {
+                    BackgroundFitBadgeLabel(
+                        mode: mode,
+                        isSelected: contentMode == mode
+                    )
+                    .frame(
+                        width: Constants.badgeSize,
+                        height: Constants.badgeSize
+                    )
+                }
+                .buttonStyle(.plain)
+                .glassEffect(.regular.interactive(), in: .circle)
+                .glassEffectID(mode.id, in: glassNamespace)
+                .accessibilityLabel(mode.label)
+                .accessibilityHint(mode.subtitle)
+                .accessibilityAddTraits(contentMode == mode ? .isSelected : [])
+            }
+        }
     }
 
     private var toggleButton: some View {
@@ -124,6 +128,5 @@ extension BackgroundFitToolbar {
         static let badgeSize: CGFloat = GlassToolbarMetrics.controlHeight
         static let badgeSpacing: CGFloat = 8
         static let badgeGlassSpacing: CGFloat = 8
-        static let badgeFrameWidth: CGFloat = GlassToolbarMetrics.controlHeight
     }
 }

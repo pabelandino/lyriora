@@ -27,6 +27,8 @@ final class AppViewModel {
     var videoPlaybackMode: VideoPlaybackMode = .loop
     var isVideoPlaying = true
     let videoPlayback = VideoPlaybackController()
+    private(set) var showsVideoPlaybackControls = false
+    private var videoControlsRevealTask: Task<Void, Never>?
     private(set) var videoDurationByFileName: [String: TimeInterval] = [:]
 
     private(set) var themes: [LyricTheme] = []
@@ -221,23 +223,52 @@ final class AppViewModel {
     }
 
     func selectBackgroundMedia(withID id: UUID) {
-        withAnimation(GlassMorphAnimation.standard) {
-            selectedBackgroundAssetID = id
-            showBackground = true
-            resetVideoPlaybackState()
+        cancelVideoControlsReveal()
+        showsVideoPlaybackControls = false
 
-            if let asset = selectedBackgroundAsset, asset.kind == .video {
-                videoPlaybackMode = .loop
-                isVideoPlaying = true
+        selectedBackgroundAssetID = id
+        showBackground = true
+        resetVideoPlaybackState()
+
+        guard let asset = selectedBackgroundAsset else {
+            videoPlayback.teardown()
+            return
+        }
+
+        if asset.kind == .video {
+            videoPlaybackMode = .loop
+            isVideoPlaying = true
+
+            Task { @MainActor in
                 loadSelectedVideoBackground(asset)
-            } else {
-                videoPlayback.teardown()
+                scheduleVideoControlsReveal()
             }
+        } else {
+            videoPlayback.teardown()
         }
     }
 
     private func resetVideoPlaybackState() {
         videoPlayback.teardown()
+    }
+
+    private func cancelVideoControlsReveal() {
+        videoControlsRevealTask?.cancel()
+        videoControlsRevealTask = nil
+    }
+
+    private func scheduleVideoControlsReveal() {
+        cancelVideoControlsReveal()
+
+        videoControlsRevealTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(VideoControlsReveal.delayMilliseconds))
+            guard !Task.isCancelled else { return }
+            guard hasVideoBackgroundSelected, showBackground else { return }
+
+            withAnimation(GlassMorphAnimation.standard) {
+                showsVideoPlaybackControls = true
+            }
+        }
     }
 
     private func loadSelectedVideoBackground(_ asset: MediaAsset) {
@@ -332,18 +363,22 @@ final class AppViewModel {
     }
 
     func clearAll() {
+        cancelVideoControlsReveal()
         withAnimation(GlassMorphAnimation.standard) {
             selectedBackgroundAssetID = nil
             showBackground = true
             showLyrics = false
+            showsVideoPlaybackControls = false
             resetVideoPlaybackState()
         }
     }
 
     func clearBackground() {
+        cancelVideoControlsReveal()
         withAnimation(GlassMorphAnimation.standard) {
             selectedBackgroundAssetID = nil
             showBackground = true
+            showsVideoPlaybackControls = false
             resetVideoPlaybackState()
         }
     }
@@ -532,4 +567,8 @@ final class AppViewModel {
             selectLyric(first)
         }
     }
+}
+
+private enum VideoControlsReveal {
+    static let delayMilliseconds = 450
 }

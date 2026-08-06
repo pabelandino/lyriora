@@ -7,9 +7,10 @@ import SwiftUI
 
 struct CenterPanelView: View {
     @Bindable var viewModel: AppViewModel
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: workspaceCompactLayout ? 6 : 16) {
             presentationToolbar
 
             PresentationPreviewView(
@@ -22,7 +23,8 @@ struct CenterPanelView: View {
                 displayInfo: viewModel.externalDisplayManager.displayInfo
             )
             .id(viewModel.externalDisplayManager.layoutRevision)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: workspaceCompactLayout ? .infinity : nil)
+            .layoutPriority(workspaceCompactLayout ? 1 : 0)
             .transaction { transaction in
                 transaction.disablesAnimations = true
             }
@@ -38,13 +40,16 @@ struct CenterPanelView: View {
                 presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
                 onSelect: viewModel.selectSlide
             )
-            .frame(height: 220)
+            .frame(height: workspaceCompactLayout ? 84 : 220)
             .transaction { transaction in
                 transaction.disablesAnimations = true
             }
 
-            displayToolbar
+            if !workspaceCompactLayout {
+                WorkspaceDisplayToolbar(viewModel: viewModel)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay(alignment: .topTrailing) {
             BackgroundFitToolbar(
                 contentMode: $viewModel.settings.backgroundContentMode,
@@ -58,9 +63,9 @@ struct CenterPanelView: View {
     }
 
     private var presentationToolbar: some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .center, spacing: workspaceCompactLayout ? 8 : 16) {
             PresentationActionsToolbar(
-                showsVideoControls: viewModel.hasVideoBackgroundSelected && viewModel.showBackground,
+                showsVideoControls: viewModel.showsVideoPlaybackControls,
                 playbackMode: viewModel.videoPlaybackMode,
                 isVideoPlaying: viewModel.isVideoPlaying,
                 hasCustomBackgroundSelected: viewModel.hasCustomBackgroundSelected,
@@ -83,8 +88,12 @@ struct CenterPanelView: View {
                 .accessibilityHidden(true)
         }
     }
+}
 
-    private var displayToolbar: some View {
+struct WorkspaceDisplayToolbar: View {
+    @Bindable var viewModel: AppViewModel
+
+    var body: some View {
         GlassCapsuleToolbar {
             GlassIconButton(systemName: "info.circle", accessibilityLabel: "Display information") {
                 viewModel.externalDisplayManager.refreshDisplayInfo()
