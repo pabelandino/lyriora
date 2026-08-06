@@ -8,30 +8,38 @@ import SwiftUI
 struct AppBackgroundView: View {
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
-    /// When false, keeps the shell background sharp so Liquid Glass panels can refract it.
-    var blurBackground: Bool = false
+    /// When true, blurs the shell background so it reads as ambient context behind glass panels.
+    var blurBackground: Bool = true
+
+    private var shellBackground: PresentationBackground? {
+        guard let background, background.kind != .video else { return nil }
+        return background
+    }
 
     private var layerIdentity: String {
-        background?.url.absoluteString ?? "default-\(defaultBackgroundSettings.preset.rawValue)"
+        if let shellBackground {
+            return shellBackground.url.absoluteString
+        }
+        return "default-\(defaultBackgroundSettings.preset.rawValue)-\(defaultBackgroundSettings.blurRadius)-\(defaultBackgroundSettings.overlayOpacity)"
     }
 
     var body: some View {
         ZStack {
-            if let background {
+            if let shellBackground {
                 Group {
                     if blurBackground {
                         BlurredBackgroundLayer(
                             blurRadius: defaultBackgroundSettings.blurRadius,
-                            overlayOpacity: defaultBackgroundSettings.overlayOpacity
+                            overlayOpacity: 0
                         ) {
                             PresentationBackgroundView(
-                                background: background,
+                                background: shellBackground,
                                 defaultBackgroundSettings: defaultBackgroundSettings
                             )
                         }
                     } else {
                         PresentationBackgroundView(
-                            background: background,
+                            background: shellBackground,
                             defaultBackgroundSettings: defaultBackgroundSettings
                         )
                     }
@@ -75,10 +83,13 @@ enum AppBackgroundAnimation {
 struct PresentationBackgroundLayer: View {
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    var contentMode: BackgroundContentMode = .fill
+    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
     var blurDefaultBackground: Bool = true
+    var showsDefaultWhenEmpty: Bool = true
 
     private var layerIdentity: String {
-        background?.url.absoluteString ?? "default-\(defaultBackgroundSettings.preset.rawValue)"
+        background?.url.absoluteString ?? "default-\(defaultBackgroundSettings.preset.rawValue)-\(showsDefaultWhenEmpty)"
     }
 
     var body: some View {
@@ -86,21 +97,29 @@ struct PresentationBackgroundLayer: View {
             if let background {
                 PresentationBackgroundView(
                     background: background,
-                    defaultBackgroundSettings: defaultBackgroundSettings
+                    defaultBackgroundSettings: defaultBackgroundSettings,
+                    contentMode: contentMode,
+                    canvasSize: canvasSize
                 )
                 .transition(.opacity)
                 .id(layerIdentity)
-            } else if blurDefaultBackground {
-                BlurredBackgroundLayer(
-                    blurRadius: defaultBackgroundSettings.blurRadius,
-                    overlayOpacity: defaultBackgroundSettings.overlayOpacity
-                ) {
+            } else if showsDefaultWhenEmpty {
+                if blurDefaultBackground {
+                    BlurredBackgroundLayer(
+                        blurRadius: defaultBackgroundSettings.blurRadius,
+                        overlayOpacity: defaultBackgroundSettings.overlayOpacity
+                    ) {
+                        ConfigurableDefaultGradientView(settings: defaultBackgroundSettings)
+                    }
+                    .transition(.opacity)
+                    .id(layerIdentity)
+                } else {
                     ConfigurableDefaultGradientView(settings: defaultBackgroundSettings)
+                        .transition(.opacity)
+                        .id(layerIdentity)
                 }
-                .transition(.opacity)
-                .id(layerIdentity)
             } else {
-                ConfigurableDefaultGradientView(settings: defaultBackgroundSettings)
+                Color.clear
                     .transition(.opacity)
                     .id(layerIdentity)
             }
@@ -113,7 +132,10 @@ struct ToggleablePresentationBackgroundLayer: View {
     let isVisible: Bool
     let background: PresentationBackground?
     let defaultBackgroundSettings: DefaultBackgroundSettings
+    var contentMode: BackgroundContentMode = .fill
+    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
     var blurDefaultBackground: Bool = true
+    var showsDefaultWhenEmpty: Bool = true
 
     var body: some View {
         Group {
@@ -121,7 +143,10 @@ struct ToggleablePresentationBackgroundLayer: View {
                 PresentationBackgroundLayer(
                     background: background,
                     defaultBackgroundSettings: defaultBackgroundSettings,
-                    blurDefaultBackground: blurDefaultBackground
+                    contentMode: contentMode,
+                    canvasSize: canvasSize,
+                    blurDefaultBackground: blurDefaultBackground,
+                    showsDefaultWhenEmpty: showsDefaultWhenEmpty
                 )
             } else {
                 Color.black.opacity(0.35)

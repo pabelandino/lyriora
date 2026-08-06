@@ -5,30 +5,37 @@
 
 import PhotosUI
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct MediaLibraryPanelView: View {
     @Bindable var viewModel: AppViewModel
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: workspaceCompactLayout ? 8 : 16) {
             ImageLibrarySection(viewModel: viewModel)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             VideoLibrarySection(viewModel: viewModel)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
 
 private struct ImageLibrarySection: View {
     @Bindable var viewModel: AppViewModel
+    @State private var assetPendingRename: MediaAsset?
+    @State private var renameDraft = ""
 
     var body: some View {
         GlassPanel(cornerRadius: 22) {
             VStack(spacing: 12) {
-                sectionHeader(
+                MediaImportSectionHeader(
                     title: "Images",
                     systemName: "photo.on.rectangle.angled",
-                    pickerSelection: $viewModel.selectedPhotoItems,
-                    matching: .images,
-                    accessibilityLabel: "Import images"
+                    kind: .image,
+                    viewModel: viewModel
                 )
 
                 ScrollView {
@@ -38,35 +45,47 @@ private struct ImageLibrarySection: View {
                                 asset: asset,
                                 fileURL: viewModel.imageURL(for: asset),
                                 isSelected: viewModel.isBackgroundSelected(asset),
+                                onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
+                                onRename: {
+                                    renameDraft = asset.listLabel
+                                    assetPendingRename = asset
+                                },
                                 onRemove: { viewModel.deleteMediaAsset(asset) }
                             )
-                            .onTapGesture {
-                                viewModel.selectBackgroundMedia(asset)
-                            }
+                            .id(asset.id)
                         }
                     }
                     .padding(.horizontal, 12)
                     .padding(.bottom, 12)
                 }
-                .transparentScrollContent()
+                .clippedPanelScrollContent()
             }
             .padding(.top, 12)
+            .padding(.bottom, 4)
         }
+        .renameMediaAlert(
+            asset: $assetPendingRename,
+            draft: $renameDraft,
+            onSave: { asset, name in
+                viewModel.renameMediaAsset(asset, to: name)
+            }
+        )
     }
 }
 
 private struct VideoLibrarySection: View {
     @Bindable var viewModel: AppViewModel
+    @State private var assetPendingRename: MediaAsset?
+    @State private var renameDraft = ""
 
     var body: some View {
         GlassPanel(cornerRadius: 22) {
             VStack(spacing: 12) {
-                sectionHeader(
+                MediaImportSectionHeader(
                     title: "Videos",
                     systemName: "film.stack",
-                    pickerSelection: $viewModel.selectedVideoItems,
-                    matching: .videos,
-                    accessibilityLabel: "Import videos"
+                    kind: .video,
+                    viewModel: viewModel
                 )
 
                 ScrollView {
@@ -77,47 +96,130 @@ private struct VideoLibrarySection: View {
                                 fileURL: viewModel.videoURL(for: asset),
                                 isSelected: viewModel.isBackgroundSelected(asset),
                                 showsDuration: true,
+                                durationLabel: viewModel.videoDurationLabel(for: asset),
+                                onEnsureDuration: {
+                                    await viewModel.ensureVideoDuration(for: asset)
+                                },
+                                onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
+                                onRename: {
+                                    renameDraft = asset.listLabel
+                                    assetPendingRename = asset
+                                },
                                 onRemove: { viewModel.deleteMediaAsset(asset) }
                             )
-                            .onTapGesture {
-                                viewModel.selectBackgroundMedia(asset)
-                            }
+                            .id(asset.fileName)
                         }
                     }
                     .padding(.horizontal, 12)
                     .padding(.bottom, 12)
                 }
-                .transparentScrollContent()
+                .clippedPanelScrollContent()
             }
             .padding(.top, 12)
+            .padding(.bottom, 4)
+        }
+        .renameMediaAlert(
+            asset: $assetPendingRename,
+            draft: $renameDraft,
+            onSave: { asset, name in
+                viewModel.renameMediaAsset(asset, to: name)
+            }
+        )
+    }
+}
+
+private struct MediaImportSectionHeader: View {
+    let title: String
+    let systemName: String
+    let kind: MediaAssetKind
+    @Bindable var viewModel: AppViewModel
+
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
+    @State private var isSourceDialogPresented = false
+    @State private var isPhotoPickerPresented = false
+    @State private var isFileImporterPresented = false
+
+    var body: some View {
+        HStack(spacing: workspaceCompactLayout ? 6 : 8) {
+            Label(title, systemImage: systemName)
+                .font(workspaceCompactLayout ? .subheadline.weight(.semibold) : .headline)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+                .layoutPriority(1)
+
+            Spacer(minLength: 0)
+
+            Button {
+                isSourceDialogPresented = true
+            } label: {
+                GlassCircleIcon(
+                    systemName: "plus",
+                    diameter: workspaceCompactLayout ? 32 : 36,
+                    symbolSize: workspaceCompactLayout ? 13 : 15
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Add \(title.lowercased())")
+        }
+        .padding(.horizontal, workspaceCompactLayout ? 10 : 16)
+        .confirmationDialog(
+            "Add \(title)",
+            isPresented: $isSourceDialogPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Photo Library") {
+                isPhotoPickerPresented = true
+            }
+
+            Button("Files") {
+                isFileImporterPresented = true
+            }
+
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Choose where to import \(title.lowercased()) from.")
+        }
+        .photosPicker(
+            isPresented: $isPhotoPickerPresented,
+            selection: photoPickerSelection,
+            maxSelectionCount: 10,
+            matching: kind == .image ? .images : .videos
+        )
+        .fileImporter(
+            isPresented: $isFileImporterPresented,
+            allowedContentTypes: kind == .image ? MediaImportContentTypes.images : MediaImportContentTypes.videos,
+            allowsMultipleSelection: true
+        ) { result in
+            switch result {
+            case .success(let urls):
+                Task {
+                    switch kind {
+                    case .image:
+                        await viewModel.importImageFiles(from: urls)
+                    case .video:
+                        await viewModel.importVideoFiles(from: urls)
+                    }
+                }
+            case .failure:
+                break
+            }
+        }
+    }
+
+    private var photoPickerSelection: Binding<[PhotosPickerItem]> {
+        switch kind {
+        case .image:
+            $viewModel.selectedPhotoItems
+        case .video:
+            $viewModel.selectedVideoItems
         }
     }
 }
 
-@ViewBuilder
-private func sectionHeader(
-    title: String,
-    systemName: String,
-    pickerSelection: Binding<[PhotosPickerItem]>,
-    matching: PHPickerFilter,
-    accessibilityLabel: String
-) -> some View {
-    HStack {
-        Label(title, systemImage: systemName)
-            .font(.headline)
-            .foregroundStyle(.primary)
-
-        Spacer()
-
-        PhotosPicker(selection: pickerSelection, maxSelectionCount: 10, matching: matching) {
-            Image(systemName: "plus.circle.fill")
-                .font(.title3)
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(.green, .white.opacity(0.85))
-        }
-        .accessibilityLabel(accessibilityLabel)
-    }
-    .padding(.horizontal, 16)
+private enum MediaImportContentTypes {
+    static let images: [UTType] = [.image]
+    static let videos: [UTType] = [.movie, .video, .mpeg4Movie, .quickTimeMovie, .avi]
 }
 
 private struct MediaThumbnailView: View {
@@ -125,64 +227,201 @@ private struct MediaThumbnailView: View {
     let fileURL: URL
     var isSelected: Bool = false
     var showsDuration: Bool = false
+    var durationLabel: String? = nil
+    var onEnsureDuration: (() async -> Void)? = nil
+    let onSelect: () -> Void
+    let onRename: () -> Void
     let onRemove: () -> Void
 
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
+    @State private var displayedDurationLabel: String?
+
+    private let cornerRadius: CGFloat = 14
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+    }
+
+    private var resolvedDurationLabel: String {
+        displayedDurationLabel ?? durationLabel ?? "--:--"
+    }
+
+    private var menuIconSize: CGFloat {
+        workspaceCompactLayout ? 32 : 36
+    }
+
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            if asset.kind == .image {
-                AsyncImage(url: fileURL) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    default:
-                        Image(systemName: "photo")
-                            .font(.title2)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        VStack(alignment: .leading, spacing: workspaceCompactLayout ? 4 : 6) {
+            Button(action: onSelect) {
+                thumbnailContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(height: workspaceCompactLayout ? 72 : 88)
+                    .clipShape(shape)
+                    .overlay {
+                        if isSelected {
+                            shape.strokeBorder(.white.opacity(0.9), lineWidth: 2.5)
+                        }
                     }
-                }
-            } else {
-                ZStack {
-                    Color.black.opacity(0.25)
-
-                    Image(systemName: "play.rectangle.fill")
-                        .font(.largeTitle)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-
-            if showsDuration {
-                Text("00:00")
-                    .font(.caption2.weight(.semibold))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .glassEffect(.regular, in: .capsule)
-                    .padding(8)
-            }
-        }
-        .frame(height: 88)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(alignment: .topTrailing) {
-            Button(action: onRemove) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.body)
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(.white, .black.opacity(0.55))
-                    .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+                    .contentShape(shape)
             }
             .buttonStyle(.plain)
-            .padding(6)
-            .accessibilityLabel("Remove from library")
+            .overlay(alignment: .bottomLeading) {
+                if showsDuration {
+                    Text(resolvedDurationLabel)
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .glassEffect(.regular, in: .capsule)
+                        .padding(8)
+                        .allowsHitTesting(false)
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                GlassOverflowMenu(
+                    actions: [
+                        .init(
+                            title: "Rename",
+                            systemImage: "pencil",
+                            handler: onRename
+                        ),
+                        .init(
+                            title: "Delete",
+                            systemImage: "trash",
+                            role: .destructive,
+                            handler: onRemove
+                        )
+                    ],
+                    iconSize: menuIconSize
+                )
+                .padding(6)
+                .accessibilityLabel("Media options")
+            }
+            .accessibilityLabel(asset.listLabel)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+
+            Button(action: onRename) {
+                Text(asset.listLabel)
+                    .font(workspaceCompactLayout ? .caption2.weight(.medium) : .caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 2)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Rename media")
         }
-        .overlay {
-            if isSelected {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(.white.opacity(0.9), lineWidth: 2.5)
+        .onAppear {
+            if let durationLabel {
+                displayedDurationLabel = durationLabel
             }
         }
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .onChange(of: durationLabel) { _, newValue in
+            if let newValue {
+                displayedDurationLabel = newValue
+            }
+        }
+        .task(id: asset.fileName) {
+            guard showsDuration else { return }
+            await onEnsureDuration?()
+        }
+    }
+
+    @ViewBuilder
+    private var thumbnailContent: some View {
+        if asset.kind == .image {
+            LocalFileThumbnailImage(url: fileURL)
+        } else {
+            LocalFileVideoThumbnail(url: fileURL)
+        }
+    }
+}
+
+private extension View {
+    func renameMediaAlert(
+        asset: Binding<MediaAsset?>,
+        draft: Binding<String>,
+        onSave: @escaping (MediaAsset, String) -> Void
+    ) -> some View {
+        alert("Rename", isPresented: Binding(
+            get: { asset.wrappedValue != nil },
+            set: { isPresented in
+                if !isPresented {
+                    asset.wrappedValue = nil
+                }
+            }
+        )) {
+            TextField("Name", text: draft)
+
+            Button("Save") {
+                guard let pendingAsset = asset.wrappedValue else { return }
+                onSave(pendingAsset, draft.wrappedValue)
+                asset.wrappedValue = nil
+            }
+
+            Button("Cancel", role: .cancel) {
+                asset.wrappedValue = nil
+            }
+        } message: {
+            Text("Enter a new name for this item.")
+        }
+    }
+}
+
+private struct LocalFileVideoThumbnail: View {
+    let url: URL
+
+    @State private var image: Image?
+
+    var body: some View {
+        ZStack {
+            Group {
+                if let image {
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Color.black.opacity(0.35)
+                }
+            }
+
+            GlassCircleIcon(systemName: "play.fill", diameter: 42, symbolSize: 16)
+        }
+        .task(id: url) {
+            let metadata = await VideoAssetMetadataLoader.load(from: url)
+            image = metadata.thumbnail
+        }
+    }
+}
+
+private struct LocalFileThumbnailImage: View {
+    let url: URL
+    @State private var image: Image?
+
+    var body: some View {
+        Group {
+            if let image {
+                image
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Image(systemName: "photo")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .task(id: url) {
+            if let cached = LocalImageCache.entry(for: url) {
+                image = cached.image
+                return
+            }
+
+            if let loadedImage = LocalFileImageBackground.loadImage(from: url) {
+                let size = LocalFileImageBackground.loadImageSize(from: url) ?? .zero
+                LocalImageCache.store(image: loadedImage, size: size, for: url)
+                image = loadedImage
+            }
+        }
     }
 }

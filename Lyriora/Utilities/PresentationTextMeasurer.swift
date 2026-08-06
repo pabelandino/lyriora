@@ -13,12 +13,17 @@ import AppKit
 #endif
 
 enum PresentationTextMeasurer {
+    static func explicitLines(from text: String) -> [String] {
+        text.components(separatedBy: "\n")
+    }
+
     static func fittingFontSize(
         text: String,
         in size: CGSize,
         configuration: PresentationTextConfiguration
     ) -> CGFloat {
-        guard size.width > 0, size.height > 0 else {
+        let lines = explicitLines(from: text)
+        guard size.width > 0, size.height > 0, !lines.isEmpty else {
             return configuration.minFontSize
         }
 
@@ -30,9 +35,9 @@ enum PresentationTextMeasurer {
             let mid = (low + high) / 2
 
             if textFits(
-                text,
+                lines: lines,
                 fontSize: mid,
-                weight: configuration.fontWeight,
+                configuration: configuration,
                 in: size
             ) {
                 best = mid
@@ -48,28 +53,87 @@ enum PresentationTextMeasurer {
     static func textFits(
         _ text: String,
         fontSize: CGFloat,
-        weight: Font.Weight,
+        configuration: PresentationTextConfiguration,
         in size: CGSize
     ) -> Bool {
-        let measured = measure(
-            text: text,
+        textFits(
+            lines: explicitLines(from: text),
             fontSize: fontSize,
-            weight: weight,
-            maxWidth: size.width
+            configuration: configuration,
+            in: size
         )
+    }
 
-        return measured.width <= size.width && measured.height <= size.height
+    static func textFits(
+        lines: [String],
+        fontSize: CGFloat,
+        configuration: PresentationTextConfiguration,
+        in size: CGSize
+    ) -> Bool {
+        guard !lines.isEmpty else { return true }
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { continue }
+
+            let lineSize = measureSingleLine(
+                trimmed,
+                fontSize: fontSize,
+                configuration: configuration
+            )
+            if lineSize.width > size.width {
+                return false
+            }
+        }
+
+        return totalHeight(
+            for: lines,
+            fontSize: fontSize,
+            configuration: configuration
+        ) <= size.height
+    }
+
+    static func totalHeight(
+        for lines: [String],
+        fontSize: CGFloat,
+        configuration: PresentationTextConfiguration
+    ) -> CGFloat {
+        guard !lines.isEmpty else { return 0 }
+
+        var height: CGFloat = 0
+        var renderedLineCount = 0
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { continue }
+
+            if renderedLineCount > 0 {
+                height += configuration.lineSpacing
+            }
+
+            height += measureSingleLine(
+                trimmed,
+                fontSize: fontSize,
+                configuration: configuration
+            ).height
+            renderedLineCount += 1
+        }
+
+        return height
     }
 
     static func measure(
         text: String,
         fontSize: CGFloat,
-        weight: Font.Weight,
+        configuration: PresentationTextConfiguration,
         maxWidth: CGFloat
     ) -> CGSize {
+        let attributes = measurementAttributes(
+            fontSize: fontSize,
+            configuration: configuration
+        )
+
         #if canImport(UIKit)
-        let font = UIFont.systemFont(ofSize: fontSize, weight: uiFontWeight(from: weight))
-        let attributes: [NSAttributedString.Key: Any] = [.font: font]
         let bounds = (text as NSString).boundingRect(
             with: CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading],
@@ -78,8 +142,6 @@ enum PresentationTextMeasurer {
         )
         return CGSize(width: ceil(bounds.width), height: ceil(bounds.height))
         #elseif os(macOS)
-        let font = NSFont.systemFont(ofSize: fontSize, weight: nsFontWeight(from: weight))
-        let attributes: [NSAttributedString.Key: Any] = [.font: font]
         let bounds = (text as NSString).boundingRect(
             with: CGSize(width: maxWidth, height: .greatestFiniteMagnitude),
             options: [.usesLineFragmentOrigin, .usesFontLeading],
@@ -92,35 +154,37 @@ enum PresentationTextMeasurer {
         #endif
     }
 
-    #if canImport(UIKit)
-    private static func uiFontWeight(from weight: Font.Weight) -> UIFont.Weight {
-        switch weight {
-        case .ultraLight: .ultraLight
-        case .thin: .thin
-        case .light: .light
-        case .regular: .regular
-        case .medium: .medium
-        case .semibold: .semibold
-        case .bold: .bold
-        case .heavy: .heavy
-        case .black: .black
-        default: .regular
-        }
+    static func measureSingleLine(
+        _ text: String,
+        fontSize: CGFloat,
+        configuration: PresentationTextConfiguration
+    ) -> CGSize {
+        measure(
+            text: text,
+            fontSize: fontSize,
+            configuration: configuration,
+            maxWidth: .greatestFiniteMagnitude
+        )
     }
-    #elseif os(macOS)
-    private static func nsFontWeight(from weight: Font.Weight) -> NSFont.Weight {
-        switch weight {
-        case .ultraLight: .ultraLight
-        case .thin: .thin
-        case .light: .light
-        case .regular: .regular
-        case .medium: .medium
-        case .semibold: .semibold
-        case .bold: .bold
-        case .heavy: .heavy
-        case .black: .black
-        default: .regular
-        }
+
+    private static func measurementAttributes(
+        fontSize: CGFloat,
+        configuration: PresentationTextConfiguration
+    ) -> [NSAttributedString.Key: Any] {
+        #if canImport(UIKit)
+        let font = configuration.fontFamily.uiFont(size: fontSize, weight: configuration.fontWeight)
+        #elseif os(macOS)
+        let font = configuration.fontFamily.nsFont(size: fontSize, weight: configuration.fontWeight)
+        #endif
+
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 0
+        paragraphStyle.alignment = .center
+        paragraphStyle.lineBreakMode = .byTruncatingTail
+
+        return [
+            .font: font,
+            .paragraphStyle: paragraphStyle
+        ]
     }
-    #endif
 }

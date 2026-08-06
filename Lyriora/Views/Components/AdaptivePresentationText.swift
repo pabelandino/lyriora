@@ -9,13 +9,14 @@ struct AdaptivePresentationText: View {
     let text: String
     let configuration: PresentationTextConfiguration
 
+    private var lines: [String] {
+        PresentationTextMeasurer.explicitLines(from: text)
+    }
+
     var body: some View {
         GeometryReader { geometry in
-            let padding = min(geometry.size.width, geometry.size.height) * configuration.paddingRatio
-            let availableSize = CGSize(
-                width: max(geometry.size.width - (padding * 2), 1),
-                height: max(geometry.size.height - (padding * 2), 1)
-            )
+            let insets = configuration.contentInsets(for: geometry.size)
+            let availableSize = configuration.availableTextSize(in: geometry.size)
 
             let fontSize = configuration.isAdaptiveScalingEnabled
                 ? PresentationTextMeasurer.fittingFontSize(
@@ -25,16 +26,15 @@ struct AdaptivePresentationText: View {
                 )
                 : configuration.maxFontSize
 
-            Text(text)
-                .font(.system(size: fontSize, weight: configuration.fontWeight, design: .rounded))
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.white)
-                .lineLimit(nil)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(width: availableSize.width, alignment: .center)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .padding(padding)
-                .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
+            ExplicitLinePresentationText(
+                lines: lines,
+                fontSize: fontSize,
+                configuration: configuration,
+                availableSize: availableSize,
+                scalesToFitWidth: configuration.isAdaptiveScalingEnabled
+            )
+            .padding(insets)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
     }
 }

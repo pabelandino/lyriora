@@ -7,67 +7,94 @@ import SwiftUI
 
 struct CenterPanelView: View {
     @Bindable var viewModel: AppViewModel
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: workspaceCompactLayout ? 6 : 16) {
             presentationToolbar
 
             PresentationPreviewView(
+                viewModel: viewModel,
                 state: viewModel.presentationState,
-                textConfiguration: PresentationTextConfiguration(settings: viewModel.settings.preview),
-                defaultBackgroundSettings: viewModel.settings.defaultBackground
+                fallbackConfiguration: PresentationTextConfiguration(settings: viewModel.settings.externalDisplay),
+                defaultBackgroundSettings: viewModel.settings.defaultBackground,
+                backgroundContentMode: viewModel.settings.backgroundContentMode,
+                presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
+                displayInfo: viewModel.externalDisplayManager.displayInfo
             )
-                .frame(maxHeight: .infinity)
+            .id(viewModel.externalDisplayManager.layoutRevision)
+            .frame(maxWidth: .infinity, maxHeight: workspaceCompactLayout ? .infinity : nil)
+            .layoutPriority(workspaceCompactLayout ? 1 : 0)
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
 
             SlideGridView(
-                slides: viewModel.selectedLyric?.slides ?? [],
+                slides: viewModel.selectedLyricSlides,
+                styleProfile: viewModel.selectedLyric?.styleProfile,
+                language: viewModel.selectedLyric?.language ?? .unknown,
                 selectedSlideIndex: viewModel.selectedSlideIndex,
                 presentationState: viewModel.presentationState,
                 defaultBackgroundSettings: viewModel.settings.defaultBackground,
+                backgroundContentMode: viewModel.settings.backgroundContentMode,
+                presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
                 onSelect: viewModel.selectSlide
             )
-            .frame(height: 220)
+            .frame(height: workspaceCompactLayout ? 84 : 220)
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
 
-            displayToolbar
+            if !workspaceCompactLayout {
+                WorkspaceDisplayToolbar(viewModel: viewModel)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .overlay(alignment: .topTrailing) {
+            BackgroundFitToolbar(
+                contentMode: $viewModel.settings.backgroundContentMode,
+                isEnabled: viewModel.hasCustomBackgroundSelected && viewModel.showBackground,
+                onChange: {
+                    viewModel.saveSettings()
+                    viewModel.refreshExternalPresentation()
+                }
+            )
         }
     }
 
     private var presentationToolbar: some View {
-        GlassCapsuleToolbar {
-            GlassIconButton(systemName: "xmark.circle", accessibilityLabel: "Clear all") {
-                viewModel.clearAll()
-            }
+        HStack(alignment: .center, spacing: workspaceCompactLayout ? 8 : 16) {
+            PresentationActionsToolbar(
+                showsVideoControls: viewModel.showsVideoPlaybackControls,
+                playbackMode: viewModel.videoPlaybackMode,
+                isVideoPlaying: viewModel.isVideoPlaying,
+                hasCustomBackgroundSelected: viewModel.hasCustomBackgroundSelected,
+                showLyrics: viewModel.showLyrics,
+                onClearAll: viewModel.clearAll,
+                onClearBackground: viewModel.clearBackground,
+                onClearLyrics: viewModel.clearLyrics,
+                onToggleVideoMode: viewModel.toggleVideoPlaybackMode,
+                onToggleVideoPlayback: viewModel.toggleVideoPlayback,
+                onStopVideo: viewModel.stopVideo
+            )
 
-            GlassIconButton(
-                systemName: "photo",
-                accessibilityLabel: "Clear background",
-                isActive: viewModel.hasCustomBackgroundSelected
-            ) {
-                viewModel.clearBackground()
-            }
+            Spacer(minLength: 0)
 
-            GlassIconButton(
-                systemName: "doc.text",
-                accessibilityLabel: "Clear lyrics",
-                isActive: viewModel.showLyrics
-            ) {
-                viewModel.clearLyrics()
-            }
+            Color.clear
+                .frame(
+                    width: BackgroundFitToolbar.Layout.reservedSize,
+                    height: BackgroundFitToolbar.Layout.reservedSize
+                )
+                .accessibilityHidden(true)
         }
     }
+}
 
-    private var displayToolbar: some View {
+struct WorkspaceDisplayToolbar: View {
+    @Bindable var viewModel: AppViewModel
+
+    var body: some View {
         GlassCapsuleToolbar {
-            GlassIconButton(
-                systemName: "arrow.up.left.and.arrow.down.right",
-                accessibilityLabel: "Rescale external display content",
-                isActive: viewModel.externalDisplayManager.isPresentationActive,
-                isEnabled: viewModel.externalDisplayManager.isExternalDisplayConnected
-                    && viewModel.externalDisplayManager.isPresentationEnabled
-            ) {
-                viewModel.refreshExternalPresentation()
-            }
-
             GlassIconButton(systemName: "info.circle", accessibilityLabel: "Display information") {
                 viewModel.externalDisplayManager.refreshDisplayInfo()
                 viewModel.isDisplayInfoSheetPresented = true
