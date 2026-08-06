@@ -16,11 +16,15 @@ struct SlideGridView: View {
     var presentationCanvasSize: CGSize = .zero
     let onSelect: (LyricSlide) -> Void
 
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
+
     private var layoutCanvasSize: CGSize {
         PresentationLayout.resolvedCanvasSize(presentationCanvasSize)
     }
 
-    private let thumbnailWidth: CGFloat = 168
+    private var thumbnailWidth: CGFloat {
+        workspaceCompactLayout ? 120 : 168
+    }
     private let gridSpacing: CGFloat = 8
     private let horizontalPadding: CGFloat = 16
     private let verticalPadding: CGFloat = 14
@@ -41,7 +45,7 @@ struct SlideGridView: View {
                             .padding(.horizontal, horizontalPadding)
                             .padding(.vertical, verticalPadding)
                     }
-                    .transparentScrollContent()
+                    .clippedPanelScrollContent()
                 }
             }
         }

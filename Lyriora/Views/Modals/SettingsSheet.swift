@@ -102,7 +102,7 @@ struct SettingsSheet: View {
         } header: {
             Text("Default Background")
         } footer: {
-            Text("Used when no image is selected. Appears blurred across the app, preview, slides, and external display.")
+            Text("Mesh Waves adapts to light and dark mode. Other styles stay fixed. Used when no image is selected across the app, preview, slides, and external display.")
         }
     }
 
@@ -145,10 +145,18 @@ struct SettingsSheet: View {
 
 private struct DefaultBackgroundPresetPreview: View {
     let preset: DefaultBackgroundPreset
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         RoundedRectangle(cornerRadius: 4, style: .continuous)
-            .fill(preset.linearGradient)
+            .fill(
+                MeshGradient(
+                    width: 3,
+                    height: 3,
+                    points: preset.resolvedStyle(for: colorScheme).wavePoints,
+                    colors: preset.resolvedStyle(for: colorScheme).colors
+                )
+            )
             .frame(width: 28, height: 18)
     }
 }

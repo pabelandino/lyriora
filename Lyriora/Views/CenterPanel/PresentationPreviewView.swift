@@ -53,7 +53,7 @@ struct PresentationPreviewView: View {
     }
 
     private var showsVideoControls: Bool {
-        viewModel.hasVideoBackgroundSelected && state.showBackground
+        viewModel.showsVideoPlaybackControls
     }
 
     private var isVideoBackground: Bool {

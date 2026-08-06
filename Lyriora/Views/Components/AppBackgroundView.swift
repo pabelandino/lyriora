@@ -20,7 +20,7 @@ struct AppBackgroundView: View {
         if let shellBackground {
             return shellBackground.url.absoluteString
         }
-        return "default-\(defaultBackgroundSettings.preset.rawValue)"
+        return "default-\(defaultBackgroundSettings.preset.rawValue)-\(defaultBackgroundSettings.blurRadius)-\(defaultBackgroundSettings.overlayOpacity)"
     }
 
     var body: some View {

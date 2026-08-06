@@ -7,6 +7,7 @@ import SwiftUI
 
 struct LyricsLibraryPanelView: View {
     @Bindable var viewModel: AppViewModel
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
 
     @State private var lyricPendingDeletion: LyricDocument?
 
@@ -16,25 +17,31 @@ struct LyricsLibraryPanelView: View {
 
     var body: some View {
         GlassPanel(cornerRadius: 22) {
-            VStack(spacing: 12) {
+            VStack(spacing: workspaceCompactLayout ? 8 : 12) {
                 HStack(spacing: 8) {
                     Label("Lyrics", systemImage: "append.page")
-                        .font(.headline)
+                        .font(workspaceCompactLayout ? .subheadline.weight(.semibold) : .headline)
                         .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
 
                     Spacer()
 
                     Button {
                         openLyricEditor(existingLyricID: nil)
                     } label: {
-                        GlassCircleIcon(systemName: "plus")
+                        GlassCircleIcon(
+                            systemName: "plus",
+                            diameter: workspaceCompactLayout ? 32 : 36,
+                            symbolSize: workspaceCompactLayout ? 13 : 15
+                        )
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Create new lyric")
                 }
                 .padding(.leading, Layout.contentHorizontalInset)
                 .padding(.trailing, Layout.trailingControlInset)
-                .padding(.top, 12)
+                .padding(.top, workspaceCompactLayout ? 8 : 12)
 
                 ScrollView {
                     LazyVStack(spacing: 10) {
@@ -55,10 +62,13 @@ struct LyricsLibraryPanelView: View {
                         }
                     }
                     .padding(.horizontal, Layout.contentHorizontalInset)
+                    .padding(.bottom, 12)
                 }
-                .transparentScrollContent()
+                .clippedPanelScrollContent()
             }
+            .padding(.bottom, 4)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .alert(
             "Delete Lyric Permanently?",
             isPresented: deleteAlertBinding,
@@ -112,6 +122,8 @@ private struct LyricCardView: View {
     let onEdit: () -> Void
     let onDelete: () -> Void
 
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
+
     private let cornerRadius: CGFloat = 18
 
     private var footerShape: UnevenRoundedRectangle {
@@ -145,7 +157,7 @@ private struct LyricCardView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .glassEffect(.regular, in: footerShape)
         }
-        .frame(height: 98)
+        .frame(height: workspaceCompactLayout ? 82 : 98)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(alignment: .topTrailing) {
             GlassOverflowMenu(

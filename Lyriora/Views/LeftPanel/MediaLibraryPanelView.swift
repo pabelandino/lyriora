@@ -8,16 +8,17 @@ import SwiftUI
 
 struct MediaLibraryPanelView: View {
     @Bindable var viewModel: AppViewModel
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: workspaceCompactLayout ? 8 : 16) {
             ImageLibrarySection(viewModel: viewModel)
-                .frame(maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             VideoLibrarySection(viewModel: viewModel)
-                .frame(maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
 
@@ -51,9 +52,10 @@ private struct ImageLibrarySection: View {
                     .padding(.horizontal, 12)
                     .padding(.bottom, 12)
                 }
-                .transparentScrollContent()
+                .clippedPanelScrollContent()
             }
             .padding(.top, 12)
+            .padding(.bottom, 4)
         }
     }
 }
@@ -93,9 +95,10 @@ private struct VideoLibrarySection: View {
                     .padding(.horizontal, 12)
                     .padding(.bottom, 12)
                 }
-                .transparentScrollContent()
+                .clippedPanelScrollContent()
             }
             .padding(.top, 12)
+            .padding(.bottom, 4)
         }
     }
 }
@@ -108,20 +111,47 @@ private func sectionHeader(
     matching: PHPickerFilter,
     accessibilityLabel: String
 ) -> some View {
-    HStack {
-        Label(title, systemImage: systemName)
-            .font(.headline)
-            .foregroundStyle(.primary)
+    SectionHeaderView(
+        title: title,
+        systemName: systemName,
+        pickerSelection: pickerSelection,
+        matching: matching,
+        accessibilityLabel: accessibilityLabel
+    )
+}
 
-        Spacer()
+private struct SectionHeaderView: View {
+    let title: String
+    let systemName: String
+    @Binding var pickerSelection: [PhotosPickerItem]
+    let matching: PHPickerFilter
+    let accessibilityLabel: String
 
-        PhotosPicker(selection: pickerSelection, maxSelectionCount: 10, matching: matching) {
-            GlassCircleIcon(systemName: "plus")
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
+
+    var body: some View {
+        HStack(spacing: workspaceCompactLayout ? 6 : 8) {
+            Label(title, systemImage: systemName)
+                .font(workspaceCompactLayout ? .subheadline.weight(.semibold) : .headline)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+                .layoutPriority(1)
+
+            Spacer(minLength: 0)
+
+            PhotosPicker(selection: $pickerSelection, maxSelectionCount: 10, matching: matching) {
+                GlassCircleIcon(
+                    systemName: "plus",
+                    diameter: workspaceCompactLayout ? 32 : 36,
+                    symbolSize: workspaceCompactLayout ? 13 : 15
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(accessibilityLabel)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accessibilityLabel)
+        .padding(.horizontal, workspaceCompactLayout ? 10 : 16)
     }
-    .padding(.horizontal, 16)
 }
 
 private struct MediaThumbnailView: View {
@@ -134,6 +164,7 @@ private struct MediaThumbnailView: View {
     let onSelect: () -> Void
     let onRemove: () -> Void
 
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
     @State private var displayedDurationLabel: String?
 
     private let cornerRadius: CGFloat = 14
@@ -150,7 +181,7 @@ private struct MediaThumbnailView: View {
         Button(action: onSelect) {
             thumbnailContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .frame(height: 88)
+                .frame(height: workspaceCompactLayout ? 72 : 88)
                 .clipShape(shape)
                 .overlay {
                     if isSelected {
