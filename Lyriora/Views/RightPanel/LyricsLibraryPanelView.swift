@@ -10,63 +10,77 @@ struct LyricsLibraryPanelView: View {
     @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
 
     @State private var lyricPendingDeletion: LyricDocument?
+    @State private var searchText = ""
 
     #if os(macOS)
     @Environment(\.openWindow) private var openWindow
     #endif
 
+    private var filteredLyrics: [LyricDocument] {
+        guard !LibrarySearch.normalize(searchText).isEmpty else {
+            return viewModel.lyrics
+        }
+        return viewModel.lyrics.filter { $0.matchesSearch(searchText) }
+    }
+
+    private var isSearching: Bool {
+        !LibrarySearch.normalize(searchText).isEmpty
+    }
+
     var body: some View {
         GlassPanel(cornerRadius: 22) {
-            VStack(spacing: workspaceCompactLayout ? 8 : 12) {
-                HStack(spacing: 8) {
-                    Label("Lyrics", systemImage: "append.page")
-                        .font(workspaceCompactLayout ? .subheadline.weight(.semibold) : .headline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
-
-                    Spacer()
-
+            VStack(spacing: workspaceCompactLayout ? 6 : 8) {
+                LibraryMorphSearchHeader(
+                    title: "Lyrics",
+                    systemImage: "append.page",
+                    searchText: $searchText,
+                    placeholder: "Search title or lyrics",
+                    horizontalPadding: Layout.contentHorizontalInset
+                ) {
                     Button {
                         openLyricEditor(existingLyricID: nil)
                     } label: {
                         GlassCircleIcon(
                             systemName: "plus",
-                            diameter: workspaceCompactLayout ? 32 : 36,
-                            symbolSize: workspaceCompactLayout ? 13 : 15
+                            diameter: LibraryPanelMetrics.actionDiameter(compact: workspaceCompactLayout),
+                            symbolSize: LibraryPanelMetrics.actionSymbolSize(compact: workspaceCompactLayout)
                         )
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Create new lyric")
                 }
-                .padding(.leading, Layout.contentHorizontalInset)
-                .padding(.trailing, Layout.trailingControlInset)
-                .padding(.top, workspaceCompactLayout ? 8 : 12)
+                .padding(.top, workspaceCompactLayout ? 8 : 10)
 
                 ScrollView {
-                    LazyVStack(spacing: 10) {
-                        ForEach(viewModel.lyrics) { lyric in
-                            LyricCardView(
-                                lyric: lyric,
-                                isSelected: lyric.id == viewModel.selectedLyricID,
-                                onEdit: {
-                                    openLyricEditor(existingLyricID: lyric.id)
-                                },
-                                onDelete: {
-                                    lyricPendingDeletion = lyric
+                        LazyVStack(spacing: 10) {
+                            if filteredLyrics.isEmpty, isSearching {
+                                LibrarySearchEmptyState(query: searchText)
+                            } else {
+                                ForEach(filteredLyrics) { lyric in
+                                    LyricCardView(
+                                        lyric: lyric,
+                                        isSelected: lyric.id == viewModel.selectedLyricID,
+                                        subtitle: isSearching
+                                            ? (lyric.searchMatchSnippet(matching: searchText) ?? lyric.previewSnippet)
+                                            : lyric.previewSnippet,
+                                        onEdit: {
+                                            openLyricEditor(existingLyricID: lyric.id)
+                                        },
+                                        onDelete: {
+                                            lyricPendingDeletion = lyric
+                                        }
+                                    )
+                                    .onTapGesture {
+                                        viewModel.selectLyric(lyric)
+                                    }
                                 }
-                            )
-                            .onTapGesture {
-                                viewModel.selectLyric(lyric)
                             }
                         }
+                        .padding(.horizontal, Layout.contentHorizontalInset)
+                        .padding(.bottom, 12)
                     }
-                    .padding(.horizontal, Layout.contentHorizontalInset)
-                    .padding(.bottom, 12)
-                }
-                .clippedPanelScrollContent()
+                    .clippedPanelScrollContent()
             }
-            .padding(.bottom, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .alert(
@@ -119,6 +133,7 @@ private enum Layout {
 private struct LyricCardView: View {
     let lyric: LyricDocument
     let isSelected: Bool
+    var subtitle: String
     let onEdit: () -> Void
     let onDelete: () -> Void
 
@@ -147,7 +162,7 @@ private struct LyricCardView: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
-                Text(lyric.previewSnippet)
+                Text(subtitle)
                     .font(.caption2)
                     .foregroundStyle(.white.opacity(0.88))
                     .lineLimit(1)

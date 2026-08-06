@@ -25,34 +25,54 @@ struct MediaLibraryPanelView: View {
 
 private struct ImageLibrarySection: View {
     @Bindable var viewModel: AppViewModel
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
     @State private var assetPendingRename: MediaAsset?
     @State private var renameDraft = ""
+    @State private var searchText = ""
+
+    private var filteredAssets: [MediaAsset] {
+        guard !LibrarySearch.normalize(searchText).isEmpty else {
+            return viewModel.imageAssets
+        }
+        return viewModel.imageAssets.filter { $0.matchesSearch(searchText) }
+    }
 
     var body: some View {
         GlassPanel(cornerRadius: 22) {
-            VStack(spacing: 12) {
-                MediaImportSectionHeader(
+            VStack(spacing: workspaceCompactLayout ? 6 : 8) {
+                LibraryMorphSearchHeader(
                     title: "Images",
-                    systemName: "photo.on.rectangle.angled",
-                    kind: .image,
-                    viewModel: viewModel
-                )
+                    systemImage: "photo.on.rectangle.angled",
+                    searchText: $searchText,
+                    placeholder: "Search images"
+                ) {
+                    MediaImportToolbarButton(
+                        title: "Images",
+                        kind: .image,
+                        viewModel: viewModel
+                    )
+                }
+                .padding(.top, workspaceCompactLayout ? 8 : 10)
 
                 ScrollView {
                     LazyVStack(spacing: 10) {
-                        ForEach(viewModel.imageAssets) { asset in
-                            MediaThumbnailView(
-                                asset: asset,
-                                fileURL: viewModel.imageURL(for: asset),
-                                isSelected: viewModel.isBackgroundSelected(asset),
-                                onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
-                                onRename: {
-                                    renameDraft = asset.listLabel
-                                    assetPendingRename = asset
-                                },
-                                onRemove: { viewModel.deleteMediaAsset(asset) }
-                            )
-                            .id(asset.id)
+                        if filteredAssets.isEmpty, !LibrarySearch.normalize(searchText).isEmpty {
+                            LibrarySearchEmptyState(query: searchText)
+                        } else {
+                            ForEach(filteredAssets) { asset in
+                                MediaThumbnailView(
+                                    asset: asset,
+                                    fileURL: viewModel.imageURL(for: asset),
+                                    isSelected: viewModel.isBackgroundSelected(asset),
+                                    onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
+                                    onRename: {
+                                        renameDraft = asset.listLabel
+                                        assetPendingRename = asset
+                                    },
+                                    onRemove: { viewModel.deleteMediaAsset(asset) }
+                                )
+                                .id(asset.id)
+                            }
                         }
                     }
                     .padding(.horizontal, 12)
@@ -60,7 +80,6 @@ private struct ImageLibrarySection: View {
                 }
                 .clippedPanelScrollContent()
             }
-            .padding(.top, 12)
             .padding(.bottom, 4)
         }
         .renameMediaAlert(
@@ -75,47 +94,66 @@ private struct ImageLibrarySection: View {
 
 private struct VideoLibrarySection: View {
     @Bindable var viewModel: AppViewModel
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
     @State private var assetPendingRename: MediaAsset?
     @State private var renameDraft = ""
+    @State private var searchText = ""
+
+    private var filteredAssets: [MediaAsset] {
+        guard !LibrarySearch.normalize(searchText).isEmpty else {
+            return viewModel.videoAssets
+        }
+        return viewModel.videoAssets.filter { $0.matchesSearch(searchText) }
+    }
 
     var body: some View {
         GlassPanel(cornerRadius: 22) {
-            VStack(spacing: 12) {
-                MediaImportSectionHeader(
+            VStack(spacing: workspaceCompactLayout ? 6 : 8) {
+                LibraryMorphSearchHeader(
                     title: "Videos",
-                    systemName: "film.stack",
-                    kind: .video,
-                    viewModel: viewModel
-                )
+                    systemImage: "film.stack",
+                    searchText: $searchText,
+                    placeholder: "Search videos"
+                ) {
+                    MediaImportToolbarButton(
+                        title: "Videos",
+                        kind: .video,
+                        viewModel: viewModel
+                    )
+                }
+                .padding(.top, workspaceCompactLayout ? 8 : 10)
 
                 ScrollView {
-                    LazyVStack(spacing: 10) {
-                        ForEach(viewModel.videoAssets) { asset in
-                            MediaThumbnailView(
-                                asset: asset,
-                                fileURL: viewModel.videoURL(for: asset),
-                                isSelected: viewModel.isBackgroundSelected(asset),
-                                showsDuration: true,
-                                durationLabel: viewModel.videoDurationLabel(for: asset),
-                                onEnsureDuration: {
-                                    await viewModel.ensureVideoDuration(for: asset)
-                                },
-                                onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
-                                onRename: {
-                                    renameDraft = asset.listLabel
-                                    assetPendingRename = asset
-                                },
-                                onRemove: { viewModel.deleteMediaAsset(asset) }
-                            )
-                            .id(asset.fileName)
+                        LazyVStack(spacing: 10) {
+                            if filteredAssets.isEmpty, !LibrarySearch.normalize(searchText).isEmpty {
+                                LibrarySearchEmptyState(query: searchText)
+                            } else {
+                                ForEach(filteredAssets) { asset in
+                                    MediaThumbnailView(
+                                        asset: asset,
+                                        fileURL: viewModel.videoURL(for: asset),
+                                        isSelected: viewModel.isBackgroundSelected(asset),
+                                        showsDuration: true,
+                                        durationLabel: viewModel.videoDurationLabel(for: asset),
+                                        onEnsureDuration: {
+                                            await viewModel.ensureVideoDuration(for: asset)
+                                        },
+                                        onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
+                                        onRename: {
+                                            renameDraft = asset.listLabel
+                                            assetPendingRename = asset
+                                        },
+                                        onRemove: { viewModel.deleteMediaAsset(asset) }
+                                    )
+                                    .id(asset.fileName)
+                                }
+                            }
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 12)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
-                }
-                .clippedPanelScrollContent()
+                    .clippedPanelScrollContent()
             }
-            .padding(.top, 12)
             .padding(.bottom, 4)
         }
         .renameMediaAlert(
@@ -128,9 +166,8 @@ private struct VideoLibrarySection: View {
     }
 }
 
-private struct MediaImportSectionHeader: View {
+private struct MediaImportToolbarButton: View {
     let title: String
-    let systemName: String
     let kind: MediaAssetKind
     @Bindable var viewModel: AppViewModel
 
@@ -140,29 +177,17 @@ private struct MediaImportSectionHeader: View {
     @State private var isFileImporterPresented = false
 
     var body: some View {
-        HStack(spacing: workspaceCompactLayout ? 6 : 8) {
-            Label(title, systemImage: systemName)
-                .font(workspaceCompactLayout ? .subheadline.weight(.semibold) : .headline)
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-                .layoutPriority(1)
-
-            Spacer(minLength: 0)
-
-            Button {
-                isSourceDialogPresented = true
-            } label: {
-                GlassCircleIcon(
-                    systemName: "plus",
-                    diameter: workspaceCompactLayout ? 32 : 36,
-                    symbolSize: workspaceCompactLayout ? 13 : 15
-                )
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Add \(title.lowercased())")
+        Button {
+            isSourceDialogPresented = true
+        } label: {
+            GlassCircleIcon(
+                systemName: "plus",
+                diameter: LibraryPanelMetrics.actionDiameter(compact: workspaceCompactLayout),
+                symbolSize: LibraryPanelMetrics.actionSymbolSize(compact: workspaceCompactLayout)
+            )
         }
-        .padding(.horizontal, workspaceCompactLayout ? 10 : 16)
+        .buttonStyle(.plain)
+        .accessibilityLabel("Add \(title.lowercased())")
         .confirmationDialog(
             "Add \(title)",
             isPresented: $isSourceDialogPresented,

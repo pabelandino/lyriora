@@ -123,19 +123,109 @@ extension View {
     }
 }
 
+enum GlassControlChrome {
+    static let borderWidth: CGFloat = 1
+
+    static func iconForeground(for colorScheme: ColorScheme) -> Color {
+        switch colorScheme {
+        case .light:
+            Color(white: 0.38)
+        case .dark:
+            Color.white.opacity(0.95)
+        @unknown default:
+            Color.primary
+        }
+    }
+
+    static func liquidGlassBorderGradient(for colorScheme: ColorScheme) -> LinearGradient {
+        switch colorScheme {
+        case .light:
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.78),
+                    Color.primary.opacity(0.12),
+                    Color.black.opacity(0.08)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        case .dark:
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.46),
+                    Color.white.opacity(0.16),
+                    Color.white.opacity(0.05)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        @unknown default:
+            LinearGradient(
+                colors: [
+                    Color.primary.opacity(0.14),
+                    Color.primary.opacity(0.08)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+
+    static func shadowColor(for colorScheme: ColorScheme) -> Color {
+        switch colorScheme {
+        case .light:
+            Color.black.opacity(0.10)
+        case .dark:
+            Color.black.opacity(0.18)
+        @unknown default:
+            Color.black.opacity(0.14)
+        }
+    }
+}
+
+private struct GlassControlBorderModifier<S: InsettableShape>: ViewModifier {
+    @Environment(\.colorScheme) private var colorScheme
+    let shape: S
+
+    func body(content: Content) -> some View {
+        content
+            .compositingGroup()
+            .overlay {
+                shape.strokeBorder(
+                    GlassControlChrome.liquidGlassBorderGradient(for: colorScheme),
+                    lineWidth: GlassControlChrome.borderWidth
+                )
+                .allowsHitTesting(false)
+            }
+    }
+}
+
+extension View {
+    func glassControlBorder<S: InsettableShape>(_ shape: S) -> some View {
+        modifier(GlassControlBorderModifier(shape: shape))
+    }
+}
+
 struct GlassCircleIcon: View {
     let systemName: String
     var diameter: CGFloat = 36
     var symbolSize: CGFloat = 15
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         Image(systemName: systemName)
             .font(.system(size: symbolSize, weight: .bold))
-            .foregroundStyle(.white.opacity(0.95))
+            .foregroundStyle(GlassControlChrome.iconForeground(for: colorScheme))
             .frame(width: diameter, height: diameter)
             .contentShape(Circle())
             .glassEffect(.regular.interactive(), in: .circle)
-            .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
+            .shadow(
+                color: GlassControlChrome.shadowColor(for: colorScheme),
+                radius: 2,
+                y: 1
+            )
+            .glassControlBorder(Circle())
     }
 }
 
