@@ -482,12 +482,129 @@ final class AppViewModel {
         videoDurationByFileName.removeValue(forKey: asset.fileName)
     }
 
-    private func importSelectedPhotos() async {
-        for item in selectedPhotoItems {
-            guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
+    func renameMediaAsset(_ asset: MediaAsset, to newName: String) {
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        do {
+            let updatedAsset = try mediaRepository.updateDisplayName(for: asset, to: trimmed)
+            switch updatedAsset.kind {
+            case .image:
+                guard let index = imageAssets.firstIndex(where: { $0.id == updatedAsset.id }) else { return }
+                imageAssets[index] = updatedAsset
+            case .video:
+                guard let index = videoAssets.firstIndex(where: { $0.id == updatedAsset.id }) else { return }
+                videoAssets[index] = updatedAsset
+            }
+        } catch {
+            return
+        }
+    }
+
+    func importImageFiles(from urls: [URL]) async {
+        var reservedNames = Set(imageAssets.map(\.listLabel))
+
+        for url in urls {
+            let accessed = url.startAccessingSecurityScopedResource()
+            defer {
+                if accessed {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
 
             do {
-                let asset = try mediaRepository.importData(data, kind: .image, preferredExtension: "jpg")
+                let proposed = (url.lastPathComponent as NSString).deletingPathExtension
+                let displayName = MediaDisplayName.resolve(
+                    proposed: proposed,
+                    kind: .image,
+                    existingNames: reservedNames
+                )
+                reservedNames.insert(displayName)
+
+                let asset = try mediaRepository.importFile(
+                    from: url,
+                    kind: .image,
+                    displayName: displayName
+                )
+                imageAssets.insert(asset, at: 0)
+            } catch {
+                continue
+            }
+        }
+    }
+
+    func importVideoFiles(from urls: [URL]) async {
+        var reservedNames = Set(videoAssets.map(\.listLabel))
+
+        for url in urls {
+            let accessed = url.startAccessingSecurityScopedResource()
+            defer {
+                if accessed {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+
+            do {
+                let proposed = (url.lastPathComponent as NSString).deletingPathExtension
+                let displayName = MediaDisplayName.resolve(
+                    proposed: proposed,
+                    kind: .video,
+                    existingNames: reservedNames
+                )
+                reservedNames.insert(displayName)
+
+                let asset = try mediaRepository.importFile(
+                    from: url,
+                    kind: .video,
+                    displayName: displayName
+                )
+                videoAssets.insert(asset, at: 0)
+                await ensureVideoDuration(for: asset)
+            } catch {
+                continue
+            }
+        }
+    }
+
+    private func importSelectedPhotos() async {
+        var reservedNames = Set(imageAssets.map(\.listLabel))
+
+        for item in selectedPhotoItems {
+            let photosLibraryName = PhotosPickerDisplayNameResolver.displayName(for: item)
+
+            do {
+                if let picked = try await item.loadTransferable(type: PickedImageFile.self) {
+                    let displayName = MediaDisplayName.resolve(
+                        proposed: photosLibraryName ?? picked.displayName,
+                        kind: .image,
+                        existingNames: reservedNames
+                    )
+                    reservedNames.insert(displayName)
+
+                    let asset = try mediaRepository.importFile(
+                        from: picked.url,
+                        kind: .image,
+                        displayName: displayName
+                    )
+                    imageAssets.insert(asset, at: 0)
+                    continue
+                }
+
+                guard let data = try await item.loadTransferable(type: Data.self) else { continue }
+
+                let displayName = MediaDisplayName.resolve(
+                    proposed: photosLibraryName,
+                    kind: .image,
+                    existingNames: reservedNames
+                )
+                reservedNames.insert(displayName)
+
+                let asset = try mediaRepository.importData(
+                    data,
+                    kind: .image,
+                    preferredExtension: "jpg",
+                    displayName: displayName
+                )
                 imageAssets.insert(asset, at: 0)
             } catch {
                 continue
@@ -498,11 +615,45 @@ final class AppViewModel {
     }
 
     private func importSelectedVideos() async {
+        var reservedNames = Set(videoAssets.map(\.listLabel))
+
         for item in selectedVideoItems {
-            guard let data = try? await item.loadTransferable(type: Data.self) else { continue }
+            let photosLibraryName = PhotosPickerDisplayNameResolver.displayName(for: item)
 
             do {
-                let asset = try mediaRepository.importData(data, kind: .video, preferredExtension: "mp4")
+                if let picked = try await item.loadTransferable(type: PickedVideoFile.self) {
+                    let displayName = MediaDisplayName.resolve(
+                        proposed: photosLibraryName ?? picked.displayName,
+                        kind: .video,
+                        existingNames: reservedNames
+                    )
+                    reservedNames.insert(displayName)
+
+                    let asset = try mediaRepository.importFile(
+                        from: picked.url,
+                        kind: .video,
+                        displayName: displayName
+                    )
+                    videoAssets.insert(asset, at: 0)
+                    await ensureVideoDuration(for: asset)
+                    continue
+                }
+
+                guard let data = try await item.loadTransferable(type: Data.self) else { continue }
+
+                let displayName = MediaDisplayName.resolve(
+                    proposed: photosLibraryName,
+                    kind: .video,
+                    existingNames: reservedNames
+                )
+                reservedNames.insert(displayName)
+
+                let asset = try mediaRepository.importData(
+                    data,
+                    kind: .video,
+                    preferredExtension: "mp4",
+                    displayName: displayName
+                )
                 videoAssets.insert(asset, at: 0)
                 await ensureVideoDuration(for: asset)
             } catch {
@@ -571,4 +722,36 @@ final class AppViewModel {
 
 private enum VideoControlsReveal {
     static let delayMilliseconds = 450
+}
+
+private struct PickedImageFile: Transferable {
+    let url: URL
+    let displayName: String
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(contentType: .image) { file in
+            SentTransferredFile(file.url)
+        } importing: { received in
+            PickedImageFile(
+                url: received.file,
+                displayName: (received.file.lastPathComponent as NSString).deletingPathExtension
+            )
+        }
+    }
+}
+
+private struct PickedVideoFile: Transferable {
+    let url: URL
+    let displayName: String
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(contentType: .movie) { file in
+            SentTransferredFile(file.url)
+        } importing: { received in
+            PickedVideoFile(
+                url: received.file,
+                displayName: (received.file.lastPathComponent as NSString).deletingPathExtension
+            )
+        }
+    }
 }
