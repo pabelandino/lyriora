@@ -55,11 +55,12 @@ struct StickyPreviewEditorLayout<Preview: View, Content: View>: View {
                             alignment: .center
                         )
                 }
+                .allowsHitTesting(true)
             }
+            .clipped()
             .padding(.horizontal, previewHorizontalPadding)
             .padding(.vertical, previewVerticalPadding)
             .background(stickyBackground)
-            .zIndex(1)
     }
 
     @ViewBuilder

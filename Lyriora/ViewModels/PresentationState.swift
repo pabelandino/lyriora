@@ -12,6 +12,9 @@ struct PresentationState: Equatable, Sendable {
     var lyricTitle: String?
     var background: PresentationBackground?
     var slideStyle: SlideTextStyle?
+    var slideAnimationProfile: SlideAnimationProfile?
+    var slideID: UUID?
+    var slidePresentationToken: Int = 0
     var videoLoops: Bool = true
     var isVideoPlaying: Bool = true
 

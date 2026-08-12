@@ -262,6 +262,11 @@ struct LyricEditorView: View {
                     style: $styleProfile.defaultStyle,
                     profileName: $styleProfile.name,
                     selectedThemeID: $selectedThemeID,
+                    styleProfile: $styleProfile,
+                    defaultAnimationProfile: $styleProfile.defaultAnimationProfile,
+                    slides: $slides,
+                    language: language,
+                    defaultBackgroundSettings: viewModel.settings.defaultBackground,
                     onLayoutStyleChange: rechunkSlides
                 )
             }
@@ -484,10 +489,12 @@ struct LyricEditorView: View {
             return
         }
 
-        slides = LyricImportParser.makeSlides(
+        let previousSlides = slides
+        let rechunks = LyricImportParser.makeSlides(
             from: sourceSections,
             style: styleProfile.defaultStyle
         )
+        slides = LyricSlideMetadataPreservation.apply(previousSlides: previousSlides, to: rechunks)
     }
 
     private func reparseFromRawContent() {

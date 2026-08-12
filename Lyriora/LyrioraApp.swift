@@ -12,8 +12,12 @@ struct LyrioraApp: App {
     var body: some Scene {
         WindowGroup {
             MainView(viewModel: viewModel)
+                #if os(macOS)
+                .macHiddenTitleBarWindow()
+                #endif
         }
         #if os(macOS)
+        .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1320, height: 880)
         #endif
 
@@ -24,8 +28,10 @@ struct LyrioraApp: App {
                     viewModel: viewModel,
                     existingLyricID: launch.existingLyricID
                 )
+                .macHiddenTitleBarWindow()
             }
         }
+        .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1100, height: 780)
         #endif
     }

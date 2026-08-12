@@ -13,14 +13,9 @@ struct SlideGridView: View {
     let presentationState: PresentationState
     let defaultBackgroundSettings: DefaultBackgroundSettings
     var backgroundContentMode: BackgroundContentMode = .fill
-    var presentationCanvasSize: CGSize = .zero
     let onSelect: (LyricSlide) -> Void
 
     @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
-
-    private var layoutCanvasSize: CGSize {
-        PresentationLayout.resolvedCanvasSize(presentationCanvasSize)
-    }
 
     private var thumbnailWidth: CGFloat {
         workspaceCompactLayout ? 120 : 168
@@ -72,8 +67,7 @@ struct SlideGridView: View {
                             isSelected: slide.index == selectedSlideIndex,
                             presentationState: presentationState,
                             defaultBackgroundSettings: defaultBackgroundSettings,
-                            backgroundContentMode: backgroundContentMode,
-                            canvasSize: layoutCanvasSize
+                            backgroundContentMode: backgroundContentMode
                         )
                         .frame(width: thumbnailWidth)
                         .onTapGesture {
@@ -112,7 +106,6 @@ private struct SlideThumbnailView: View {
     let presentationState: PresentationState
     let defaultBackgroundSettings: DefaultBackgroundSettings
     var backgroundContentMode: BackgroundContentMode = .fill
-    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
 
     private let cornerRadius: CGFloat = 14
     private let textAreaMinHeight: CGFloat = 84
@@ -135,6 +128,11 @@ private struct SlideThumbnailView: View {
         presentationState.background?.kind == .video
     }
 
+    /// Local canvas for thumbnail letterboxing — not the full presentation stage.
+    private var thumbnailCanvasSize: CGSize {
+        CGSize(width: 320, height: 180)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Text(slide.tag.localizedName(for: language))
@@ -151,19 +149,24 @@ private struct SlideThumbnailView: View {
                     background: usesDefaultGradientBackground ? nil : presentationState.background,
                     defaultBackgroundSettings: defaultBackgroundSettings,
                     contentMode: backgroundContentMode,
-                    canvasSize: canvasSize,
+                    canvasSize: thumbnailCanvasSize,
                     blurDefaultBackground: false,
                     showsDefaultWhenEmpty: usesDefaultGradientBackground
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                AdaptivePresentationText(
-                    text: slide.text,
-                    configuration: textConfiguration
-                )
+                GeometryReader { geometry in
+                    EditorAdaptivePresentationText(
+                        text: slide.text,
+                        configuration: textConfiguration,
+                        containerSize: geometry.size,
+                        sizing: .scaledApproximation
+                    )
+                }
                 .padding(textInset)
             }
             .frame(minHeight: textAreaMinHeight)
+            .clipped()
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay {
