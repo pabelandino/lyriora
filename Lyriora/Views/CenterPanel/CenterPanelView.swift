@@ -25,9 +25,6 @@ struct CenterPanelView: View {
             .id(viewModel.externalDisplayManager.layoutRevision)
             .frame(maxWidth: .infinity, maxHeight: workspaceCompactLayout ? .infinity : nil)
             .layoutPriority(workspaceCompactLayout ? 1 : 0)
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
 
             SlideGridView(
                 slides: viewModel.selectedLyricSlides,
@@ -37,7 +34,6 @@ struct CenterPanelView: View {
                 presentationState: viewModel.presentationState,
                 defaultBackgroundSettings: viewModel.settings.defaultBackground,
                 backgroundContentMode: viewModel.settings.backgroundContentMode,
-                presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
                 onSelect: viewModel.selectSlide
             )
             .frame(height: workspaceCompactLayout ? 84 : 220)

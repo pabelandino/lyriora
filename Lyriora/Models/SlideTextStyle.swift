@@ -182,12 +182,42 @@ struct LyricStyleProfile: Codable, Equatable, Sendable {
     var name: String
     var defaultStyle: SlideTextStyle
     var tagStyles: [String: SlideTextStyle]
+    /// Lyric-wide default transitions and pro effects (Text Style editor).
+    var defaultAnimationProfile: SlideAnimationProfile
 
     static let `default` = LyricStyleProfile(
         name: "Default Style",
         defaultStyle: .default,
-        tagStyles: [:]
+        tagStyles: [:],
+        defaultAnimationProfile: SlideAnimationProfile()
     )
+
+    private enum CodingKeys: String, CodingKey {
+        case name, defaultStyle, tagStyles, defaultAnimationProfile
+    }
+
+    init(
+        name: String,
+        defaultStyle: SlideTextStyle,
+        tagStyles: [String: SlideTextStyle],
+        defaultAnimationProfile: SlideAnimationProfile = SlideAnimationProfile()
+    ) {
+        self.name = name
+        self.defaultStyle = defaultStyle
+        self.tagStyles = tagStyles
+        self.defaultAnimationProfile = defaultAnimationProfile
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        defaultStyle = try container.decode(SlideTextStyle.self, forKey: .defaultStyle)
+        tagStyles = try container.decodeIfPresent([String: SlideTextStyle].self, forKey: .tagStyles) ?? [:]
+        defaultAnimationProfile = try container.decodeIfPresent(
+            SlideAnimationProfile.self,
+            forKey: .defaultAnimationProfile
+        ) ?? SlideAnimationProfile()
+    }
 
     func resolvedStyle(for slide: LyricSlide) -> SlideTextStyle {
         if let custom = slide.style {
@@ -197,6 +227,13 @@ struct LyricStyleProfile: Codable, Equatable, Sendable {
             return tagged
         }
         return defaultStyle
+    }
+
+    func resolvedAnimationProfile(for slide: LyricSlide) -> SlideAnimationProfile {
+        if let slideProfile = slide.animationProfile, slideProfile.hasAnimations {
+            return slideProfile
+        }
+        return defaultAnimationProfile
     }
 }
 

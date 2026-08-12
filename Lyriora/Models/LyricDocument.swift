@@ -119,10 +119,15 @@ extension LyricDocument {
     ) -> [LyricSlide] {
         let layoutStyle = style ?? styleProfile.defaultStyle
         guard !sourceSections.isEmpty else { return slides }
-        return LyricImportParser.makeSlides(
+
+        let previousSlides = storedSlides.isEmpty
+            ? slides
+            : storedSlides.sorted { $0.order < $1.order }
+        let rechunks = LyricImportParser.makeSlides(
             from: sourceSections,
             style: layoutStyle,
             containerSize: containerSize
         )
+        return LyricSlideMetadataPreservation.apply(previousSlides: previousSlides, to: rechunks)
     }
 }

@@ -18,6 +18,7 @@ final class AppViewModel {
 
     var selectedLyricID: UUID?
     var selectedSlideIndex: Int?
+    var slidePresentationToken = 0
     var selectedBackgroundAssetID: UUID?
 
     var showBackground = true
@@ -118,6 +119,11 @@ final class AppViewModel {
             lyricTitle: selectedLyric?.title,
             background: activePresentationBackground,
             slideStyle: slideStyle,
+            slideAnimationProfile: slide.flatMap { selectedSlide in
+                selectedLyric.map { $0.styleProfile.resolvedAnimationProfile(for: selectedSlide) }
+            },
+            slideID: slide?.id,
+            slidePresentationToken: slidePresentationToken,
             videoLoops: hasVideoBackgroundSelected ? videoPlaybackMode.loopsVideo : true,
             isVideoPlaying: hasVideoBackgroundSelected ? isVideoPlaying : true
         )
@@ -214,7 +220,11 @@ final class AppViewModel {
     }
 
     func selectSlide(_ slide: LyricSlide) {
+        let isReselect = selectedSlideIndex == slide.index
         selectedSlideIndex = slide.index
+        if isReselect {
+            slidePresentationToken += 1
+        }
         showLyrics = true
     }
 
@@ -333,12 +343,26 @@ final class AppViewModel {
 
         do {
             try lyricRepository.save(lyric)
+            let preservedSlideIndex = id == selectedLyricID ? selectedSlideIndex : nil
             if let existingIndex = lyrics.firstIndex(where: { $0.id == lyric.id }) {
                 lyrics[existingIndex] = lyric
             } else {
                 lyrics.insert(lyric, at: 0)
             }
-            selectLyric(lyric)
+
+            selectedLyricID = lyric.id
+            let resolved = resolvedSlides(for: lyric)
+            if let preservedSlideIndex, resolved.indices.contains(preservedSlideIndex) {
+                selectedSlideIndex = preservedSlideIndex
+                showLyrics = true
+                slidePresentationToken += 1
+            } else if let first = resolved.first {
+                selectedSlideIndex = first.index
+                showLyrics = true
+            } else {
+                selectedSlideIndex = nil
+                showLyrics = false
+            }
         } catch {
             return
         }

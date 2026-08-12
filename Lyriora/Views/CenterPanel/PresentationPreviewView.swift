@@ -142,7 +142,10 @@ struct PresentationPreviewView: View {
                 if state.showLyrics, let slideText = state.slideText {
                     AdaptivePresentationText(
                         text: slideText,
-                        configuration: textConfiguration
+                        configuration: textConfiguration,
+                        animationProfile: state.slideAnimationProfile ?? SlideAnimationProfile(),
+                        slideID: state.slideID ?? AdaptivePresentationText.placeholderSlideID,
+                        presentationToken: state.slidePresentationToken
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
                     .scaleEffect(scale)
@@ -164,7 +167,6 @@ struct PresentationPreviewView: View {
             .scaleEffect(scale)
             .frame(width: fittedSize.width, height: fittedSize.height)
             .clipped()
-            .drawingGroup()
         }
     }
 
@@ -291,7 +293,10 @@ struct PresentationContentView: View {
                     if state.showLyrics, let slideText = state.slideText {
                         AdaptivePresentationText(
                             text: slideText,
-                            configuration: textConfiguration
+                            configuration: textConfiguration,
+                            animationProfile: state.slideAnimationProfile ?? SlideAnimationProfile(),
+                            slideID: state.slideID ?? AdaptivePresentationText.placeholderSlideID,
+                            presentationToken: state.slidePresentationToken
                         )
                     }
                 }
