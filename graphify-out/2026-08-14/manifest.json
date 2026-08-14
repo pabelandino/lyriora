@@ -1,793 +1,765 @@
 {
   ".claude/settings.json": {
     "mtime": 1785970401.0252845,
-    "seen": 1786733671.550336,
-    "ast_hash": "c1042bb72b5089b9dced2660355c3ff6",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "Lyriora/Assets.xcassets/AccentColor.colorset/Contents.json": {
     "mtime": 1785773658.3544228,
-    "seen": 1786733671.550338,
-    "ast_hash": "55019f7265dde0a78318b0807f98e847",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "Lyriora/Assets.xcassets/AppIcon.appiconset/Contents.json": {
     "mtime": 1785773659.317331,
-    "seen": 1786733671.550339,
-    "ast_hash": "1be20321a31ab908ee42f8b207220802",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "Lyriora/Assets.xcassets/Contents.json": {
     "mtime": 1786591519.480415,
-    "seen": 1786733671.5503402,
-    "ast_hash": "9deb2ada1cc834bbebf8bbad9c8978a1",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "Lyriora/ContentView.swift": {
     "mtime": 1785775184.6209,
-    "seen": 1786733671.5503411,
+    "seen": 1786733615.548398,
     "ast_hash": "2324139f5fa397c614ffa067a3652487",
     "semantic_hash": "2324139f5fa397c614ffa067a3652487"
   },
   "Lyriora/LyrioraApp.swift": {
     "mtime": 1786572692.9190593,
-    "seen": 1786733671.5503428,
+    "seen": 1786733615.5484002,
     "ast_hash": "6fc8694069f1b8b9793629e0830bff2b",
     "semantic_hash": "6fc8694069f1b8b9793629e0830bff2b"
   },
   "Lyriora/Models/AppSettings.swift": {
     "mtime": 1786723927.2984347,
-    "seen": 1786733671.550344,
+    "seen": 1786733615.5484009,
     "ast_hash": "667a949d3e1b659580fe949a22d9f926",
     "semantic_hash": "667a949d3e1b659580fe949a22d9f926"
   },
   "Lyriora/Models/BackgroundContentMode.swift": {
     "mtime": 1785961966.4174948,
-    "seen": 1786733671.550345,
+    "seen": 1786733615.5484018,
     "ast_hash": "b505ba08fb4e0a09cd928895619312d6",
     "semantic_hash": "b505ba08fb4e0a09cd928895619312d6"
   },
   "Lyriora/Models/LyricDocument.swift": {
     "mtime": 1786684486.5158615,
-    "seen": 1786733671.550347,
+    "seen": 1786733615.548403,
     "ast_hash": "dd678924643cd41fbb6e7909c71d805f",
     "semantic_hash": "dd678924643cd41fbb6e7909c71d805f"
   },
   "Lyriora/Models/LyricSectionSource.swift": {
     "mtime": 1785878842.968064,
-    "seen": 1786733671.550348,
+    "seen": 1786733615.548404,
     "ast_hash": "f28c0104dc200b1ca2c37b2bbf9dd1a8",
     "semantic_hash": "f28c0104dc200b1ca2c37b2bbf9dd1a8"
   },
   "Lyriora/Models/LyricSlide.swift": {
     "mtime": 1786684486.5162432,
-    "seen": 1786733671.550348,
+    "seen": 1786733615.548405,
     "ast_hash": "49870d3ae2ec35e33d1681fa182008f3",
     "semantic_hash": "49870d3ae2ec35e33d1681fa182008f3"
   },
   "Lyriora/Models/LyricSlideTag.swift": {
     "mtime": 1785792075.5934792,
-    "seen": 1786733671.550349,
+    "seen": 1786733615.5484061,
     "ast_hash": "c269ea377781b595e56a808ef478a4d1",
     "semantic_hash": "c269ea377781b595e56a808ef478a4d1"
   },
   "Lyriora/Models/LyricTheme.swift": {
     "mtime": 1785878842.9687338,
-    "seen": 1786733671.5503502,
+    "seen": 1786733615.5484061,
     "ast_hash": "542059b6aabbc0841a83190feeb251b6",
     "semantic_hash": "542059b6aabbc0841a83190feeb251b6"
   },
   "Lyriora/Models/MediaAsset.swift": {
     "mtime": 1785995138.4991994,
-    "seen": 1786733671.5503511,
+    "seen": 1786733615.548407,
     "ast_hash": "fe4271fa6d74c1394f104f5ae2458e65",
     "semantic_hash": "fe4271fa6d74c1394f104f5ae2458e65"
   },
   "Lyriora/Models/PresentationBackground.swift": {
     "mtime": 1785776213.3650885,
-    "seen": 1786733671.5503519,
+    "seen": 1786733615.548408,
     "ast_hash": "f4b1033121da32541932ec329650fe7b",
     "semantic_hash": "f4b1033121da32541932ec329650fe7b"
   },
   "Lyriora/Models/PresentationFontFamily.swift": {
     "mtime": 1785793871.7617002,
-    "seen": 1786733671.5503528,
+    "seen": 1786733615.548409,
     "ast_hash": "6825c73e873c4c795a2304cf18fdcf0e",
     "semantic_hash": "6825c73e873c4c795a2304cf18fdcf0e"
   },
   "Lyriora/Models/SlideTextStyle.swift": {
     "mtime": 1786681511.0777,
-    "seen": 1786733671.550354,
+    "seen": 1786733615.5484102,
     "ast_hash": "5e6a85b629736d0c887bdd2d1836519a",
     "semantic_hash": "5e6a85b629736d0c887bdd2d1836519a"
   },
   "Lyriora/Models/VideoPlaybackMode.swift": {
     "mtime": 1785970401.028962,
-    "seen": 1786733671.550356,
+    "seen": 1786733615.5484118,
     "ast_hash": "530df96cec20ec1b7ede89d6258970c2",
     "semantic_hash": "530df96cec20ec1b7ede89d6258970c2"
   },
   "Lyriora/Services/ExternalDisplayDiscovery.swift": {
     "mtime": 1785789044.179943,
-    "seen": 1786733671.55036,
+    "seen": 1786733615.548416,
     "ast_hash": "2c41ce184380825d7489b76ac7b965c2",
     "semantic_hash": "2c41ce184380825d7489b76ac7b965c2"
   },
   "Lyriora/Services/ExternalDisplayInfo.swift": {
     "mtime": 1785775154.8111334,
-    "seen": 1786733671.5503612,
+    "seen": 1786733615.548417,
     "ast_hash": "7059d6c30af588d4c261b813bf20a2a2",
     "semantic_hash": "7059d6c30af588d4c261b813bf20a2a2"
   },
   "Lyriora/Services/ExternalDisplayManager.swift": {
     "mtime": 1785973379.2540839,
-    "seen": 1786733671.550362,
+    "seen": 1786733615.548418,
     "ast_hash": "298fcb60e866a9aaccf813ac2bafccf8",
     "semantic_hash": "298fcb60e866a9aaccf813ac2bafccf8"
   },
   "Lyriora/Services/ExternalDisplaySceneCoordinator.swift": {
     "mtime": 1785783836.8857305,
-    "seen": 1786733671.5503628,
+    "seen": 1786733615.548418,
     "ast_hash": "9c8c7bc908526ba7d25612d8b38bb14b",
     "semantic_hash": "9c8c7bc908526ba7d25612d8b38bb14b"
   },
   "Lyriora/Services/ExternalDisplaySceneDelegate.swift": {
     "mtime": 1785783855.40828,
-    "seen": 1786733671.550364,
+    "seen": 1786733615.548419,
     "ast_hash": "3edc9bf86389bd099d176637d913210f",
     "semantic_hash": "3edc9bf86389bd099d176637d913210f"
   },
   "Lyriora/Services/ExternalPresentationContainerViewController.swift": {
     "mtime": 1785951836.401214,
-    "seen": 1786733671.550364,
+    "seen": 1786733615.5484202,
     "ast_hash": "46dcf1f371e3bd900f3a4dc8c5154369",
     "semantic_hash": "46dcf1f371e3bd900f3a4dc8c5154369"
   },
   "Lyriora/Services/LocalImageCache.swift": {
     "mtime": 1785970401.0295298,
-    "seen": 1786733671.550365,
+    "seen": 1786733615.5484202,
     "ast_hash": "5f86c161653783204bfda276ccc64890",
     "semantic_hash": "5f86c161653783204bfda276ccc64890"
   },
   "Lyriora/Services/LyricClipboardImporter.swift": {
     "mtime": 1786684486.5166583,
-    "seen": 1786733671.550366,
+    "seen": 1786733615.5484211,
     "ast_hash": "2f793832259ba7f7204654afd154d175",
     "semantic_hash": "2f793832259ba7f7204654afd154d175"
   },
   "Lyriora/Services/LyricImportParser.swift": {
     "mtime": 1786684486.5170748,
-    "seen": 1786733671.5503669,
+    "seen": 1786733615.5484219,
     "ast_hash": "4e1c0ff552164ea515e81dfe626e46a3",
     "semantic_hash": "4e1c0ff552164ea515e81dfe626e46a3"
   },
   "Lyriora/Services/LyricRepository.swift": {
     "mtime": 1785775216.7823486,
-    "seen": 1786733671.550369,
+    "seen": 1786733615.548424,
     "ast_hash": "a8d7374159e1f1736cfc72ccb443cf3e",
     "semantic_hash": "a8d7374159e1f1736cfc72ccb443cf3e"
   },
   "Lyriora/Services/LyricSlideLayoutEngine.swift": {
     "mtime": 1785951836.4015696,
-    "seen": 1786733671.55037,
+    "seen": 1786733615.548425,
     "ast_hash": "198c4147222db30f0e2059673c50b7b9",
     "semantic_hash": "198c4147222db30f0e2059673c50b7b9"
   },
   "Lyriora/Services/MediaRepository.swift": {
     "mtime": 1786684554.3319192,
-    "seen": 1786733671.5503712,
+    "seen": 1786733615.548426,
     "ast_hash": "3e004e41fc9c5ca206873b1903f84fb0",
     "semantic_hash": "3e004e41fc9c5ca206873b1903f84fb0"
   },
   "Lyriora/Services/SettingsRepository.swift": {
     "mtime": 1785778235.7904577,
-    "seen": 1786733671.5503738,
+    "seen": 1786733615.548428,
     "ast_hash": "8f6ea612654407c7a0a979fdebb5282e",
     "semantic_hash": "8f6ea612654407c7a0a979fdebb5282e"
   },
   "Lyriora/Services/ThemeRepository.swift": {
     "mtime": 1785794419.6663268,
-    "seen": 1786733671.550375,
+    "seen": 1786733615.548429,
     "ast_hash": "4a7e66e1b1634cb374d2482f95e89f02",
     "semantic_hash": "4a7e66e1b1634cb374d2482f95e89f02"
   },
   "Lyriora/Services/VideoAssetMetadataLoader.swift": {
     "mtime": 1785970401.029828,
-    "seen": 1786733671.550377,
+    "seen": 1786733615.54843,
     "ast_hash": "e7f21f2595c7699cbd49971f7a0766a1",
     "semantic_hash": "e7f21f2595c7699cbd49971f7a0766a1"
   },
   "Lyriora/Utilities/CodableColor.swift": {
     "mtime": 1785792075.5935354,
-    "seen": 1786733671.55038,
+    "seen": 1786733615.5484319,
     "ast_hash": "f2f179cf94b72221213c7c285f5ad208",
     "semantic_hash": "f2f179cf94b72221213c7c285f5ad208"
   },
   "Lyriora/Utilities/DefaultBackgroundPreset.swift": {
     "mtime": 1786681511.099808,
-    "seen": 1786733671.550381,
+    "seen": 1786733615.5484319,
     "ast_hash": "f105b49bb1a2bc0d6e6019fd3dfe6997",
     "semantic_hash": "f105b49bb1a2bc0d6e6019fd3dfe6997"
   },
   "Lyriora/Utilities/KeyboardDismissal.swift": {
     "mtime": 1785951836.4018257,
-    "seen": 1786733671.550383,
+    "seen": 1786733615.548434,
     "ast_hash": "27a85682ef8d528b98c539a2722c6c49",
     "semantic_hash": "27a85682ef8d528b98c539a2722c6c49"
   },
   "Lyriora/Utilities/LyricGradient.swift": {
     "mtime": 1785775164.245877,
-    "seen": 1786733671.550384,
+    "seen": 1786733615.548435,
     "ast_hash": "edd4b984b54715d06e88fbe80f72e2f8",
     "semantic_hash": "edd4b984b54715d06e88fbe80f72e2f8"
   },
   "Lyriora/Utilities/PresentationLayout.swift": {
     "mtime": 1785951836.4020638,
-    "seen": 1786733671.550386,
+    "seen": 1786733615.5484369,
     "ast_hash": "0d1f2799e9cad23c59d3ec3467598c24",
     "semantic_hash": "0d1f2799e9cad23c59d3ec3467598c24"
   },
   "Lyriora/Utilities/PresentationTextConfiguration.swift": {
     "mtime": 1785951836.4025931,
-    "seen": 1786733671.550387,
+    "seen": 1786733615.548438,
     "ast_hash": "e5e4c4355ece78d958d584bfafc5b018",
     "semantic_hash": "e5e4c4355ece78d958d584bfafc5b018"
   },
   "Lyriora/Utilities/PresentationTextMeasurer.swift": {
     "mtime": 1786684486.519007,
-    "seen": 1786733671.5503879,
+    "seen": 1786733615.548439,
     "ast_hash": "2c8ab7be813b8d9183db4b90ff3b46a8",
     "semantic_hash": "2c8ab7be813b8d9183db4b90ff3b46a8"
   },
   "Lyriora/ViewModels/AppViewModel.swift": {
     "mtime": 1786723928.9892313,
-    "seen": 1786733671.55039,
+    "seen": 1786733615.5484412,
     "ast_hash": "4db7d7c68adb952c8ad83d2393dda103",
     "semantic_hash": "4db7d7c68adb952c8ad83d2393dda103"
   },
   "Lyriora/ViewModels/PresentationState.swift": {
     "mtime": 1786681511.0984805,
-    "seen": 1786733671.550391,
+    "seen": 1786733615.5484412,
     "ast_hash": "58e1d71d7c31e6212afc07b5e460cd4f",
     "semantic_hash": "58e1d71d7c31e6212afc07b5e460cd4f"
   },
   "Lyriora/Views/CenterPanel/CenterPanelView.swift": {
     "mtime": 1786723936.772151,
-    "seen": 1786733671.5503922,
+    "seen": 1786733615.5484421,
     "ast_hash": "7aff9be685869166b3c015e60e7ade01",
     "semantic_hash": "7aff9be685869166b3c015e60e7ade01"
   },
   "Lyriora/Views/CenterPanel/PresentationPreviewView.swift": {
     "mtime": 1786681511.0946522,
-    "seen": 1786733671.550393,
+    "seen": 1786733615.5484428,
     "ast_hash": "6691a5475143ed83354742ebe09662f5",
     "semantic_hash": "6691a5475143ed83354742ebe09662f5"
   },
   "Lyriora/Views/CenterPanel/SlideGridView.swift": {
     "mtime": 1786723936.7193344,
-    "seen": 1786733671.550394,
+    "seen": 1786733615.5484438,
     "ast_hash": "b87f2cd259911e73ae8ddf51afad724a",
     "semantic_hash": "b87f2cd259911e73ae8ddf51afad724a"
   },
   "Lyriora/Views/Components/AdaptivePresentationText.swift": {
     "mtime": 1786681511.098851,
-    "seen": 1786733671.550396,
+    "seen": 1786733615.548445,
     "ast_hash": "247707c516572208a09fe1da30ea7ba8",
     "semantic_hash": "247707c516572208a09fe1da30ea7ba8"
   },
   "Lyriora/Views/Components/AppBackgroundView.swift": {
     "mtime": 1786681511.0780082,
-    "seen": 1786733671.5503979,
+    "seen": 1786733615.548447,
     "ast_hash": "d0ed21e30069df155bfef3147996acc4",
     "semantic_hash": "d0ed21e30069df155bfef3147996acc4"
   },
   "Lyriora/Views/Components/BackgroundFitToolbar.swift": {
     "mtime": 1785994259.217014,
-    "seen": 1786733671.5503979,
+    "seen": 1786733615.548447,
     "ast_hash": "6e49965531d2c0c7b50eee5305ebc92f",
     "semantic_hash": "6e49965531d2c0c7b50eee5305ebc92f"
   },
   "Lyriora/Views/Components/BlurredBackgroundModifier.swift": {
     "mtime": 1785778868.164414,
-    "seen": 1786733671.550399,
+    "seen": 1786733615.548448,
     "ast_hash": "9c404c66d2ebbed4d95d994fcb01efee",
     "semantic_hash": "9c404c66d2ebbed4d95d994fcb01efee"
   },
   "Lyriora/Views/Components/EditorAdaptivePresentationText.swift": {
     "mtime": 1785951836.4055555,
-    "seen": 1786733671.5504,
+    "seen": 1786733615.548449,
     "ast_hash": "ede1795cf7267a6c73596c548358b3df",
     "semantic_hash": "ede1795cf7267a6c73596c548358b3df"
   },
   "Lyriora/Views/Components/GlassPanel.swift": {
     "mtime": 1786681511.0998223,
-    "seen": 1786733671.5504,
+    "seen": 1786733615.548449,
     "ast_hash": "ecd0181a881fb4c880a3408c3110db81",
     "semantic_hash": "ecd0181a881fb4c880a3408c3110db81"
   },
   "Lyriora/Views/Components/LoopingVideoBackground.swift": {
     "mtime": 1786681511.0776467,
-    "seen": 1786733671.5504022,
+    "seen": 1786733615.5484512,
     "ast_hash": "693f209b87eea87c64b7dcaf1a228375",
     "semantic_hash": "693f209b87eea87c64b7dcaf1a228375"
   },
   "Lyriora/Views/Components/LyricEditorSlideHorizontalListView.swift": {
     "mtime": 1785951836.406288,
-    "seen": 1786733671.550403,
+    "seen": 1786733615.5484521,
     "ast_hash": "6f0eab5fbc236bb4583c96e2081291cf",
     "semantic_hash": "6f0eab5fbc236bb4583c96e2081291cf"
   },
   "Lyriora/Views/Components/LyricSlideLivePreview.swift": {
     "mtime": 1786681511.0748582,
-    "seen": 1786733671.550403,
+    "seen": 1786733615.5484521,
     "ast_hash": "8faace7947074122ac9d9d44930d37f4",
     "semantic_hash": "8faace7947074122ac9d9d44930d37f4"
   },
   "Lyriora/Views/Components/PresentationBackgroundView.swift": {
     "mtime": 1786681511.0772686,
-    "seen": 1786733671.550406,
+    "seen": 1786733615.548455,
     "ast_hash": "534e560f45e266458d6a8eb634195ddf",
     "semantic_hash": "534e560f45e266458d6a8eb634195ddf"
   },
   "Lyriora/Views/Components/SlideStyleControlsView.swift": {
     "mtime": 1785951836.4071884,
-    "seen": 1786733671.550409,
+    "seen": 1786733615.548458,
     "ast_hash": "f7dabce61fa5683bcb6831fa3b1bc8ef",
     "semantic_hash": "f7dabce61fa5683bcb6831fa3b1bc8ef"
   },
   "Lyriora/Views/Components/StickyPreviewEditorLayout.swift": {
     "mtime": 1786572692.9321308,
-    "seen": 1786733671.55041,
+    "seen": 1786733615.548459,
     "ast_hash": "5ca0daba065d4892511e4d25d22f6ce3",
     "semantic_hash": "5ca0daba065d4892511e4d25d22f6ce3"
   },
   "Lyriora/Views/Components/ThemePreviewCard.swift": {
     "mtime": 1786681511.077959,
-    "seen": 1786733671.5504131,
+    "seen": 1786733615.548461,
     "ast_hash": "41752ce72a023cbe398e14d0914ec448",
     "semantic_hash": "41752ce72a023cbe398e14d0914ec448"
   },
   "Lyriora/Views/Components/ThemeSavePromptSheet.swift": {
     "mtime": 1785951836.4303136,
-    "seen": 1786733671.5504131,
+    "seen": 1786733615.5484622,
     "ast_hash": "e7fa01fe3cedaa31bc8e56cf489e433c",
     "semantic_hash": "e7fa01fe3cedaa31bc8e56cf489e433c"
   },
   "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift": {
     "mtime": 1786684624.5812707,
-    "seen": 1786733671.5504158,
+    "seen": 1786733615.548464,
     "ast_hash": "07af2378dcad1b3e44db15e043867956",
     "semantic_hash": "07af2378dcad1b3e44db15e043867956"
   },
   "Lyriora/Views/Main/MainView.swift": {
     "mtime": 1786684593.9902372,
-    "seen": 1786733671.5504158,
+    "seen": 1786733615.548465,
     "ast_hash": "4c2d572a186714e2fd7a232301484cc1",
     "semantic_hash": "4c2d572a186714e2fd7a232301484cc1"
   },
   "Lyriora/Views/Modals/DisplayInfoSheet.swift": {
     "mtime": 1785782950.1388767,
-    "seen": 1786733671.550418,
+    "seen": 1786733615.548466,
     "ast_hash": "6d1d42c674452e9153778800525cb1ac",
     "semantic_hash": "6d1d42c674452e9153778800525cb1ac"
   },
   "Lyriora/Views/Modals/GlobalStyleEditorView.swift": {
     "mtime": 1786681511.0781047,
-    "seen": 1786733671.5504189,
+    "seen": 1786733615.548467,
     "ast_hash": "c10ae5228d1231d2f5405431a3ddb2b6",
     "semantic_hash": "c10ae5228d1231d2f5405431a3ddb2b6"
   },
   "Lyriora/Views/Modals/LyricEditorNavigationOptions.swift": {
     "mtime": 1785971425.0360436,
-    "seen": 1786733671.55042,
+    "seen": 1786733615.548467,
     "ast_hash": "e457f3e9f0202de0c34ec40f4312ed39",
     "semantic_hash": "e457f3e9f0202de0c34ec40f4312ed39"
   },
   "Lyriora/Views/Modals/LyricEditorView.swift": {
     "mtime": 1786684486.5216675,
-    "seen": 1786733671.55042,
+    "seen": 1786733615.5484679,
     "ast_hash": "237536580b60d87fbad226dad6df21e3",
     "semantic_hash": "237536580b60d87fbad226dad6df21e3"
   },
   "Lyriora/Views/Modals/SettingsSheet.swift": {
     "mtime": 1785994259.2187262,
-    "seen": 1786733671.5504231,
+    "seen": 1786733615.54847,
     "ast_hash": "797e86e24f3af2e8b4f59a322240e384",
     "semantic_hash": "797e86e24f3af2e8b4f59a322240e384"
   },
   "Lyriora/Views/Modals/SlideDetailEditorView.swift": {
     "mtime": 1786681511.0997665,
-    "seen": 1786733671.5504231,
+    "seen": 1786733615.548471,
     "ast_hash": "a30b0c2ee89e219c5fe72231f001b3cf",
     "semantic_hash": "a30b0c2ee89e219c5fe72231f001b3cf"
   },
   "Lyriora/Views/RightPanel/LyricsLibraryPanelView.swift": {
     "mtime": 1786684603.204327,
-    "seen": 1786733671.550424,
+    "seen": 1786733615.5484722,
     "ast_hash": "da86cf911456f5a5523a62e166e414f5",
     "semantic_hash": "da86cf911456f5a5523a62e166e414f5"
   },
   "LyrioraTests/LyrioraTests.swift": {
     "mtime": 1786684486.522894,
-    "seen": 1786733671.550426,
+    "seen": 1786733615.5484722,
     "ast_hash": "547ea7b559adca42423dc45ea36dc900",
     "semantic_hash": "547ea7b559adca42423dc45ea36dc900"
   },
   "LyrioraUITests/LyrioraUITests.swift": {
     "mtime": 1785773659.4787326,
-    "seen": 1786733671.550426,
+    "seen": 1786733615.5484731,
     "ast_hash": "a162e39429a491f77b05997bae816981",
     "semantic_hash": "a162e39429a491f77b05997bae816981"
   },
   "LyrioraUITests/LyrioraUITestsLaunchTests.swift": {
     "mtime": 1785773659.4805062,
-    "seen": 1786733671.550427,
+    "seen": 1786733615.548474,
     "ast_hash": "7474338668a3f9e5b242c533e00cc721",
     "semantic_hash": "7474338668a3f9e5b242c533e00cc721"
   },
   "Lyriora/Models/VideoSeekRequest.swift": {
     "mtime": 1785970401.0292292,
-    "seen": 1786733671.550357,
+    "seen": 1786733615.548413,
     "ast_hash": "81d104095968f01d89b2fe133ee10741",
     "semantic_hash": "81d104095968f01d89b2fe133ee10741"
   },
   "Lyriora/Services/VideoPlaybackController.swift": {
     "mtime": 1785973377.065021,
-    "seen": 1786733671.550378,
+    "seen": 1786733615.54843,
     "ast_hash": "664103c051058a6ddc332677ab1ef670",
     "semantic_hash": "664103c051058a6ddc332677ab1ef670"
   },
   "Lyriora/Services/VideoProgressReporter.swift": {
     "mtime": 1785970401.030221,
-    "seen": 1786733671.550379,
+    "seen": 1786733615.5484312,
     "ast_hash": "002ec9b05b1b7dc13aef66e459d8f645",
     "semantic_hash": "002ec9b05b1b7dc13aef66e459d8f645"
   },
   "Lyriora/Utilities/GlassMorphAnimation.swift": {
     "mtime": 1785970401.0304146,
-    "seen": 1786733671.5503821,
+    "seen": 1786733615.5484328,
     "ast_hash": "c2e64c7a00e004b8ac73475de6bb4d98",
     "semantic_hash": "c2e64c7a00e004b8ac73475de6bb4d98"
   },
   "Lyriora/Views/Components/AVPlayerLayerView.swift": {
     "mtime": 1785970401.033238,
-    "seen": 1786733671.5503948,
+    "seen": 1786733615.5484438,
     "ast_hash": "7818f7ab10f690c4c1a8ead88ddf0b1e",
     "semantic_hash": "7818f7ab10f690c4c1a8ead88ddf0b1e"
   },
   "Lyriora/Views/Components/PresentationActionsToolbar.swift": {
     "mtime": 1785970401.0351493,
-    "seen": 1786733671.550406,
+    "seen": 1786733615.548455,
     "ast_hash": "ca36be2e872c8b72e0188a12ec428ef6",
     "semantic_hash": "ca36be2e872c8b72e0188a12ec428ef6"
   },
   ".agents/skills/graphify/SKILL.md": {
-    "mtime": 1786733609.7759287,
-    "seen": 1786733671.550428,
-    "ast_hash": "8b0d4db6c8e5a142df7584a4b5d096a2",
+    "mtime": 1785970401.0223994,
+    "ast_hash": "4388891114e3af2d60510a23f3dd8069",
     "semantic_hash": ""
   },
   ".agents/skills/graphify/references/add-watch.md": {
-    "mtime": 1786733473.6674383,
-    "seen": 1786733671.5504289,
+    "mtime": 1785970401.0228248,
     "ast_hash": "d59d027fe449f06aa03905a01184e779",
     "semantic_hash": ""
   },
   ".agents/skills/graphify/references/exports.md": {
-    "mtime": 1786733473.6675947,
-    "seen": 1786733671.5504289,
+    "mtime": 1785970401.0231962,
     "ast_hash": "9da2a2152e60a22f07f05fed5158f287",
     "semantic_hash": ""
   },
   ".agents/skills/graphify/references/extraction-spec.md": {
-    "mtime": 1786733473.6677506,
-    "seen": 1786733671.55043,
+    "mtime": 1785970401.0235317,
     "ast_hash": "42fef56a01698118f7fd722acdadea34",
     "semantic_hash": ""
   },
   ".agents/skills/graphify/references/github-and-merge.md": {
-    "mtime": 1786733473.6678622,
-    "seen": 1786733671.550431,
+    "mtime": 1785970401.0238807,
     "ast_hash": "cde13df085e4c492aeb7ba298a996d0d",
     "semantic_hash": ""
   },
   ".agents/skills/graphify/references/hooks.md": {
-    "mtime": 1786733473.667964,
-    "seen": 1786733671.550432,
+    "mtime": 1785970401.0241134,
     "ast_hash": "aea24fe86e18fe8aeb304403032cfce7",
     "semantic_hash": ""
   },
   ".agents/skills/graphify/references/query.md": {
-    "mtime": 1786733473.66818,
-    "seen": 1786733671.550433,
+    "mtime": 1785970401.0243695,
     "ast_hash": "3c46f8ad006874260614ed8657d02307",
     "semantic_hash": ""
   },
   ".agents/skills/graphify/references/transcribe.md": {
-    "mtime": 1786733473.6683283,
-    "seen": 1786733671.550433,
+    "mtime": 1785970401.024545,
     "ast_hash": "67b6a5fa6c0974e18f60db9f8932fbd8",
     "semantic_hash": ""
   },
   ".agents/skills/graphify/references/update.md": {
-    "mtime": 1786733473.668533,
-    "seen": 1786733671.550434,
+    "mtime": 1785970401.0248935,
     "ast_hash": "9378bd03d56baaf78bd738ab3848f142",
     "semantic_hash": ""
   },
   ".claude/CLAUDE.md": {
     "mtime": 1785970401.025124,
-    "seen": 1786733671.550435,
     "ast_hash": "9b31786b637be3c13978bec4c2330752",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/SKILL.md": {
     "mtime": 1785970401.0259283,
-    "seen": 1786733671.550436,
     "ast_hash": "dfb0a6554c4af62df6effc61c6c7d245",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/add-watch.md": {
     "mtime": 1785970401.026198,
-    "seen": 1786733671.550436,
     "ast_hash": "d59d027fe449f06aa03905a01184e779",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/exports.md": {
     "mtime": 1785970401.0263903,
-    "seen": 1786733671.5504372,
     "ast_hash": "9da2a2152e60a22f07f05fed5158f287",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/extraction-spec.md": {
     "mtime": 1785970401.026594,
-    "seen": 1786733671.550438,
     "ast_hash": "42fef56a01698118f7fd722acdadea34",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/github-and-merge.md": {
     "mtime": 1785970401.0267656,
-    "seen": 1786733671.550439,
     "ast_hash": "cde13df085e4c492aeb7ba298a996d0d",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/hooks.md": {
     "mtime": 1785970401.0269904,
-    "seen": 1786733671.550439,
     "ast_hash": "3f545db6ce646650bb9de588f5512a27",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/query.md": {
     "mtime": 1785970401.027261,
-    "seen": 1786733671.5504398,
     "ast_hash": "3c46f8ad006874260614ed8657d02307",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/transcribe.md": {
     "mtime": 1785970401.027454,
-    "seen": 1786733671.550441,
     "ast_hash": "67b6a5fa6c0974e18f60db9f8932fbd8",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/update.md": {
     "mtime": 1785970401.0276597,
-    "seen": 1786733671.550442,
     "ast_hash": "9378bd03d56baaf78bd738ab3848f142",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
     "mtime": 1785970401.0285633,
-    "seen": 1786733671.550442,
     "ast_hash": "82efb97a359f5c7290bf2513d14686be",
     "semantic_hash": ""
   },
   "Lyriora/Views/Components/NavigationSplitViewClearBackground.swift": {
     "mtime": 1785994259.2175956,
-    "seen": 1786733671.550404,
+    "seen": 1786733615.548453,
     "ast_hash": "0cecc560f3a9dc17b3d84819966cc662",
     "semantic_hash": "0cecc560f3a9dc17b3d84819966cc662"
   },
   "Lyriora/Views/Main/WorkspaceCompactLayout.swift": {
     "mtime": 1785994259.2184298,
-    "seen": 1786733671.550417,
+    "seen": 1786733615.548465,
     "ast_hash": "e3449b28aaba23ffccf0406db8765614",
     "semantic_hash": "e3449b28aaba23ffccf0406db8765614"
   },
   "Lyriora/Services/PhotosPickerDisplayNameResolver.swift": {
     "mtime": 1785995138.4999373,
-    "seen": 1786733671.5503721,
+    "seen": 1786733615.548427,
     "ast_hash": "11e024199f2935f53ac447a8d5f5f86f",
     "semantic_hash": "11e024199f2935f53ac447a8d5f5f86f"
   },
   "Lyriora/Utilities/MediaDisplayName.swift": {
     "mtime": 1785995138.5001411,
-    "seen": 1786733671.550386,
+    "seen": 1786733615.5484369,
     "ast_hash": "37affa598840e3f93362eaba1fe6bbc1",
     "semantic_hash": "37affa598840e3f93362eaba1fe6bbc1"
   },
   "Lyriora/Utilities/LibrarySearch.swift": {
     "mtime": 1786684846.9989514,
-    "seen": 1786733671.550383,
+    "seen": 1786733615.548435,
     "ast_hash": "fe843816d9157a5e23a938d509f6424c",
     "semantic_hash": "fe843816d9157a5e23a938d509f6424c"
   },
   "Lyriora/Views/Components/LibrarySearchField.swift": {
     "mtime": 1786033984.7531104,
-    "seen": 1786733671.550401,
+    "seen": 1786733615.54845,
     "ast_hash": "67b6f132044e041d69f81511df9d5dad",
     "semantic_hash": "67b6f132044e041d69f81511df9d5dad"
   },
   "Lyriora/Models/SlideAnimationProfile.swift": {
     "mtime": 1786681511.098658,
-    "seen": 1786733671.5503528,
+    "seen": 1786733615.548409,
     "ast_hash": "793b040efb0cff45678979287f682d5d",
     "semantic_hash": "793b040efb0cff45678979287f682d5d"
   },
   "Lyriora/Models/TextAnimationKind.swift": {
     "mtime": 1786681511.0945482,
-    "seen": 1786733671.550355,
+    "seen": 1786733615.548411,
     "ast_hash": "d11de77c4bfe9219b95b7877d7a152e1",
     "semantic_hash": "d11de77c4bfe9219b95b7877d7a152e1"
   },
   "Lyriora/Models/TextAnimationStylePreset.swift": {
     "mtime": 1786681511.0773523,
-    "seen": 1786733671.550356,
+    "seen": 1786733615.5484118,
     "ast_hash": "c550fab8289a1f93ed8e53a9cd9b956d",
     "semantic_hash": "c550fab8289a1f93ed8e53a9cd9b956d"
   },
   "Lyriora/Rendering/Metal/MetalTextEffectRenderer.swift": {
     "mtime": 1786681511.0946088,
-    "seen": 1786733671.550358,
+    "seen": 1786733615.548414,
     "ast_hash": "fe22ab34b5db3e6803736e445f8c0ba8",
     "semantic_hash": "fe22ab34b5db3e6803736e445f8c0ba8"
   },
   "Lyriora/Rendering/Metal/MetalTextEffectView.swift": {
     "mtime": 1786681511.0431979,
-    "seen": 1786733671.550359,
+    "seen": 1786733615.548415,
     "ast_hash": "d99bfdceb1a3409943d463669db33491",
     "semantic_hash": "d99bfdceb1a3409943d463669db33491"
   },
   "Lyriora/Rendering/Metal/Shaders.metal": {
     "mtime": 1786681511.098465,
-    "seen": 1786733671.55036,
+    "seen": 1786733615.548416,
     "ast_hash": "b08df1708e213157bd58a496842d487d",
     "semantic_hash": "b08df1708e213157bd58a496842d487d"
   },
   "Lyriora/Services/LyricSlideMetadataPreservation.swift": {
     "mtime": 1786684486.5184538,
-    "seen": 1786733671.5503712,
+    "seen": 1786733615.548425,
     "ast_hash": "ce41f976180451fbb8da6b0e6fe7e69f",
     "semantic_hash": "ce41f976180451fbb8da6b0e6fe7e69f"
   },
   "Lyriora/Utilities/MacWindowConfigurator.swift": {
     "mtime": 1786572692.9242518,
-    "seen": 1786733671.550385,
+    "seen": 1786733615.548436,
     "ast_hash": "c9971286f66de71c820d6ca083f30538",
     "semantic_hash": "c9971286f66de71c820d6ca083f30538"
   },
   "Lyriora/Utilities/SlideTextTokenizer.swift": {
     "mtime": 1786681511.077495,
-    "seen": 1786733671.550389,
+    "seen": 1786733615.548439,
     "ast_hash": "f11c0d3b0cfee938f42d705731beeba6",
     "semantic_hash": "f11c0d3b0cfee938f42d705731beeba6"
   },
   "Lyriora/Utilities/TextAnimationEffects.swift": {
     "mtime": 1786681511.077389,
-    "seen": 1786733671.550389,
+    "seen": 1786733615.54844,
     "ast_hash": "5cbcb32783eed2e194768735c69d4a72",
     "semantic_hash": "5cbcb32783eed2e194768735c69d4a72"
   },
   "Lyriora/Views/Components/AnimatedPresentationText.swift": {
     "mtime": 1786681511.077854,
-    "seen": 1786733671.550397,
+    "seen": 1786733615.548446,
     "ast_hash": "4eec29e7887efb2a25086ed93cc4fbf1",
     "semantic_hash": "4eec29e7887efb2a25086ed93cc4fbf1"
   },
   "Lyriora/Views/Components/ProTextSegmentView.swift": {
     "mtime": 1786681511.0778232,
-    "seen": 1786733671.550407,
+    "seen": 1786733615.548456,
     "ast_hash": "2397afd3f7d3a2299a320898e90c56c4",
     "semantic_hash": "2397afd3f7d3a2299a320898e90c56c4"
   },
   "Lyriora/Views/Components/SlideTransitionTextContainer.swift": {
     "mtime": 1786681511.0774183,
-    "seen": 1786733671.55041,
+    "seen": 1786733615.548458,
     "ast_hash": "78933abbb442644bf3f58a99c1d89b38",
     "semantic_hash": "78933abbb442644bf3f58a99c1d89b38"
   },
   "Lyriora/Views/Components/TextAnimationEditorSection.swift": {
     "mtime": 1786681511.0998666,
-    "seen": 1786733671.550411,
+    "seen": 1786733615.54846,
     "ast_hash": "229ceb5b408638400f238811de03fc23",
     "semantic_hash": "229ceb5b408638400f238811de03fc23"
   },
   "Lyriora/Views/Components/TextStyleSlidePreviewNavigator.swift": {
     "mtime": 1786681511.0997436,
-    "seen": 1786733671.550412,
+    "seen": 1786733615.54846,
     "ast_hash": "8a211ba7c889f11b631db8365ea038a3",
     "semantic_hash": "8a211ba7c889f11b631db8365ea038a3"
   },
   "Lyriora/Views/Components/TransitionSpeedControl.swift": {
     "mtime": 1786572692.9332054,
-    "seen": 1786733671.550414,
+    "seen": 1786733615.548463,
     "ast_hash": "52ece10ba8ed0b823911e8d1fe6dfac7",
     "semantic_hash": "52ece10ba8ed0b823911e8d1fe6dfac7"
   },
   "Lyriora/Views/Components/TypewriterRevealText.swift": {
     "mtime": 1786681511.0985065,
-    "seen": 1786733671.550415,
+    "seen": 1786733615.548463,
     "ast_hash": "cb9b16af198a3e4017ac2c2c417d360a",
     "semantic_hash": "cb9b16af198a3e4017ac2c2c417d360a"
   },
   "Lyriora/Lyriora.icon/icon.json": {
     "mtime": 1786684486.5150325,
-    "seen": 1786733671.5503418,
-    "ast_hash": "065951273c49c35d3428b211148cf336",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "Lyriora/Services/LyricPlaySyncProtocol.swift": {
     "mtime": 1786684486.5175009,
-    "seen": 1786733671.550368,
+    "seen": 1786733615.5484228,
     "ast_hash": "a259edd665e49aeb47aa9fb0a5ccd5ee",
     "semantic_hash": "a259edd665e49aeb47aa9fb0a5ccd5ee"
   },
   "Lyriora/Services/LyricPlaySyncServer.swift": {
     "mtime": 1786684486.518055,
-    "seen": 1786733671.550368,
+    "seen": 1786733615.5484228,
     "ast_hash": "a64296b07aa0a66647e252b635ff2d36",
     "semantic_hash": "a64296b07aa0a66647e252b635ff2d36"
   },
   "Lyriora/Views/Components/SimplePlayConnectionIndicator.swift": {
     "mtime": 1786723936.7193732,
-    "seen": 1786733671.550408,
+    "seen": 1786733615.548457,
     "ast_hash": "05cb18b5da5566971723fb63c611a5af",
     "semantic_hash": "05cb18b5da5566971723fb63c611a5af"
   },
   "LyrioraIcon.icon/icon.json": {
     "mtime": 1786684486.5226324,
-    "seen": 1786733671.550425,
-    "ast_hash": "e0f76a263d8fc69e2c70571c57eafe03",
+    "ast_hash": "",
     "semantic_hash": ""
   },
   "Lyriora/Lyriora.icon/Assets/Document@2x.svg": {
     "mtime": 1786684486.5146036,
-    "seen": 1786733671.550443,
     "ast_hash": "a676af19f596287e5e4c74a1a308f386",
     "semantic_hash": ""
   },
   "LyrioraIcon.icon/Assets/Document@2x.svg": {
     "mtime": 1786684486.5220482,
-    "seen": 1786733671.5504441,
     "ast_hash": "a676af19f596287e5e4c74a1a308f386",
     "semantic_hash": ""
   },
   "Lyriora/Models/LibraryPlaylist.swift": {
     "mtime": 1786684549.1280506,
-    "seen": 1786733671.550346,
+    "seen": 1786733615.548403,
     "ast_hash": "54c47c81c655e87f62737d152a5c7058",
     "semantic_hash": "54c47c81c655e87f62737d152a5c7058"
   },
   "Lyriora/Services/PlaylistRepository.swift": {
     "mtime": 1786684549.128025,
-    "seen": 1786733671.550373,
+    "seen": 1786733615.548427,
     "ast_hash": "d36b741f4f90a582dbab26949c16bd7c",
     "semantic_hash": "d36b741f4f90a582dbab26949c16bd7c"
   },
   "Lyriora/Views/Components/PlaylistFilterBar.swift": {
     "mtime": 1786684573.757737,
-    "seen": 1786733671.550405,
+    "seen": 1786733615.5484538,
     "ast_hash": "792237e7862dd3cc49ddffb4c9675f6c",
     "semantic_hash": "792237e7862dd3cc49ddffb4c9675f6c"
   },
   "Lyriora/Views/Modals/PlaylistGlassModal.swift": {
     "mtime": 1786685362.1484933,
-    "seen": 1786733671.550421,
+    "seen": 1786733615.548469,
     "ast_hash": "2554d15c6034a683eb7b4b521e16d231",
     "semantic_hash": "2554d15c6034a683eb7b4b521e16d231"
   },
   "Lyriora/Views/Modals/PlaylistSheets.swift": {
     "mtime": 1786685367.3365045,
-    "seen": 1786733671.550422,
+    "seen": 1786733615.54847,
     "ast_hash": "6f48e2f246dc6fb30fd2d3d57d537635",
     "semantic_hash": "6f48e2f246dc6fb30fd2d3d57d537635"
   }
