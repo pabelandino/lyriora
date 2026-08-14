@@ -16,6 +16,8 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
     var colorSeed: UInt64
     var createdAt: Date
     var updatedAt: Date
+    var simplePlayProjectID: UUID?
+    var simplePlayProjectName: String?
 
     init(
         id: UUID = UUID(),
@@ -27,7 +29,9 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
         language: LyricLanguage = .unknown,
         colorSeed: UInt64 = UInt64.random(in: 0...UInt64.max),
         createdAt: Date = .now,
-        updatedAt: Date = .now
+        updatedAt: Date = .now,
+        simplePlayProjectID: UUID? = nil,
+        simplePlayProjectName: String? = nil
     ) {
         self.id = id
         self.title = title
@@ -39,6 +43,8 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
         self.colorSeed = colorSeed
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.simplePlayProjectID = simplePlayProjectID
+        self.simplePlayProjectName = simplePlayProjectName
     }
 
     var slides: [LyricSlide] {
@@ -69,6 +75,7 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case id, title, content, storedSlides, sourceSections, styleProfile, language, colorSeed, createdAt, updatedAt
+        case simplePlayProjectID, simplePlayProjectName
     }
 
     init(from decoder: Decoder) throws {
@@ -83,6 +90,8 @@ struct LyricDocument: Identifiable, Codable, Equatable, Sendable {
         colorSeed = try container.decodeIfPresent(UInt64.self, forKey: .colorSeed) ?? UInt64.random(in: 0...UInt64.max)
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? .now
         updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? .now
+        simplePlayProjectID = try container.decodeIfPresent(UUID.self, forKey: .simplePlayProjectID)
+        simplePlayProjectName = try container.decodeIfPresent(String.self, forKey: .simplePlayProjectName)
 
         if sourceSections.isEmpty, !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             sourceSections = LyricImportParser.parseSections(content).sections

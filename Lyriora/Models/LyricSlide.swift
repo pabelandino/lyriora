@@ -14,6 +14,8 @@ struct LyricSlide: Identifiable, Codable, Equatable, Sendable {
     var animationProfile: SlideAnimationProfile?
     /// Links this slide chunk back to its canonical section for edits and re-chunking.
     var sourceSectionID: UUID?
+    /// SimplePlay section that triggers this slide during live performance.
+    var simplePlaySectionID: UUID?
 
     var index: Int { order }
 
@@ -24,7 +26,8 @@ struct LyricSlide: Identifiable, Codable, Equatable, Sendable {
         tag: LyricSlideTag = .unknown,
         style: SlideTextStyle? = nil,
         animationProfile: SlideAnimationProfile? = nil,
-        sourceSectionID: UUID? = nil
+        sourceSectionID: UUID? = nil,
+        simplePlaySectionID: UUID? = nil
     ) {
         self.id = id
         self.order = order
@@ -33,6 +36,7 @@ struct LyricSlide: Identifiable, Codable, Equatable, Sendable {
         self.style = style
         self.animationProfile = animationProfile
         self.sourceSectionID = sourceSectionID
+        self.simplePlaySectionID = simplePlaySectionID
     }
 
     init(index: Int, text: String) {

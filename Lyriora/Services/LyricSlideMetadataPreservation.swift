@@ -31,13 +31,15 @@ enum LyricSlideMetadataPreservation {
                     tag: newSlide.tag,
                     style: previous.style,
                     animationProfile: previous.animationProfile,
-                    sourceSectionID: newSlide.sourceSectionID
+                    sourceSectionID: newSlide.sourceSectionID,
+                    simplePlaySectionID: previous.simplePlaySectionID
                 )
             }
 
             var merged = newSlide
             merged.style = previous.style
             merged.animationProfile = previous.animationProfile
+            merged.simplePlaySectionID = previous.simplePlaySectionID
             return merged
         }
     }

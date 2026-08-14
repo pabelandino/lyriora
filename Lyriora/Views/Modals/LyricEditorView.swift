@@ -498,6 +498,7 @@ struct LyricEditorView: View {
     }
 
     private func reparseFromRawContent() {
+        rawContent = LyricImportParser.normalizedLineBreaks(rawContent)
         let result = LyricImportParser.parseSections(rawContent)
         sourceSections = result.sections
         language = result.language

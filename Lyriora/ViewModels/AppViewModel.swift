@@ -37,6 +37,9 @@ final class AppViewModel {
     var lyricEditorLaunch: LyricEditorLaunch?
     var isDisplayInfoSheetPresented = false
     var isSettingsSheetPresented = false
+    var isSimplePlayConnectionInfoPresented = false
+
+    private(set) var simplePlayConnectionRefreshToken = 0
 
     var selectedPhotoItems: [PhotosPickerItem] = [] {
         didSet {
@@ -51,6 +54,8 @@ final class AppViewModel {
     }
 
     let externalDisplayManager: ExternalDisplayManager
+    private let simplePlaySync = LyricPlaySyncServer()
+    private var simplePlayConnectionMonitorTask: Task<Void, Never>?
 
     private let lyricRepository: LyricRepositoryProtocol
     private let mediaRepository: MediaRepositoryProtocol
@@ -470,6 +475,118 @@ final class AppViewModel {
 
     func refreshExternalPresentation() {
         externalDisplayManager.refreshPresentation()
+    }
+
+    var isSimplePlayConnected: Bool {
+        _ = simplePlayConnectionRefreshToken
+        guard let lastActivity = simplePlaySync.lastClientActivityAt else { return false }
+        return Date().timeIntervalSince(lastActivity) < 12
+    }
+
+    func startSimplePlaySyncService() {
+        simplePlaySync.start { [weak self] message in
+            guard let self else {
+                return LyricPlaySyncMessage(kind: .error, errorMessage: "Lyriora is unavailable.")
+            }
+            return handleSimplePlaySyncMessage(message)
+        }
+        startSimplePlayConnectionMonitor()
+    }
+
+    private func startSimplePlayConnectionMonitor() {
+        simplePlayConnectionMonitorTask?.cancel()
+        simplePlayConnectionMonitorTask = Task { @MainActor in
+            while !Task.isCancelled {
+                simplePlayConnectionRefreshToken &+= 1
+                try? await Task.sleep(for: .seconds(1))
+            }
+        }
+    }
+
+    private func handleSimplePlaySyncMessage(_ message: LyricPlaySyncMessage) -> LyricPlaySyncMessage {
+        switch message.kind {
+        case .catalogRequest:
+            if let catalog = buildSimplePlayCatalog() {
+                return LyricPlaySyncMessage(kind: .catalogResponse, catalog: catalog)
+            }
+            return LyricPlaySyncMessage(
+                kind: .error,
+                errorMessage: "Open a lyric in Lyriora to share its slides."
+            )
+        case .showSlide:
+            guard let command = message.showSlide else {
+                return LyricPlaySyncMessage(kind: .error, errorMessage: "Missing show slide payload.")
+            }
+            handleRemoteShowSlide(command)
+            return LyricPlaySyncMessage(kind: .linkSectionAck)
+        case .linkSection:
+            guard let command = message.linkSection else {
+                return LyricPlaySyncMessage(kind: .error, errorMessage: "Missing link section payload.")
+            }
+            applySimplePlaySectionLink(command)
+            return LyricPlaySyncMessage(kind: .linkSectionAck)
+        case .presence:
+            return LyricPlaySyncMessage(kind: .presenceAck)
+        default:
+            return LyricPlaySyncMessage(kind: .error, errorMessage: "Unsupported sync message.")
+        }
+    }
+
+    func buildSimplePlayCatalog() -> LyricSlideCatalog? {
+        guard let lyric = selectedLyric else { return nil }
+
+        let slides = lyric.slides
+            .sorted { $0.order < $1.order }
+            .map { slide in
+                let preview = slide.text
+                    .components(separatedBy: .newlines)
+                    .first?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? slide.text
+
+                return LyricSlideCatalogItem(
+                    slideID: slide.id,
+                    order: slide.order,
+                    preview: preview,
+                    tag: slide.tag.rawValue,
+                    linkedSectionID: slide.simplePlaySectionID
+                )
+            }
+
+        return LyricSlideCatalog(
+            lyricID: lyric.id,
+            lyricTitle: lyric.title,
+            slides: slides
+        )
+    }
+
+    func handleRemoteShowSlide(_ command: ShowSlideCommand) {
+        guard let lyric = lyrics.first(where: { $0.id == command.lyricID }) else { return }
+        selectLyric(lyric)
+        guard let slide = lyric.slides.first(where: { $0.id == command.slideID }) else { return }
+        selectSlide(slide)
+        refreshExternalPresentation()
+    }
+
+    func applySimplePlaySectionLink(_ command: LinkSectionCommand) {
+        guard var lyric = lyrics.first(where: { $0.id == command.lyricID }) else { return }
+        guard let slideIndex = lyric.storedSlides.firstIndex(where: { $0.id == command.slideID }) else { return }
+
+        lyric.storedSlides[slideIndex].simplePlaySectionID = command.sectionID
+        if let projectID = command.projectID {
+            lyric.simplePlayProjectID = projectID
+            lyric.simplePlayProjectName = command.projectName
+        }
+        lyric.updatedAt = .now
+
+        do {
+            try lyricRepository.save(lyric)
+        } catch {
+            return
+        }
+
+        if let existingIndex = lyrics.firstIndex(where: { $0.id == lyric.id }) {
+            lyrics[existingIndex] = lyric
+        }
     }
 
     func imageURL(for asset: MediaAsset) -> URL {

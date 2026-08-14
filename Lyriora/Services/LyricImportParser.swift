@@ -167,10 +167,22 @@ enum LyricImportParser {
     }
 
     static func lines(from text: String) -> [String] {
-        text
+        normalizedLineBreaks(text)
             .components(separatedBy: "\n")
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
+    }
+
+    /// Converts platform-specific and web clipboard line breaks into `\n`.
+    static func normalizedLineBreaks(_ text: String) -> String {
+        text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+            .replacingOccurrences(of: "\u{2028}", with: "\n")
+            .replacingOccurrences(of: "\u{2029}", with: "\n\n")
+            .replacingOccurrences(of: "\u{0085}", with: "\n")
+            .replacingOccurrences(of: "\u{000B}", with: "\n")
+            .replacingOccurrences(of: "\u{000C}", with: "\n")
     }
 
     private struct ParsedSections {
@@ -225,9 +237,7 @@ enum LyricImportParser {
     }
 
     private static func normalize(_ text: String) -> String {
-        text
-            .replacingOccurrences(of: "\r\n", with: "\n")
-            .replacingOccurrences(of: "\r", with: "\n")
+        normalizedLineBreaks(text)
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
