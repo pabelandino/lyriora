@@ -27,6 +27,7 @@ struct CenterPanelView: View {
             .layoutPriority(workspaceCompactLayout ? 1 : 0)
 
             SlideGridView(
+                viewModel: viewModel,
                 slides: viewModel.selectedLyricSlides,
                 styleProfile: viewModel.selectedLyric?.styleProfile,
                 language: viewModel.selectedLyric?.language ?? .unknown,
@@ -55,6 +56,9 @@ struct CenterPanelView: View {
                     viewModel.refreshExternalPresentation()
                 }
             )
+        }
+        .sheet(isPresented: $viewModel.isSimplePlayConnectionInfoPresented) {
+            SimplePlayConnectionInfoSheet(isConnected: viewModel.isSimplePlayConnected)
         }
     }
 

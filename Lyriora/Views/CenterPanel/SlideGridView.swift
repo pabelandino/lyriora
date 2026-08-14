@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct SlideGridView: View {
+    @Bindable var viewModel: AppViewModel
     let slides: [LyricSlide]
     let styleProfile: LyricStyleProfile?
     let language: LyricLanguage
@@ -26,24 +27,45 @@ struct SlideGridView: View {
 
     var body: some View {
         GlassPanel(cornerRadius: 22) {
-            if slides.isEmpty {
-                ContentUnavailableView(
-                    "No slides",
-                    systemImage: "rectangle.on.rectangle.slash",
-                    description: Text("Select a lyric from the library to see its slides.")
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                GeometryReader { geometry in
-                    ScrollView {
-                        slideRows(in: geometry.size.width)
-                            .padding(.horizontal, horizontalPadding)
-                            .padding(.vertical, verticalPadding)
+            VStack(spacing: 0) {
+                slideGridHeader
+
+                if slides.isEmpty {
+                    ContentUnavailableView(
+                        "No slides",
+                        systemImage: "rectangle.on.rectangle.slash",
+                        description: Text("Select a lyric from the library to see its slides.")
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    GeometryReader { geometry in
+                        ScrollView {
+                            slideRows(in: geometry.size.width)
+                                .padding(.horizontal, horizontalPadding)
+                                .padding(.vertical, verticalPadding)
+                        }
+                        .clippedPanelScrollContent()
                     }
-                    .clippedPanelScrollContent()
                 }
             }
         }
+    }
+
+    private var slideGridHeader: some View {
+        HStack(spacing: 10) {
+            Text("Slides")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Spacer(minLength: 0)
+
+            SimplePlayConnectionIndicator(isConnected: viewModel.isSimplePlayConnected) {
+                viewModel.isSimplePlayConnectionInfoPresented = true
+            }
+        }
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, 12)
+        .padding(.bottom, 4)
     }
 
     @ViewBuilder

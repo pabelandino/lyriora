@@ -14,7 +14,8 @@ import AppKit
 
 enum PresentationTextMeasurer {
     static func explicitLines(from text: String) -> [String] {
-        text.components(separatedBy: "\n")
+        LyricImportParser.normalizedLineBreaks(text)
+            .components(separatedBy: "\n")
     }
 
     static func fittingFontSize(

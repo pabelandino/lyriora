@@ -25,6 +25,7 @@ struct MainView: View {
         }
         .onAppear {
             viewModel.loadInitialData()
+            viewModel.startSimplePlaySyncService()
             viewModel.externalDisplayManager.refreshDisplayInfo()
         }
         #if !os(macOS)

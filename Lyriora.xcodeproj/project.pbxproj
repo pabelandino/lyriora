@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B9D0F24F302D71A500E5464D /* LyrioraIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = B9D0F24E302D71A500E5464D /* LyrioraIcon.icon */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		B91C05123020F5DB007396E5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		B91C05023020F5DA007396E5 /* Lyriora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Lyriora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B91C05113020F5DB007396E5 /* LyrioraTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LyrioraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B91C051B3020F5DB007396E5 /* LyrioraUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LyrioraUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9D0F24E302D71A500E5464D /* LyrioraIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = LyrioraIcon.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -79,6 +84,7 @@
 				B91C05143020F5DB007396E5 /* LyrioraTests */,
 				B91C051E3020F5DB007396E5 /* LyrioraUITests */,
 				B91C05033020F5DA007396E5 /* Products */,
+				B9D0F24E302D71A500E5464D /* LyrioraIcon.icon */,
 			);
 			sourceTree = "<group>";
 		};
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9D0F24F302D71A500E5464D /* LyrioraIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -388,8 +395,9 @@
 		B91C05263020F5DB007396E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = LyrioraIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Lyriora/Lyriora.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = KB3H8VKXAX;
@@ -399,6 +407,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ExternalDisplayInfo.plist;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lyriora uses the local network to sync slides with SimplePlay during live performance.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Lyriora needs access to your photo library to import background images and videos.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -436,8 +445,9 @@
 		B91C05273020F5DB007396E5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = LyrioraIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Lyriora/Lyriora.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = KB3H8VKXAX;
@@ -447,6 +457,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ExternalDisplayInfo.plist;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Lyriora uses the local network to sync slides with SimplePlay during live performance.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Lyriora needs access to your photo library to import background images and videos.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -485,6 +496,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = Lyriora/Lyriora.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T2XTLTVNH4;
@@ -511,6 +523,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = Lyriora/Lyriora.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T2XTLTVNH4;
@@ -536,6 +549,7 @@
 		B91C052C3020F5DB007396E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Lyriora/Lyriora.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T2XTLTVNH4;
@@ -561,6 +575,7 @@
 		B91C052D3020F5DB007396E5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Lyriora/Lyriora.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T2XTLTVNH4;
