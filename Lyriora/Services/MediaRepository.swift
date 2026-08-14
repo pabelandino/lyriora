@@ -14,6 +14,11 @@ protocol MediaRepositoryProtocol {
     func delete(_ asset: MediaAsset) throws
 }
 
+private struct MediaIndexEntry: Codable {
+    var displayName: String?
+    var assetID: UUID?
+}
+
 final class MediaRepository: MediaRepositoryProtocol {
     private let fileManager: FileManager
     private let mediaDirectory: URL
@@ -46,11 +51,21 @@ final class MediaRepository: MediaRepositoryProtocol {
         return urls.map { url in
             let fileName = url.lastPathComponent
             let createdAt = (try? url.resourceValues(forKeys: [.creationDateKey]).creationDate) ?? .now
+            let entry = index[fileName]
+            let assetID = entry?.assetID ?? UUID()
+
+            if entry?.assetID == nil {
+                saveIndexEntry(
+                    MediaIndexEntry(displayName: entry?.displayName, assetID: assetID),
+                    for: fileName
+                )
+            }
 
             return MediaAsset(
+                id: assetID,
                 kind: kind,
                 fileName: fileName,
-                displayName: index[fileName],
+                displayName: entry?.displayName,
                 createdAt: createdAt
             )
         }
@@ -71,13 +86,17 @@ final class MediaRepository: MediaRepositoryProtocol {
         try data.write(to: destination, options: .atomic)
 
         let resolvedDisplayName = sanitizedDisplayName(displayName, fallbackFileName: fileName)
-        saveDisplayName(resolvedDisplayName, for: fileName)
-
-        return MediaAsset(
+        let asset = MediaAsset(
             kind: kind,
             fileName: fileName,
             displayName: resolvedDisplayName
         )
+        saveIndexEntry(
+            MediaIndexEntry(displayName: resolvedDisplayName, assetID: asset.id),
+            for: fileName
+        )
+
+        return asset
     }
 
     func importFile(from sourceURL: URL, kind: MediaAssetKind, displayName: String? = nil) throws -> MediaAsset {
@@ -97,13 +116,17 @@ final class MediaRepository: MediaRepositoryProtocol {
 
         let fallbackName = (sourceURL.lastPathComponent as NSString).deletingPathExtension
         let resolvedDisplayName = sanitizedDisplayName(displayName ?? fallbackName, fallbackFileName: fileName)
-        saveDisplayName(resolvedDisplayName, for: fileName)
-
-        return MediaAsset(
+        let asset = MediaAsset(
             kind: kind,
             fileName: fileName,
             displayName: resolvedDisplayName
         )
+        saveIndexEntry(
+            MediaIndexEntry(displayName: resolvedDisplayName, assetID: asset.id),
+            for: fileName
+        )
+
+        return asset
     }
 
     func fileURL(for asset: MediaAsset) -> URL {
@@ -122,7 +145,10 @@ final class MediaRepository: MediaRepositoryProtocol {
 
     func updateDisplayName(for asset: MediaAsset, to displayName: String) throws -> MediaAsset {
         let resolvedDisplayName = sanitizedDisplayName(displayName, fallbackFileName: asset.fileName)
-        saveDisplayName(resolvedDisplayName, for: asset.fileName)
+        var entry = loadIndex()[asset.fileName] ?? MediaIndexEntry(assetID: asset.id)
+        entry.displayName = resolvedDisplayName
+        entry.assetID = asset.id
+        saveIndexEntry(entry, for: asset.fileName)
 
         var updatedAsset = asset
         updatedAsset.displayName = resolvedDisplayName
@@ -150,18 +176,26 @@ final class MediaRepository: MediaRepositoryProtocol {
         return trimmed.isEmpty ? fallback : trimmed
     }
 
-    private func loadIndex() -> [String: String] {
+    private func loadIndex() -> [String: MediaIndexEntry] {
         guard fileManager.fileExists(atPath: indexURL.path),
-              let data = try? Data(contentsOf: indexURL),
-              let index = try? JSONDecoder().decode([String: String].self, from: data) else {
+              let data = try? Data(contentsOf: indexURL) else {
             return [:]
         }
-        return index
+
+        if let index = try? JSONDecoder().decode([String: MediaIndexEntry].self, from: data) {
+            return index
+        }
+
+        if let legacyIndex = try? JSONDecoder().decode([String: String].self, from: data) {
+            return legacyIndex.mapValues { MediaIndexEntry(displayName: $0, assetID: nil) }
+        }
+
+        return [:]
     }
 
-    private func saveDisplayName(_ displayName: String, for fileName: String) {
+    private func saveIndexEntry(_ entry: MediaIndexEntry, for fileName: String) {
         var index = loadIndex()
-        index[fileName] = displayName
+        index[fileName] = entry
 
         guard let data = try? JSONEncoder().encode(index) else { return }
         try? data.write(to: indexURL, options: .atomic)

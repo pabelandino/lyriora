@@ -58,7 +58,7 @@ struct CenterPanelView: View {
             )
         }
         .sheet(isPresented: $viewModel.isSimplePlayConnectionInfoPresented) {
-            SimplePlayConnectionInfoSheet(isConnected: viewModel.isSimplePlayConnected)
+            SimplePlayConnectionInfoSheet(viewModel: viewModel)
         }
     }
 

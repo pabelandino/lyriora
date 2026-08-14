@@ -33,6 +33,16 @@ final class AppViewModel {
     private(set) var videoDurationByFileName: [String: TimeInterval] = [:]
 
     private(set) var themes: [LyricTheme] = []
+    private(set) var playlists: [LibraryPlaylist] = []
+
+    var selectedLyricPlaylistID: UUID?
+    var selectedImagePlaylistID: UUID?
+    var selectedVideoPlaylistID: UUID?
+
+    var isPlaylistPickerPresented = false
+    var isPlaylistEditorPresented = false
+    var playlistPickerKind: LibraryPlaylistKind = .lyric
+    var playlistEditorTargetID: UUID?
 
     var lyricEditorLaunch: LyricEditorLaunch?
     var isDisplayInfoSheetPresented = false
@@ -61,18 +71,21 @@ final class AppViewModel {
     private let mediaRepository: MediaRepositoryProtocol
     private let settingsRepository: SettingsRepositoryProtocol
     private let themeRepository: ThemeRepositoryProtocol
+    private let playlistRepository: PlaylistRepositoryProtocol
 
     init(
         lyricRepository: LyricRepositoryProtocol? = nil,
         mediaRepository: MediaRepositoryProtocol? = nil,
         settingsRepository: SettingsRepositoryProtocol? = nil,
         themeRepository: ThemeRepositoryProtocol? = nil,
+        playlistRepository: PlaylistRepositoryProtocol? = nil,
         externalDisplayManager: ExternalDisplayManager? = nil
     ) {
         self.lyricRepository = lyricRepository ?? LyricRepository()
         self.mediaRepository = mediaRepository ?? MediaRepository()
         self.settingsRepository = settingsRepository ?? SettingsRepository()
         self.themeRepository = themeRepository ?? ThemeRepository()
+        self.playlistRepository = playlistRepository ?? PlaylistRepository()
         self.externalDisplayManager = externalDisplayManager ?? ExternalDisplayManager()
         self.videoPlayback.onDurationUpdate = { [weak self] duration in
             guard let self, let asset = selectedBackgroundAsset else { return }
@@ -160,7 +173,220 @@ final class AppViewModel {
         }
 
         loadThemes()
+        loadPlaylists()
         Task { await preloadVideoDurations() }
+    }
+
+    func loadPlaylists() {
+        playlists = (try? playlistRepository.loadAll()) ?? []
+    }
+
+    func playlists(for kind: LibraryPlaylistKind) -> [LibraryPlaylist] {
+        playlists.filter { $0.kind == kind }
+    }
+
+    func selectedPlaylistID(for kind: LibraryPlaylistKind) -> UUID? {
+        switch kind {
+        case .lyric: selectedLyricPlaylistID
+        case .image: selectedImagePlaylistID
+        case .video: selectedVideoPlaylistID
+        }
+    }
+
+    func selectedPlaylist(for kind: LibraryPlaylistKind) -> LibraryPlaylist? {
+        guard let id = selectedPlaylistID(for: kind) else { return nil }
+        return playlists.first { $0.id == id }
+    }
+
+    func selectPlaylist(_ playlist: LibraryPlaylist) {
+        selectPlaylist(for: playlist.kind, id: playlist.id)
+    }
+
+    func clearPlaylistSelection(for kind: LibraryPlaylistKind) {
+        switch kind {
+        case .lyric: selectedLyricPlaylistID = nil
+        case .image: selectedImagePlaylistID = nil
+        case .video: selectedVideoPlaylistID = nil
+        }
+    }
+
+    func presentPlaylistPicker(for kind: LibraryPlaylistKind) {
+        playlistPickerKind = kind
+        isPlaylistPickerPresented = true
+    }
+
+    func presentPlaylistEditor(for playlist: LibraryPlaylist?) {
+        if let playlist {
+            playlistEditorTargetID = playlist.id
+        } else {
+            playlistEditorTargetID = nil
+        }
+        isPlaylistEditorPresented = true
+    }
+
+    @discardableResult
+    func createPlaylist(name: String, kind: LibraryPlaylistKind) -> LibraryPlaylist? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        let playlist = LibraryPlaylist(name: trimmed, kind: kind)
+        try? playlistRepository.save(playlist)
+        loadPlaylists()
+        selectPlaylist(for: kind, id: playlist.id)
+        return playlist
+    }
+
+    func renamePlaylist(_ playlist: LibraryPlaylist, to name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        var updated = playlist
+        updated.name = trimmed
+        updated.updatedAt = .now
+        try? playlistRepository.save(updated)
+        loadPlaylists()
+    }
+
+    func deletePlaylist(_ playlist: LibraryPlaylist) {
+        try? playlistRepository.delete(playlist)
+        loadPlaylists()
+
+        if selectedPlaylistID(for: playlist.kind) == playlist.id {
+            clearPlaylistSelection(for: playlist.kind)
+        }
+    }
+
+    func addItems(to playlistID: UUID, itemIDs: [UUID]) {
+        guard var playlist = playlists.first(where: { $0.id == playlistID }) else { return }
+
+        for itemID in itemIDs where !playlist.itemIDs.contains(itemID) {
+            playlist.itemIDs.append(itemID)
+        }
+
+        playlist.updatedAt = .now
+        try? playlistRepository.save(playlist)
+        loadPlaylists()
+    }
+
+    func removeItem(from playlistID: UUID, itemID: UUID) {
+        guard var playlist = playlists.first(where: { $0.id == playlistID }) else { return }
+        playlist.itemIDs.removeAll { $0 == itemID }
+        playlist.updatedAt = .now
+        try? playlistRepository.save(playlist)
+        loadPlaylists()
+    }
+
+    func reorderPlaylistItems(in playlistID: UUID, itemIDs: [UUID]) {
+        guard var playlist = playlists.first(where: { $0.id == playlistID }) else { return }
+        playlist.itemIDs = itemIDs
+        playlist.updatedAt = .now
+        try? playlistRepository.save(playlist)
+        loadPlaylists()
+    }
+
+    func savePlaylist(id: UUID?, name: String, kind: LibraryPlaylistKind, itemIDs: [UUID]) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if let id, var playlist = playlists.first(where: { $0.id == id }) {
+            playlist.name = trimmed
+            playlist.itemIDs = itemIDs
+            playlist.updatedAt = .now
+            try? playlistRepository.save(playlist)
+        } else {
+            var playlist = LibraryPlaylist(name: trimmed, kind: kind, itemIDs: itemIDs)
+            try? playlistRepository.save(playlist)
+            selectPlaylist(for: kind, id: playlist.id)
+        }
+
+        loadPlaylists()
+    }
+
+    func removeItemFromAllPlaylists(itemID: UUID, kind: LibraryPlaylistKind) {
+        for playlist in playlists where playlist.kind == kind && playlist.itemIDs.contains(itemID) {
+            removeItem(from: playlist.id, itemID: itemID)
+        }
+    }
+
+    func filteredLyrics(searchText: String, playlistID: UUID?) -> [LyricDocument] {
+        var results = lyrics
+
+        if let playlistID,
+           let playlist = playlists.first(where: { $0.id == playlistID }) {
+            let allowed = Set(playlist.itemIDs)
+            results = results.filter { allowed.contains($0.id) }
+        }
+
+        guard !LibrarySearch.normalize(searchText).isEmpty else {
+            return results
+        }
+
+        return results.filter { $0.matchesSearch(searchText) }
+    }
+
+    func filteredMediaAssets(kind: MediaAssetKind, searchText: String, playlistID: UUID?) -> [MediaAsset] {
+        let source = kind == .image ? imageAssets : videoAssets
+        var results = source
+
+        if let playlistID,
+           let playlist = playlists.first(where: { $0.id == playlistID }) {
+            let allowed = Set(playlist.itemIDs)
+            results = results.filter { allowed.contains($0.id) }
+        }
+
+        guard !LibrarySearch.normalize(searchText).isEmpty else {
+            return results
+        }
+
+        return results.filter { $0.matchesSearch(searchText) }
+    }
+
+    func playlistItemLabel(for itemID: UUID, kind: LibraryPlaylistKind) -> String {
+        switch kind {
+        case .lyric:
+            lyrics.first { $0.id == itemID }?.title ?? "Unknown lyric"
+        case .image:
+            imageAssets.first { $0.id == itemID }?.listLabel ?? "Unknown image"
+        case .video:
+            videoAssets.first { $0.id == itemID }?.listLabel ?? "Unknown video"
+        }
+    }
+
+    func playlistItemMatchesSearch(_ itemID: UUID, kind: LibraryPlaylistKind, query: String) -> Bool {
+        guard !LibrarySearch.normalize(query).isEmpty else { return true }
+
+        switch kind {
+        case .lyric:
+            guard let lyric = lyrics.first(where: { $0.id == itemID }) else { return false }
+            return lyric.matchesSearch(query)
+        case .image:
+            guard let asset = imageAssets.first(where: { $0.id == itemID }) else { return false }
+            return asset.matchesSearch(query)
+        case .video:
+            guard let asset = videoAssets.first(where: { $0.id == itemID }) else { return false }
+            return asset.matchesSearch(query)
+        }
+    }
+
+    func mediaAsset(for itemID: UUID, kind: LibraryPlaylistKind) -> MediaAsset? {
+        switch kind {
+        case .lyric: nil
+        case .image: imageAssets.first { $0.id == itemID }
+        case .video: videoAssets.first { $0.id == itemID }
+        }
+    }
+
+    func mediaFileURL(for itemID: UUID, kind: LibraryPlaylistKind) -> URL? {
+        guard let asset = mediaAsset(for: itemID, kind: kind) else { return nil }
+        return mediaRepository.fileURL(for: asset)
+    }
+
+    private func selectPlaylist(for kind: LibraryPlaylistKind, id: UUID) {
+        switch kind {
+        case .lyric: selectedLyricPlaylistID = id
+        case .image: selectedImagePlaylistID = id
+        case .video: selectedVideoPlaylistID = id
+        }
     }
 
     func loadThemes() {
@@ -212,6 +438,7 @@ final class AppViewModel {
         }
 
         lyrics.removeAll { $0.id == lyric.id }
+        removeItemFromAllPlaylists(itemID: lyric.id, kind: .lyric)
 
         if selectedLyricID == lyric.id {
             if let next = lyrics.first {
@@ -479,8 +706,27 @@ final class AppViewModel {
 
     var isSimplePlayConnected: Bool {
         _ = simplePlayConnectionRefreshToken
+        guard !settings.isSimplePlayManualMode else { return false }
         guard let lastActivity = simplePlaySync.lastClientActivityAt else { return false }
         return Date().timeIntervalSince(lastActivity) < 12
+    }
+
+    var simplePlaySyncDisplayState: SimplePlaySyncDisplayState {
+        _ = simplePlayConnectionRefreshToken
+        if settings.isSimplePlayManualMode {
+            return .manual
+        }
+        if let lastActivity = simplePlaySync.lastClientActivityAt,
+           Date().timeIntervalSince(lastActivity) < 12 {
+            return .connected
+        }
+        return .disconnected
+    }
+
+    func setSimplePlayManualMode(_ enabled: Bool) {
+        settings.isSimplePlayManualMode = enabled
+        saveSettings()
+        simplePlayConnectionRefreshToken &+= 1
     }
 
     func startSimplePlaySyncService() {
@@ -517,7 +763,9 @@ final class AppViewModel {
             guard let command = message.showSlide else {
                 return LyricPlaySyncMessage(kind: .error, errorMessage: "Missing show slide payload.")
             }
-            handleRemoteShowSlide(command)
+            if !settings.isSimplePlayManualMode {
+                handleRemoteShowSlide(command)
+            }
             return LyricPlaySyncMessage(kind: .linkSectionAck)
         case .linkSection:
             guard let command = message.linkSection else {
@@ -611,8 +859,10 @@ final class AppViewModel {
         switch asset.kind {
         case .image:
             imageAssets.removeAll { $0.id == asset.id }
+            removeItemFromAllPlaylists(itemID: asset.id, kind: .image)
         case .video:
             videoAssets.removeAll { $0.id == asset.id }
+            removeItemFromAllPlaylists(itemID: asset.id, kind: .video)
         }
 
         if selectedBackgroundAssetID == asset.id {

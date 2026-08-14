@@ -59,7 +59,7 @@ struct SlideGridView: View {
 
             Spacer(minLength: 0)
 
-            SimplePlayConnectionIndicator(isConnected: viewModel.isSimplePlayConnected) {
+            SimplePlayConnectionIndicator(state: viewModel.simplePlaySyncDisplayState) {
                 viewModel.isSimplePlayConnectionInfoPresented = true
             }
         }

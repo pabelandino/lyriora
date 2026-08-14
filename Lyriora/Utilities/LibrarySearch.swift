@@ -19,6 +19,13 @@ enum LibrarySearch {
             .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
+
+    static func queryWords(_ query: String) -> [String] {
+        normalize(query)
+            .split(whereSeparator: \.isWhitespace)
+            .map(String.init)
+            .filter { !$0.isEmpty }
+    }
 }
 
 extension MediaAsset {
@@ -45,8 +52,19 @@ extension LyricDocument {
 
     func matchesSearch(_ query: String) -> Bool {
         guard !LibrarySearch.normalize(query).isEmpty else { return true }
-        return LibrarySearch.matches(query, in: title)
-            || LibrarySearch.matches(query, in: searchableText)
+
+        if LibrarySearch.matches(query, in: title) {
+            return true
+        }
+
+        let haystack = LibrarySearch.normalize(searchableText)
+        let queryWords = LibrarySearch.queryWords(query)
+
+        if queryWords.count > 1 {
+            return queryWords.allSatisfy { haystack.contains($0) }
+        }
+
+        return haystack.contains(LibrarySearch.normalize(query))
     }
 
     func searchMatchSnippet(matching query: String) -> String? {
