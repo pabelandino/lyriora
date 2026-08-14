@@ -31,10 +31,15 @@ private struct ImageLibrarySection: View {
     @State private var searchText = ""
 
     private var filteredAssets: [MediaAsset] {
-        guard !LibrarySearch.normalize(searchText).isEmpty else {
-            return viewModel.imageAssets
-        }
-        return viewModel.imageAssets.filter { $0.matchesSearch(searchText) }
+        viewModel.filteredMediaAssets(
+            kind: .image,
+            searchText: searchText,
+            playlistID: viewModel.selectedImagePlaylistID
+        )
+    }
+
+    private var isPlaylistFiltered: Bool {
+        viewModel.selectedImagePlaylistID != nil
     }
 
     var body: some View {
@@ -54,10 +59,21 @@ private struct ImageLibrarySection: View {
                 }
                 .padding(.top, workspaceCompactLayout ? 8 : 10)
 
+                PlaylistFilterBar(kind: .image, viewModel: viewModel)
+                    .padding(.horizontal, 12)
+
                 ScrollView {
                     LazyVStack(spacing: 10) {
-                        if filteredAssets.isEmpty, !LibrarySearch.normalize(searchText).isEmpty {
-                            LibrarySearchEmptyState(query: searchText)
+                        if filteredAssets.isEmpty, !LibrarySearch.normalize(searchText).isEmpty || isPlaylistFiltered {
+                            if !LibrarySearch.normalize(searchText).isEmpty {
+                                LibrarySearchEmptyState(query: searchText)
+                            } else {
+                                Text("This playlist is empty")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 24)
+                            }
                         } else {
                             ForEach(filteredAssets) { asset in
                                 MediaThumbnailView(
@@ -69,7 +85,8 @@ private struct ImageLibrarySection: View {
                                         renameDraft = asset.listLabel
                                         assetPendingRename = asset
                                     },
-                                    onRemove: { viewModel.deleteMediaAsset(asset) }
+                                    onRemove: { viewModel.deleteMediaAsset(asset) },
+                                    addToPlaylistActions: playlistActions(for: asset.id, kind: .image)
                                 )
                                 .id(asset.id)
                             }
@@ -90,6 +107,10 @@ private struct ImageLibrarySection: View {
             }
         )
     }
+
+    private func playlistActions(for assetID: UUID, kind: LibraryPlaylistKind) -> [GlassOverflowMenu.Action] {
+        MediaLibraryPlaylistActions.make(for: assetID, kind: kind, viewModel: viewModel)
+    }
 }
 
 private struct VideoLibrarySection: View {
@@ -100,10 +121,15 @@ private struct VideoLibrarySection: View {
     @State private var searchText = ""
 
     private var filteredAssets: [MediaAsset] {
-        guard !LibrarySearch.normalize(searchText).isEmpty else {
-            return viewModel.videoAssets
-        }
-        return viewModel.videoAssets.filter { $0.matchesSearch(searchText) }
+        viewModel.filteredMediaAssets(
+            kind: .video,
+            searchText: searchText,
+            playlistID: viewModel.selectedVideoPlaylistID
+        )
+    }
+
+    private var isPlaylistFiltered: Bool {
+        viewModel.selectedVideoPlaylistID != nil
     }
 
     var body: some View {
@@ -123,10 +149,21 @@ private struct VideoLibrarySection: View {
                 }
                 .padding(.top, workspaceCompactLayout ? 8 : 10)
 
+                PlaylistFilterBar(kind: .video, viewModel: viewModel)
+                    .padding(.horizontal, 12)
+
                 ScrollView {
                         LazyVStack(spacing: 10) {
-                            if filteredAssets.isEmpty, !LibrarySearch.normalize(searchText).isEmpty {
-                                LibrarySearchEmptyState(query: searchText)
+                            if filteredAssets.isEmpty, !LibrarySearch.normalize(searchText).isEmpty || isPlaylistFiltered {
+                                if !LibrarySearch.normalize(searchText).isEmpty {
+                                    LibrarySearchEmptyState(query: searchText)
+                                } else {
+                                    Text("This playlist is empty")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 24)
+                                }
                             } else {
                                 ForEach(filteredAssets) { asset in
                                     MediaThumbnailView(
@@ -143,7 +180,8 @@ private struct VideoLibrarySection: View {
                                             renameDraft = asset.listLabel
                                             assetPendingRename = asset
                                         },
-                                        onRemove: { viewModel.deleteMediaAsset(asset) }
+                                        onRemove: { viewModel.deleteMediaAsset(asset) },
+                                        addToPlaylistActions: playlistActions(for: asset.id, kind: .video)
                                     )
                                     .id(asset.fileName)
                                 }
@@ -163,6 +201,35 @@ private struct VideoLibrarySection: View {
                 viewModel.renameMediaAsset(asset, to: name)
             }
         )
+    }
+
+    private func playlistActions(for assetID: UUID, kind: LibraryPlaylistKind) -> [GlassOverflowMenu.Action] {
+        MediaLibraryPlaylistActions.make(for: assetID, kind: kind, viewModel: viewModel)
+    }
+}
+
+private enum MediaLibraryPlaylistActions {
+    static func make(
+        for assetID: UUID,
+        kind: LibraryPlaylistKind,
+        viewModel: AppViewModel
+    ) -> [GlassOverflowMenu.Action] {
+        let playlists = viewModel.playlists(for: kind)
+        guard !playlists.isEmpty else { return [] }
+
+        return playlists.map { playlist in
+            GlassOverflowMenu.Action(
+                title: playlist.name,
+                systemImage: playlist.itemIDs.contains(assetID) ? "checkmark" : "music.note.list",
+                handler: {
+                    if playlist.itemIDs.contains(assetID) {
+                        viewModel.removeItem(from: playlist.id, itemID: assetID)
+                    } else {
+                        viewModel.addItems(to: playlist.id, itemIDs: [assetID])
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -257,6 +324,7 @@ private struct MediaThumbnailView: View {
     let onSelect: () -> Void
     let onRename: () -> Void
     let onRemove: () -> Void
+    var addToPlaylistActions: [GlassOverflowMenu.Action] = []
 
     @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
     @State private var displayedDurationLabel: String?
@@ -303,19 +371,7 @@ private struct MediaThumbnailView: View {
             }
             .overlay(alignment: .topTrailing) {
                 GlassOverflowMenu(
-                    actions: [
-                        .init(
-                            title: "Rename",
-                            systemImage: "pencil",
-                            handler: onRename
-                        ),
-                        .init(
-                            title: "Delete",
-                            systemImage: "trash",
-                            role: .destructive,
-                            handler: onRemove
-                        )
-                    ],
+                    actions: overflowActions,
                     iconSize: menuIconSize
                 )
                 .padding(6)
@@ -350,6 +406,21 @@ private struct MediaThumbnailView: View {
             guard showsDuration else { return }
             await onEnsureDuration?()
         }
+    }
+
+    private var overflowActions: [GlassOverflowMenu.Action] {
+        var actions: [GlassOverflowMenu.Action] = [
+            .init(title: "Rename", systemImage: "pencil", handler: onRename)
+        ]
+
+        if !addToPlaylistActions.isEmpty {
+            actions.append(contentsOf: addToPlaylistActions)
+        }
+
+        actions.append(
+            .init(title: "Delete", systemImage: "trash", role: .destructive, handler: onRemove)
+        )
+        return actions
     }
 
     @ViewBuilder

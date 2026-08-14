@@ -17,10 +17,14 @@ struct LyricsLibraryPanelView: View {
     #endif
 
     private var filteredLyrics: [LyricDocument] {
-        guard !LibrarySearch.normalize(searchText).isEmpty else {
-            return viewModel.lyrics
-        }
-        return viewModel.lyrics.filter { $0.matchesSearch(searchText) }
+        viewModel.filteredLyrics(
+            searchText: searchText,
+            playlistID: viewModel.selectedLyricPlaylistID
+        )
+    }
+
+    private var isPlaylistFiltered: Bool {
+        viewModel.selectedLyricPlaylistID != nil
     }
 
     private var isSearching: Bool {
@@ -51,10 +55,21 @@ struct LyricsLibraryPanelView: View {
                 }
                 .padding(.top, workspaceCompactLayout ? 8 : 10)
 
+                PlaylistFilterBar(kind: .lyric, viewModel: viewModel)
+                    .padding(.horizontal, Layout.contentHorizontalInset)
+
                 ScrollView {
                         LazyVStack(spacing: 10) {
-                            if filteredLyrics.isEmpty, isSearching {
-                                LibrarySearchEmptyState(query: searchText)
+                            if filteredLyrics.isEmpty, isSearching || isPlaylistFiltered {
+                                if isSearching {
+                                    LibrarySearchEmptyState(query: searchText)
+                                } else {
+                                    Text("This playlist is empty")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 24)
+                                }
                             } else {
                                 ForEach(filteredLyrics) { lyric in
                                     LyricCardView(
@@ -68,7 +83,8 @@ struct LyricsLibraryPanelView: View {
                                         },
                                         onDelete: {
                                             lyricPendingDeletion = lyric
-                                        }
+                                        },
+                                        addToPlaylistActions: playlistActions(for: lyric.id)
                                     )
                                     .onTapGesture {
                                         viewModel.selectLyric(lyric)
@@ -120,6 +136,25 @@ struct LyricsLibraryPanelView: View {
         }
         #endif
     }
+
+    private func playlistActions(for lyricID: UUID) -> [GlassOverflowMenu.Action] {
+        let playlists = viewModel.playlists(for: .lyric)
+        guard !playlists.isEmpty else { return [] }
+
+        return playlists.map { playlist in
+            GlassOverflowMenu.Action(
+                title: playlist.name,
+                systemImage: playlist.itemIDs.contains(lyricID) ? "checkmark" : "music.note.list",
+                handler: {
+                    if playlist.itemIDs.contains(lyricID) {
+                        viewModel.removeItem(from: playlist.id, itemID: lyricID)
+                    } else {
+                        viewModel.addItems(to: playlist.id, itemIDs: [lyricID])
+                    }
+                }
+            )
+        }
+    }
 }
 
 private enum Layout {
@@ -136,6 +171,7 @@ private struct LyricCardView: View {
     var subtitle: String
     let onEdit: () -> Void
     let onDelete: () -> Void
+    var addToPlaylistActions: [GlassOverflowMenu.Action] = []
 
     @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
 
@@ -176,19 +212,7 @@ private struct LyricCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(alignment: .topTrailing) {
             GlassOverflowMenu(
-                actions: [
-                    .init(
-                        title: "Edit",
-                        systemImage: "pencil",
-                        handler: onEdit
-                    ),
-                    .init(
-                        title: "Delete",
-                        systemImage: "trash",
-                        role: .destructive,
-                        handler: onDelete
-                    )
-                ],
+                actions: overflowActions,
                 iconSize: 36
             )
             .padding(Layout.cardMenuInset)
@@ -200,5 +224,20 @@ private struct LyricCardView: View {
             }
         }
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var overflowActions: [GlassOverflowMenu.Action] {
+        var actions: [GlassOverflowMenu.Action] = [
+            .init(title: "Edit", systemImage: "pencil", handler: onEdit)
+        ]
+
+        if !addToPlaylistActions.isEmpty {
+            actions.append(contentsOf: addToPlaylistActions)
+        }
+
+        actions.append(
+            .init(title: "Delete", systemImage: "trash", role: .destructive, handler: onDelete)
+        )
+        return actions
     }
 }

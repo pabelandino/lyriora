@@ -47,6 +47,19 @@ struct MainView: View {
         .sheet(isPresented: $viewModel.isSettingsSheetPresented) {
             SettingsSheet(viewModel: viewModel)
         }
+        .sheet(isPresented: $viewModel.isPlaylistPickerPresented) {
+            PlaylistPickerSheet(
+                viewModel: viewModel,
+                kind: viewModel.playlistPickerKind
+            )
+        }
+        .sheet(isPresented: $viewModel.isPlaylistEditorPresented) {
+            PlaylistEditorSheet(
+                viewModel: viewModel,
+                kind: viewModel.playlistPickerKind,
+                playlistID: viewModel.playlistEditorTargetID
+            )
+        }
     }
 
     @ViewBuilder
