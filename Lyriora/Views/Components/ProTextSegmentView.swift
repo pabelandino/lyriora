@@ -14,6 +14,7 @@ struct ProTextSegmentView: View {
     let segmentIndex: Int
     let intensity: Double
     let speed: Double
+    var renderQuality: ProTextRenderQuality = .live
 
     var body: some View {
         let phase = time * speed
@@ -45,44 +46,54 @@ struct ProTextSegmentView: View {
     private func neonText(phase: TimeInterval, power: Double) -> some View {
         let glow = 0.45 + 0.35 * power * (0.5 + 0.5 * sin(phase * 3))
 
-        ZStack {
+        if renderQuality == .preview {
             Text(text)
-                .font(font)
-                .foregroundStyle(Color.orange.opacity(0.55))
-                .blur(radius: 8 * glow)
-                .scaleEffect(1.04)
+                .font(font.bold())
+                .foregroundStyle(kind == .gradientNeon ? Color.orange : .yellow)
+                .shadow(color: .yellow.opacity(glow), radius: 6 * power, y: 0)
+                .shadow(color: .orange.opacity(glow * 0.6), radius: 10 * power, y: 0)
+        } else {
+            ZStack {
+                Text(text)
+                    .font(font)
+                    .foregroundStyle(Color.orange.opacity(0.55))
+                    .blur(radius: 8 * glow)
+                    .scaleEffect(1.04)
 
-            if kind == .gradientNeon {
-                Text(text)
-                    .font(font.bold())
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.yellow, .orange, .red],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                if kind == .gradientNeon {
+                    Text(text)
+                        .font(font.bold())
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.yellow, .orange, .red],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
-                    )
-                    .shadow(color: .yellow.opacity(glow), radius: 10 * power, y: 0)
-                    .shadow(color: .orange.opacity(glow * 0.7), radius: 18 * power, y: 0)
-            } else {
-                Text(text)
-                    .font(font.bold())
-                    .foregroundStyle(.yellow)
-                    .shadow(color: .yellow.opacity(glow), radius: 10 * power, y: 0)
-                    .shadow(color: .orange.opacity(glow * 0.7), radius: 18 * power, y: 0)
+                        .shadow(color: .yellow.opacity(glow), radius: 10 * power, y: 0)
+                        .shadow(color: .orange.opacity(glow * 0.7), radius: 18 * power, y: 0)
+                } else {
+                    Text(text)
+                        .font(font.bold())
+                        .foregroundStyle(.yellow)
+                        .shadow(color: .yellow.opacity(glow), radius: 10 * power, y: 0)
+                        .shadow(color: .orange.opacity(glow * 0.7), radius: 18 * power, y: 0)
+                }
             }
         }
     }
 
     @ViewBuilder
     private func echoText(phase: TimeInterval, power: Double) -> some View {
-        let layers = kind == .vibrateEcho ? 5 : 3
+        let maxLayers = renderQuality == .preview
+            ? (kind == .vibrateEcho ? 3 : 2)
+            : (kind == .vibrateEcho ? 5 : 3)
         ZStack {
-            ForEach(0..<layers, id: \.self) { layer in
+            ForEach(0..<maxLayers, id: \.self) { layer in
                 let offset = echoOffset(layer: layer, phase: phase, power: power)
                 Text(text)
                     .font(font)
-                    .foregroundStyle(color.opacity((0.18 + Double(layers - layer)) * 0.12))
+                    .foregroundStyle(color.opacity((0.18 + Double(maxLayers - layer)) * 0.12))
                     .offset(offset)
             }
 
@@ -170,7 +181,7 @@ struct ProTextSegmentView: View {
                     .foregroundStyle(color)
             }
 
-            if hudStyle, gate {
+            if hudStyle, gate, renderQuality == .live {
                 Text(text)
                     .font(font.weight(.heavy))
                     .foregroundStyle(.white.opacity(0.12))

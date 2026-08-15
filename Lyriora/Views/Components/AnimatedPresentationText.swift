@@ -15,12 +15,49 @@ struct AnimatedPresentationText: View {
     var selectedTransitionTarget: TextAnimationTarget?
     var selectedEffectTarget: TextAnimationTarget?
     var isAnimating: Bool = true
+    var animationQuality: PresentationAnimationQuality = .preview
     var isInteractive: Bool = false
     var scalesToFitWidth: Bool = false
     var onSelectionTap: ((Int, Int) -> Void)?
 
-    private var parsed: ParsedSlideText {
-        SlideTextTokenizer.parse(text)
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let parsed: ParsedSlideText
+
+    init(
+        text: String,
+        configuration: PresentationTextConfiguration,
+        availableSize: CGSize,
+        fontSize: CGFloat,
+        animationProfile: SlideAnimationProfile = SlideAnimationProfile(),
+        transitionState: SlideTransitionState = SlideTransitionState(),
+        selectedTransitionTarget: TextAnimationTarget? = nil,
+        selectedEffectTarget: TextAnimationTarget? = nil,
+        isAnimating: Bool = true,
+        animationQuality: PresentationAnimationQuality = .preview,
+        isInteractive: Bool = false,
+        scalesToFitWidth: Bool = false,
+        onSelectionTap: ((Int, Int) -> Void)? = nil
+    ) {
+        self.text = text
+        self.configuration = configuration
+        self.availableSize = availableSize
+        self.fontSize = fontSize
+        self.animationProfile = animationProfile
+        self.transitionState = transitionState
+        self.selectedTransitionTarget = selectedTransitionTarget
+        self.selectedEffectTarget = selectedEffectTarget
+        self.isAnimating = isAnimating
+        self.animationQuality = animationQuality
+        self.isInteractive = isInteractive
+        self.scalesToFitWidth = scalesToFitWidth
+        self.onSelectionTap = onSelectionTap
+        self.parsed = SlideTextTokenizer.parse(text)
+    }
+
+    private var proRenderQuality: ProTextRenderQuality {
+        animationQuality == .live ? .live : .preview
     }
 
     private var shouldRenderAnimatedContent: Bool {
@@ -28,8 +65,16 @@ struct AnimatedPresentationText: View {
             || selectedTransitionTarget != nil || selectedEffectTarget != nil
     }
 
+    private var allowsEffectTimelineUpdates: Bool {
+        // External/live output runs in a separate UIWindowScene whose phase is often
+        // not `.active` while the iPad window has focus — keep live effects running.
+        animationQuality == .live || scenePhase == .active
+    }
+
     private var shouldRunEffectTimeline: Bool {
         isAnimating
+            && !reduceMotion
+            && allowsEffectTimelineUpdates
             && animationProfile.hasPersistentEffects
             && transitionState.showsPersistentEffects
     }
@@ -50,8 +95,13 @@ struct AnimatedPresentationText: View {
 
     @ViewBuilder
     private var animatedBody: some View {
-        if shouldRunEffectTimeline {
-            TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: false)) { context in
+        if animationProfile.hasPersistentEffects {
+            TimelineView(
+                .animation(
+                    minimumInterval: animationQuality.effectFrameInterval,
+                    paused: !shouldRunEffectTimeline
+                )
+            ) { context in
                 textStack(time: context.date.timeIntervalSinceReferenceDate)
             }
         } else {
@@ -177,7 +227,7 @@ struct AnimatedPresentationText: View {
         )
         let intensity = resolvedEffect?.intensity ?? animationProfile.effectIntensity
         let speed = resolvedEffect?.speed ?? animationProfile.effectSpeed
-        let showsPersistentEffect = transitionState.showsPersistentEffects && effectKind.isProEffect
+        let showsPersistentEffect = transitionState.showsPersistentEffects && effectKind != .none
         let globalWordIndex = parsed.globalWordIndex(lineIndex: lineIndex, wordIndex: wordIndex)
         let totalWords = max(1, parsed.totalWordCount)
 
@@ -357,8 +407,21 @@ struct AnimatedPresentationText: View {
                 time: time,
                 segmentIndex: segmentIndex,
                 intensity: intensity,
+                speed: speed,
+                renderQuality: proRenderQuality
+            )
+        } else if kind != .none {
+            let transform = TextAnimationEffects.transform(
+                kind: kind,
+                time: time,
+                segmentIndex: segmentIndex,
+                intensity: intensity,
                 speed: speed
             )
+            Text(word)
+                .font(configuration.font(size: fontSize))
+                .foregroundStyle(configuration.textColor)
+                .modifier(AnimatedTextSegmentModifier(transform: transform))
         } else {
             Text(word)
                 .font(configuration.font(size: fontSize))

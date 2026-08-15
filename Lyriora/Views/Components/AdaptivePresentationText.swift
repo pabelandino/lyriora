@@ -12,6 +12,7 @@ struct AdaptivePresentationText: View {
     var slideID: UUID = AdaptivePresentationText.placeholderSlideID
     var presentationToken: Int = 0
     var isAnimating: Bool = true
+    var animationQuality: PresentationAnimationQuality = .preview
 
     static let placeholderSlideID = UUID()
 
@@ -50,6 +51,7 @@ struct AdaptivePresentationText: View {
                             animationProfile: animationProfile,
                             transitionState: transitionState,
                             isAnimating: isAnimating,
+                            animationQuality: animationQuality,
                             scalesToFitWidth: configuration.isAdaptiveScalingEnabled
                         )
                     }

@@ -211,6 +211,12 @@ struct SlideAnimationProfile: Codable, Equatable, Sendable {
         effectFallback != .none || effectAssignments.contains { $0.kind != .none }
     }
 
+    /// Pro effects that require a continuous animation timeline.
+    var hasProPersistentEffects: Bool {
+        (effectFallback.isProEffect && effectFallback != .none)
+            || effectAssignments.contains { $0.kind.isProEffect && $0.kind != .none }
+    }
+
     var hasAnimations: Bool {
         hasTransition || hasPersistentEffects
     }
@@ -418,7 +424,7 @@ struct SlideAnimationProfile: Codable, Equatable, Sendable {
         parsed: ParsedSlideText
     ) -> TextAnimationAssignment? {
         let candidates = effectAssignments.filter { assignment in
-            guard assignment.kind.isProEffect, assignment.kind != .none else { return false }
+            guard assignment.kind != .none else { return false }
             switch assignment.target {
             case .all:
                 return true
@@ -437,7 +443,7 @@ struct SlideAnimationProfile: Codable, Equatable, Sendable {
             return match
         }
 
-        guard effectFallback.isProEffect, effectFallback != .none else { return nil }
+        guard effectFallback != .none else { return nil }
 
         return TextAnimationAssignment(
             target: .all,

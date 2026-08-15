@@ -71,12 +71,17 @@ struct SimplePlayConnectionIndicator: View {
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
+
+    private var shouldAnimateGlow: Bool {
+        !reduceMotion && scenePhase == .active && state != .manual
+    }
 
     var body: some View {
         Button(action: action) {
             ZStack {
-                if !reduceMotion {
-                    TimelineView(.animation(minimumInterval: 1.0 / 30, paused: false)) { context in
+                if shouldAnimateGlow, state == .disconnected {
+                    TimelineView(.animation(minimumInterval: 1.0 / 12, paused: false)) { context in
                         let phase = (sin(context.date.timeIntervalSinceReferenceDate * 2.2) + 1) / 2
                         let glowOpacity = 0.22 + phase * 0.38
                         let glowRadius: CGFloat = 5 + phase * 7
@@ -102,7 +107,7 @@ struct SimplePlayConnectionIndicator: View {
                 Image(systemName: state.systemImage)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(state.accentColor)
-                    .symbolEffect(.pulse, options: .repeating, isActive: !reduceMotion && state != .manual)
+                    .symbolEffect(.pulse, options: .repeating, isActive: shouldAnimateGlow && state == .disconnected)
             }
             .frame(width: 34, height: 34)
             .contentShape(Circle())

@@ -484,8 +484,16 @@ private struct LocalFileVideoThumbnail: View {
             GlassCircleIcon(systemName: "play.fill", diameter: 42, symbolSize: 16)
         }
         .task(id: url) {
+            if let cached = LocalImageCache.entry(for: url) {
+                image = cached.image
+                return
+            }
+
             let metadata = await VideoAssetMetadataLoader.load(from: url)
-            image = metadata.thumbnail
+            if let thumbnail = metadata.thumbnail {
+                LocalImageCache.store(image: thumbnail, size: .zero, for: url)
+                image = thumbnail
+            }
         }
     }
 }

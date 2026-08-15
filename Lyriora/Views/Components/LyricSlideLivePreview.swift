@@ -270,6 +270,7 @@ struct LyricSlideLivePreview: View {
                     selectedTransitionTarget: selectedTransitionTarget,
                     selectedEffectTarget: selectedEffectTarget,
                     isAnimating: showsAnimations && isAnimationPlaying,
+                    animationQuality: .live,
                     isInteractive: isInteractive,
                     scalesToFitWidth: activeConfiguration.isAdaptiveScalingEnabled,
                     onSelectionTap: onWordTap

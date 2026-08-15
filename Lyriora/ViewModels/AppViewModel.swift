@@ -30,7 +30,10 @@ final class AppViewModel {
     let videoPlayback = VideoPlaybackController()
     private(set) var showsVideoPlaybackControls = false
     private var videoControlsRevealTask: Task<Void, Never>?
+    private var backgroundVideoLoadTask: Task<Void, Never>?
+    private var backgroundVideoLoadGeneration = 0
     private(set) var videoDurationByFileName: [String: TimeInterval] = [:]
+    private var videoDurationLoadInFlight: Set<String> = []
 
     private(set) var themes: [LyricTheme] = []
     private(set) var playlists: [LibraryPlaylist] = []
@@ -467,30 +470,45 @@ final class AppViewModel {
     func selectBackgroundMedia(withID id: UUID) {
         cancelVideoControlsReveal()
         showsVideoPlaybackControls = false
+        cancelBackgroundVideoLoading()
 
         selectedBackgroundAssetID = id
         showBackground = true
-        resetVideoPlaybackState()
+        videoPlayback.teardown()
 
-        guard let asset = selectedBackgroundAsset else {
-            videoPlayback.teardown()
-            return
-        }
+        guard let asset = selectedBackgroundAsset else { return }
 
         if asset.kind == .video {
             videoPlaybackMode = .loop
             isVideoPlaying = true
 
-            Task { @MainActor in
+            let assetID = asset.id
+            let generation = backgroundVideoLoadGeneration
+
+            backgroundVideoLoadTask = Task { @MainActor in
+                defer { backgroundVideoLoadTask = nil }
+                guard !Task.isCancelled else { return }
+                guard generation == backgroundVideoLoadGeneration else { return }
+                guard selectedBackgroundAssetID == assetID,
+                      selectedBackgroundAsset?.kind == .video else { return }
+
                 loadSelectedVideoBackground(asset)
+
+                guard !Task.isCancelled else { return }
+                guard generation == backgroundVideoLoadGeneration else { return }
                 scheduleVideoControlsReveal()
             }
-        } else {
-            videoPlayback.teardown()
         }
     }
 
+    private func cancelBackgroundVideoLoading() {
+        backgroundVideoLoadTask?.cancel()
+        backgroundVideoLoadTask = nil
+        backgroundVideoLoadGeneration &+= 1
+    }
+
     private func resetVideoPlaybackState() {
+        cancelBackgroundVideoLoading()
         videoPlayback.teardown()
     }
 
@@ -514,6 +532,10 @@ final class AppViewModel {
     }
 
     private func loadSelectedVideoBackground(_ asset: MediaAsset) {
+        guard selectedBackgroundAssetID == asset.id,
+              asset.kind == .video,
+              showBackground else { return }
+
         let url = videoURL(for: asset)
         videoPlayback.loops = videoPlaybackMode.loopsVideo
         videoPlayback.isPlaying = isVideoPlaying
@@ -682,6 +704,10 @@ final class AppViewModel {
 
     func ensureVideoDuration(for asset: MediaAsset) async {
         guard asset.kind == .video, videoDuration(for: asset) == nil else { return }
+        guard !videoDurationLoadInFlight.contains(asset.fileName) else { return }
+
+        videoDurationLoadInFlight.insert(asset.fileName)
+        defer { videoDurationLoadInFlight.remove(asset.fileName) }
 
         let url = videoURL(for: asset)
         if let duration = await VideoAssetMetadataLoader.loadDuration(from: url) {

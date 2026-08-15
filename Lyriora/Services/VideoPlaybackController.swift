@@ -95,7 +95,15 @@ final class VideoPlaybackController {
     func teardown() {
         teardownObservers()
         teardownLooper()
-        player?.pause()
+
+        if let queuePlayer = player as? AVQueuePlayer {
+            queuePlayer.pause()
+            queuePlayer.removeAllItems()
+        } else {
+            player?.pause()
+            player?.replaceCurrentItem(with: nil)
+        }
+
         player = nil
         currentURL = nil
         configuredLoops = false

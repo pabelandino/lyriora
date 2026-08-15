@@ -15,7 +15,6 @@ struct PresentationPreviewView: View {
     let presentationCanvasSize: CGSize
     let displayInfo: ExternalDisplayInfo
 
-    @Bindable private var videoPlayback: VideoPlaybackController
     @State private var scrubValue: TimeInterval = 0
 
     private let cornerRadius: CGFloat = 28
@@ -37,7 +36,6 @@ struct PresentationPreviewView: View {
         self.backgroundContentMode = backgroundContentMode
         self.presentationCanvasSize = presentationCanvasSize
         self.displayInfo = displayInfo
-        self._videoPlayback = Bindable(viewModel.videoPlayback)
     }
 
     private var canvasSize: CGSize {
@@ -72,7 +70,7 @@ struct PresentationPreviewView: View {
             previewStage
 
             if showsVideoControls {
-                videoPlaybackControls
+                PresentationVideoControls(viewModel: viewModel, scrubValue: $scrubValue)
             }
 
             previewMetadataBar
@@ -145,7 +143,8 @@ struct PresentationPreviewView: View {
                         configuration: textConfiguration,
                         animationProfile: state.slideAnimationProfile ?? SlideAnimationProfile(),
                         slideID: state.slideID ?? AdaptivePresentationText.placeholderSlideID,
-                        presentationToken: state.slidePresentationToken
+                        presentationToken: state.slidePresentationToken,
+                        animationQuality: .preview
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
                     .scaleEffect(scale)
@@ -161,7 +160,8 @@ struct PresentationPreviewView: View {
                 defaultBackgroundSettings: defaultBackgroundSettings,
                 backgroundContentMode: backgroundContentMode,
                 canvasSize: canvasSize,
-                sharedVideoPlayer: viewModel.videoPlayback.player
+                sharedVideoPlayer: viewModel.videoPlayback.player,
+                animationQuality: .preview
             )
             .frame(width: canvasSize.width, height: canvasSize.height)
             .scaleEffect(scale)
@@ -169,8 +169,20 @@ struct PresentationPreviewView: View {
             .clipped()
         }
     }
+}
 
-    private var videoPlaybackControls: some View {
+private struct PresentationVideoControls: View {
+    @Bindable var viewModel: AppViewModel
+    @Binding var scrubValue: TimeInterval
+    @Bindable private var videoPlayback: VideoPlaybackController
+
+    init(viewModel: AppViewModel, scrubValue: Binding<TimeInterval>) {
+        self.viewModel = viewModel
+        self._scrubValue = scrubValue
+        self._videoPlayback = Bindable(viewModel.videoPlayback)
+    }
+
+    var body: some View {
         VStack(spacing: 6) {
             Slider(
                 value: sliderBinding,
@@ -214,7 +226,9 @@ struct PresentationPreviewView: View {
     private var displayedCurrentTime: TimeInterval {
         videoPlayback.isScrubbing ? scrubValue : videoPlayback.currentTime
     }
+}
 
+extension PresentationPreviewView {
     private var previewMetadataBar: some View {
         HStack(spacing: 8) {
             Label("Live preview", systemImage: "play.rectangle")
@@ -253,7 +267,9 @@ struct ExternalPresentationView: View {
             canvasSize: PresentationLayout.resolvedCanvasSize(
                 viewModel.externalDisplayManager.presentationCanvasSize
             ),
-            sharedVideoPlayer: viewModel.videoPlayback.player
+            sharedVideoPlayer: viewModel.videoPlayback.player,
+            isAnimating: true,
+            animationQuality: .live
         )
         .id(layoutRevision)
         .ignoresSafeArea()
@@ -267,6 +283,8 @@ struct PresentationContentView: View {
     var backgroundContentMode: BackgroundContentMode = .fill
     var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
     var sharedVideoPlayer: AVPlayer?
+    var isAnimating: Bool = true
+    var animationQuality: PresentationAnimationQuality = .live
 
     private var textConfiguration: PresentationTextConfiguration {
         if let style = state.slideStyle {
@@ -296,7 +314,9 @@ struct PresentationContentView: View {
                             configuration: textConfiguration,
                             animationProfile: state.slideAnimationProfile ?? SlideAnimationProfile(),
                             slideID: state.slideID ?? AdaptivePresentationText.placeholderSlideID,
-                            presentationToken: state.slidePresentationToken
+                            presentationToken: state.slidePresentationToken,
+                            isAnimating: isAnimating,
+                            animationQuality: animationQuality
                         )
                     }
                 }
