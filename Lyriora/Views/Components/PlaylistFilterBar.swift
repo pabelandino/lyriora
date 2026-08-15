@@ -53,7 +53,7 @@ struct PlaylistFilterBar: View {
                 }
             } label: {
                 GlassCircleIcon(
-                    systemName: "slider.horizontal.3",
+                    systemName: "list.bullet.rectangle",
                     diameter: workspaceCompactLayout ? 32 : 36,
                     symbolSize: workspaceCompactLayout ? 13 : 15
                 )

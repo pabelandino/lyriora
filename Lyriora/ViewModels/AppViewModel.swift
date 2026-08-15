@@ -786,15 +786,17 @@ final class AppViewModel {
         let slides = lyric.slides
             .sorted { $0.order < $1.order }
             .map { slide in
-                let preview = slide.text
+                let trimmedText = slide.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                let preview = trimmedText
                     .components(separatedBy: .newlines)
                     .first?
-                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? slide.text
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? trimmedText
 
                 return LyricSlideCatalogItem(
                     slideID: slide.id,
                     order: slide.order,
                     preview: preview,
+                    text: trimmedText,
                     tag: slide.tag.rawValue,
                     linkedSectionID: slide.simplePlaySectionID
                 )
@@ -809,10 +811,18 @@ final class AppViewModel {
 
     func handleRemoteShowSlide(_ command: ShowSlideCommand) {
         guard let lyric = lyrics.first(where: { $0.id == command.lyricID }) else { return }
-        selectLyric(lyric)
         guard let slide = lyric.slides.first(where: { $0.id == command.slideID }) else { return }
-        selectSlide(slide)
-        refreshExternalPresentation()
+
+        if selectedLyricID != lyric.id {
+            selectedLyricID = lyric.id
+        }
+
+        let isReselect = selectedSlideIndex == slide.index
+        selectedSlideIndex = slide.index
+        if isReselect {
+            slidePresentationToken += 1
+        }
+        showLyrics = true
     }
 
     func applySimplePlaySectionLink(_ command: LinkSectionCommand) {

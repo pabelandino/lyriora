@@ -78,16 +78,12 @@ struct LibraryMorphSearchHeader<Trailing: View>: View {
     }
 
     private var searchSlot: some View {
-        ZStack(alignment: .trailing) {
-            expandedSearchField
-                .opacity(isSearchActive ? 1 : 0)
-                .frame(maxWidth: isSearchActive ? .infinity : 0)
-                .clipped()
-                .allowsHitTesting(isSearchActive)
-
-            collapsedSearchButton
-                .opacity(isSearchActive ? 0 : 1)
-                .allowsHitTesting(!isSearchActive)
+        Group {
+            if isSearchActive {
+                expandedSearchField
+            } else {
+                collapsedSearchButton
+            }
         }
     }
 
@@ -155,9 +151,6 @@ struct LibraryMorphSearchHeader<Trailing: View>: View {
             y: 1
         )
         .glassControlBorder(Capsule())
-        .onAppear {
-            isFocused = true
-        }
     }
 
     private func collapseSearch() {

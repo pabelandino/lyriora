@@ -10,6 +10,7 @@ struct LyricEditorView: View {
     let existingLyricID: UUID?
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var title = ""
     @State private var author = ""
@@ -32,6 +33,10 @@ struct LyricEditorView: View {
     private let contentMaxWidth: CGFloat = 700
 
     private var isEditing: Bool { existingLyricID != nil }
+
+    private var canSave: Bool {
+        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !slides.isEmpty
+    }
 
     private var referenceStyle: SlideTextStyle {
         if let activeTheme {
@@ -68,19 +73,14 @@ struct LyricEditorView: View {
     }
 
     var body: some View {
-        NavigationSplitView(preferredCompactColumn: $preferredColumn) {
-            sidebarList
-        } detail: {
-            detailNavigationStack(for: selectedPage ?? .lyrics)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { closeEditor() }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") { handleSaveTapped() }
-                            .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || slides.isEmpty)
-                    }
-                }
+        VStack(spacing: 0) {
+            editorActionBar
+
+            NavigationSplitView(preferredCompactColumn: $preferredColumn) {
+                sidebarList
+            } detail: {
+                detailNavigationStack(for: selectedPage ?? .lyrics)
+            }
         }
         .background(editorBackground)
         .onAppear {
@@ -126,6 +126,60 @@ struct LyricEditorView: View {
             guard !suppressMaxLinesReparse else { return }
             rechunkSlides()
         }
+    }
+
+    @ViewBuilder
+    private var editorActionBar: some View {
+        HStack(alignment: .center, spacing: 12) {
+            editorGlassButton(title: "Cancel", isProminent: false) {
+                closeEditor()
+            }
+
+            Spacer(minLength: 0)
+
+            if !canSave {
+                Text("Add a title and at least one slide to save")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .padding(.horizontal, 4)
+            }
+
+            editorGlassButton(title: "Save", isProminent: true) {
+                handleSaveTapped()
+            }
+            .disabled(!canSave)
+            .opacity(canSave ? 1 : 0.5)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        #if os(macOS)
+        .padding(.leading, 72)
+        .padding(.top, 8)
+        #endif
+    }
+
+    @ViewBuilder
+    private func editorGlassButton(
+        title: String,
+        isProminent: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(isProminent ? .subheadline.weight(.bold) : .subheadline.weight(.semibold))
+                .padding(.horizontal, isProminent ? 22 : 18)
+                .padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isProminent ? .primary : .secondary)
+        .glassEffect(.regular.interactive(), in: .capsule)
+        .glassControlBorder(Capsule())
+        .shadow(
+            color: GlassControlChrome.shadowColor(for: colorScheme).opacity(isProminent ? 1 : 0.6),
+            radius: 2,
+            y: 1
+        )
     }
 
     @ViewBuilder

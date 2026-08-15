@@ -42,9 +42,58 @@ struct LyricSlideCatalogItem: Codable, Sendable, Identifiable, Hashable {
     var id: UUID { slideID }
     let slideID: UUID
     let order: Int
+    /// Short single-line summary for compact UI.
     let preview: String
+    /// Full slide lyrics for assignment pickers.
+    let text: String
     let tag: String
     var linkedSectionID: UUID?
+
+    var displayText: String {
+        let body = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !body.isEmpty { return body }
+        return preview.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    init(
+        slideID: UUID,
+        order: Int,
+        preview: String,
+        text: String,
+        tag: String,
+        linkedSectionID: UUID? = nil
+    ) {
+        self.slideID = slideID
+        self.order = order
+        self.preview = preview
+        self.text = text
+        self.tag = tag
+        self.linkedSectionID = linkedSectionID
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        slideID = try container.decode(UUID.self, forKey: .slideID)
+        order = try container.decode(Int.self, forKey: .order)
+        preview = try container.decode(String.self, forKey: .preview)
+        text = try container.decodeIfPresent(String.self, forKey: .text) ?? preview
+        tag = try container.decodeIfPresent(String.self, forKey: .tag) ?? "unknown"
+        linkedSectionID = try container.decodeIfPresent(UUID.self, forKey: .linkedSectionID)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(slideID, forKey: .slideID)
+        try container.encode(order, forKey: .order)
+        try container.encode(preview, forKey: .preview)
+        try container.encode(text, forKey: .text)
+        try container.encode(tag, forKey: .tag)
+        try container.encodeIfPresent(linkedSectionID, forKey: .linkedSectionID)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case slideID, order, preview, text, tag, linkedSectionID
+    }
 }
 
 struct ShowSlideCommand: Codable, Sendable {

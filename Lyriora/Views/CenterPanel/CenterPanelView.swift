@@ -22,7 +22,6 @@ struct CenterPanelView: View {
                 presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
                 displayInfo: viewModel.externalDisplayManager.displayInfo
             )
-            .id(viewModel.externalDisplayManager.layoutRevision)
             .frame(maxWidth: .infinity, maxHeight: workspaceCompactLayout ? .infinity : nil)
             .layoutPriority(workspaceCompactLayout ? 1 : 0)
 
