@@ -30,10 +30,13 @@ struct MainView: View {
         }
         #if !os(macOS)
         .fullScreenCover(item: $viewModel.lyricEditorLaunch) { launch in
-            LyricEditorView(
-                viewModel: viewModel,
-                existingLyricID: launch.existingLyricID
-            )
+            NavigationStack {
+                LyricEditorView(
+                    viewModel: viewModel,
+                    existingLyricID: launch.existingLyricID
+                )
+            }
+            .tint(.primary)
         }
         #endif
         .sheet(isPresented: $viewModel.isDisplayInfoSheetPresented) {

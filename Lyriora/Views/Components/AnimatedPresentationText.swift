@@ -18,6 +18,8 @@ struct AnimatedPresentationText: View {
     var animationQuality: PresentationAnimationQuality = .preview
     var isInteractive: Bool = false
     var scalesToFitWidth: Bool = false
+    var wordFontSizeOverrides: [WordFontSizeOverride] = []
+    var selectedFontSizeTarget: TextAnimationTarget? = nil
     var onSelectionTap: ((Int, Int) -> Void)?
 
     @Environment(\.scenePhase) private var scenePhase
@@ -38,6 +40,8 @@ struct AnimatedPresentationText: View {
         animationQuality: PresentationAnimationQuality = .preview,
         isInteractive: Bool = false,
         scalesToFitWidth: Bool = false,
+        wordFontSizeOverrides: [WordFontSizeOverride] = [],
+        selectedFontSizeTarget: TextAnimationTarget? = nil,
         onSelectionTap: ((Int, Int) -> Void)? = nil
     ) {
         self.text = text
@@ -52,8 +56,19 @@ struct AnimatedPresentationText: View {
         self.animationQuality = animationQuality
         self.isInteractive = isInteractive
         self.scalesToFitWidth = scalesToFitWidth
+        self.wordFontSizeOverrides = wordFontSizeOverrides
+        self.selectedFontSizeTarget = selectedFontSizeTarget
         self.onSelectionTap = onSelectionTap
         self.parsed = SlideTextTokenizer.parse(text)
+    }
+
+    private func resolvedFontSize(lineIndex: Int, wordIndex: Int) -> CGFloat {
+        WordFontSizeResolver.fontSize(
+            for: lineIndex,
+            word: wordIndex,
+            base: fontSize,
+            overrides: wordFontSizeOverrides
+        )
     }
 
     private var proRenderQuality: ProTextRenderQuality {
@@ -63,6 +78,8 @@ struct AnimatedPresentationText: View {
     private var shouldRenderAnimatedContent: Bool {
         animationProfile.hasAnimations || isInteractive
             || selectedTransitionTarget != nil || selectedEffectTarget != nil
+            || selectedFontSizeTarget != nil
+            || !wordFontSizeOverrides.isEmpty
     }
 
     private var allowsEffectTimelineUpdates: Bool {
@@ -173,11 +190,10 @@ struct AnimatedPresentationText: View {
                     time: time,
                     suppressWordMotion: suppressWordMotion
                 )
+                .fixedSize(horizontal: true, vertical: false)
             }
         }
-        .frame(maxWidth: availableSize.width)
-        .lineLimit(1)
-        .minimumScaleFactor(scalesToFitWidth ? 0.5 : 1)
+        .scaledToFitWidth(maxWidth: availableSize.width, enabled: true)
     }
 
     @ViewBuilder
@@ -207,10 +223,28 @@ struct AnimatedPresentationText: View {
             )
         } ?? false
 
-        let isSelected = matchesTransition || matchesEffect
-        let selectionColor: Color = matchesTransition && matchesEffect
-            ? .accentColor
-            : (matchesTransition ? .blue : .purple)
+        let matchesFontSize = selectedFontSizeTarget.map {
+            TextAnimationSelectionResolver.matches(
+                target: $0,
+                lineIndex: lineIndex,
+                wordIndex: wordIndex,
+                parsed: parsed
+            )
+        } ?? false
+
+        let isSelected = matchesTransition || matchesEffect || matchesFontSize
+        let selectionColor: Color = {
+            if matchesTransition && matchesEffect {
+                return .accentColor
+            }
+            if matchesFontSize && (matchesTransition || matchesEffect) {
+                return .orange
+            }
+            if matchesFontSize {
+                return .orange
+            }
+            return matchesTransition ? .blue : .purple
+        }()
 
         let resolvedEffect = animationProfile.resolvedEffectAnimation(
             lineIndex: lineIndex,
@@ -255,6 +289,8 @@ struct AnimatedPresentationText: View {
 
         let coreLabel = wordCoreLabel(
             word: word,
+            lineIndex: lineIndex,
+            wordIndex: wordIndex,
             kind: showsPersistentEffect ? effectKind : .none,
             segmentIndex: segmentIndex,
             time: time,
@@ -281,6 +317,8 @@ struct AnimatedPresentationText: View {
                 transitionWrappedLabel(
                     labeled: labeled,
                     word: word,
+                    lineIndex: lineIndex,
+                    wordIndex: wordIndex,
                     transitionKind: transitionKind,
                     transitionIntensity: transitionIntensity,
                     transitionSpeed: transitionSpeed,
@@ -304,6 +342,8 @@ struct AnimatedPresentationText: View {
     private func transitionWrappedLabel(
         labeled: some View,
         word: String,
+        lineIndex: Int,
+        wordIndex: Int,
         transitionKind: TextAnimationKind,
         transitionIntensity: Double,
         transitionSpeed: Double,
@@ -315,6 +355,8 @@ struct AnimatedPresentationText: View {
         if transitionKind == .typewriter {
             typewriterTransitionView(
                 word: word,
+                lineIndex: lineIndex,
+                wordIndex: wordIndex,
                 globalWordIndex: globalWordIndex,
                 totalWords: totalWords,
                 intensity: transitionIntensity,
@@ -347,11 +389,14 @@ struct AnimatedPresentationText: View {
     @ViewBuilder
     private func typewriterTransitionView(
         word: String,
+        lineIndex: Int,
+        wordIndex: Int,
         globalWordIndex: Int,
         totalWords: Int,
         intensity: Double,
         speed: Double
     ) -> some View {
+        let wordFontSize = resolvedFontSize(lineIndex: lineIndex, wordIndex: wordIndex)
         let localProgress: Double = {
             if animationProfile.transitionWordStagger {
                 return TextAnimationEffects.sequentialWordLocalProgress(
@@ -369,7 +414,7 @@ struct AnimatedPresentationText: View {
             TypewriterRevealText(
                 text: word,
                 progress: 0,
-                font: configuration.font(size: fontSize),
+                font: configuration.font(size: wordFontSize),
                 color: configuration.textColor,
                 showsCursor: false
             )
@@ -382,7 +427,7 @@ struct AnimatedPresentationText: View {
                 .typewriterTransition(
                     text: word,
                     progress: localProgress,
-                    font: configuration.font(size: fontSize),
+                    font: configuration.font(size: wordFontSize),
                     color: configuration.textColor,
                     showsCursor: !transitionState.isExiting
                 )
@@ -392,16 +437,19 @@ struct AnimatedPresentationText: View {
     @ViewBuilder
     private func wordCoreLabel(
         word: String,
+        lineIndex: Int,
+        wordIndex: Int,
         kind: TextAnimationKind,
         segmentIndex: Int,
         time: TimeInterval,
         intensity: Double,
         speed: Double
     ) -> some View {
+        let wordFontSize = resolvedFontSize(lineIndex: lineIndex, wordIndex: wordIndex)
         if kind.usesProLayerRendering {
             ProTextSegmentView(
                 text: word,
-                font: configuration.font(size: fontSize),
+                font: configuration.font(size: wordFontSize),
                 color: configuration.textColor,
                 kind: kind,
                 time: time,
@@ -419,12 +467,12 @@ struct AnimatedPresentationText: View {
                 speed: speed
             )
             Text(word)
-                .font(configuration.font(size: fontSize))
+                .font(configuration.font(size: wordFontSize))
                 .foregroundStyle(configuration.textColor)
                 .modifier(AnimatedTextSegmentModifier(transform: transform))
         } else {
             Text(word)
-                .font(configuration.font(size: fontSize))
+                .font(configuration.font(size: wordFontSize))
                 .foregroundStyle(configuration.textColor)
         }
     }
@@ -434,5 +482,47 @@ struct AnimatedPresentationText: View {
             .font(configuration.font(size: fontSize))
             .opacity(0)
             .frame(maxWidth: availableSize.width)
+    }
+}
+
+private struct NaturalWidthPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+private extension View {
+    func scaledToFitWidth(maxWidth: CGFloat, enabled: Bool) -> some View {
+        modifier(ScaledToFitWidthModifier(maxWidth: maxWidth, enabled: enabled))
+    }
+}
+
+private struct ScaledToFitWidthModifier: ViewModifier {
+    let maxWidth: CGFloat
+    let enabled: Bool
+
+    @State private var naturalWidth: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .fixedSize(horizontal: true, vertical: false)
+            .background {
+                GeometryReader { proxy in
+                    Color.clear
+                        .preference(key: NaturalWidthPreferenceKey.self, value: proxy.size.width)
+                }
+            }
+            .onPreferenceChange(NaturalWidthPreferenceKey.self) { naturalWidth = $0 }
+            .scaleEffect(scaleAmount, anchor: .center)
+            .frame(maxWidth: maxWidth)
+    }
+
+    private var scaleAmount: CGFloat {
+        guard enabled, naturalWidth > 0, maxWidth > 0, naturalWidth > maxWidth else {
+            return 1
+        }
+        return maxWidth / naturalWidth
     }
 }

@@ -9,6 +9,8 @@ import SwiftUI
 
 /// Applies a transparent, hidden title bar so content extends under the traffic-light controls.
 struct MacWindowConfigurator: NSViewRepresentable {
+    var allowsBackgroundDrag: Bool = true
+
     func makeNSView(context: Context) -> NSView {
         let view = NSView(frame: .zero)
         configureWindow(for: view)
@@ -26,15 +28,15 @@ struct MacWindowConfigurator: NSViewRepresentable {
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.styleMask.insert(.fullSizeContentView)
-            window.isMovableByWindowBackground = true
+            window.isMovableByWindowBackground = allowsBackgroundDrag
             window.toolbar = nil
         }
     }
 }
 
 extension View {
-    func macHiddenTitleBarWindow() -> some View {
-        background(MacWindowConfigurator())
+    func macHiddenTitleBarWindow(allowsBackgroundDrag: Bool = true) -> some View {
+        background(MacWindowConfigurator(allowsBackgroundDrag: allowsBackgroundDrag))
     }
 }
 #endif

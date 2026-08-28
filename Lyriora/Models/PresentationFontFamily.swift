@@ -15,6 +15,13 @@ enum PresentationFontFamily: String, Codable, CaseIterable, Identifiable, Sendab
     case georgia
     case futura
     case courierNew
+    case timesNewRoman
+    case palatino
+    case gillSans
+    case baskerville
+    case trebuchetMS
+    case americanTypewriter
+    case didot
 
     var id: String { rawValue }
 
@@ -29,6 +36,13 @@ enum PresentationFontFamily: String, Codable, CaseIterable, Identifiable, Sendab
         case .georgia: "Georgia"
         case .futura: "Futura"
         case .courierNew: "Courier New"
+        case .timesNewRoman: "Times New Roman"
+        case .palatino: "Palatino"
+        case .gillSans: "Gill Sans"
+        case .baskerville: "Baskerville"
+        case .trebuchetMS: "Trebuchet MS"
+        case .americanTypewriter: "American Typewriter"
+        case .didot: "Didot"
         }
     }
 
@@ -98,6 +112,43 @@ enum PresentationFontFamily: String, Codable, CaseIterable, Identifiable, Sendab
             switch weight {
             case .regular: return "CourierNewPSMT"
             case .medium, .semibold, .bold: return "Courier-Bold"
+            }
+        case .timesNewRoman:
+            switch weight {
+            case .regular: return "TimesNewRomanPSMT"
+            case .medium, .semibold, .bold: return "TimesNewRomanPS-BoldMT"
+            }
+        case .palatino:
+            switch weight {
+            case .regular: return "Palatino-Roman"
+            case .medium, .semibold, .bold: return "Palatino-Bold"
+            }
+        case .gillSans:
+            switch weight {
+            case .regular: return "GillSans"
+            case .medium: return "GillSans"
+            case .semibold: return "GillSans-SemiBold"
+            case .bold: return "GillSans-Bold"
+            }
+        case .baskerville:
+            switch weight {
+            case .regular: return "Baskerville"
+            case .medium, .semibold, .bold: return "Baskerville-Bold"
+            }
+        case .trebuchetMS:
+            switch weight {
+            case .regular: return "TrebuchetMS"
+            case .medium, .semibold, .bold: return "TrebuchetMS-Bold"
+            }
+        case .americanTypewriter:
+            switch weight {
+            case .regular: return "AmericanTypewriter"
+            case .medium, .semibold, .bold: return "AmericanTypewriter-Bold"
+            }
+        case .didot:
+            switch weight {
+            case .regular: return "Didot"
+            case .medium, .semibold, .bold: return "Didot-Bold"
             }
         }
     }

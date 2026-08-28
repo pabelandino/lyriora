@@ -146,6 +146,7 @@ final class AppViewModel {
             slideAnimationProfile: slide.flatMap { selectedSlide in
                 selectedLyric.map { $0.styleProfile.resolvedAnimationProfile(for: selectedSlide) }
             },
+            wordFontSizeOverrides: slide?.wordFontSizeOverrides ?? [],
             slideID: slide?.id,
             slidePresentationToken: slidePresentationToken,
             videoLoops: resolvedVideoLoops,

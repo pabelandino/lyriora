@@ -31,6 +31,7 @@ enum LyricSlideMetadataPreservation {
                     tag: newSlide.tag,
                     style: previous.style,
                     animationProfile: previous.animationProfile,
+                    wordFontSizeOverrides: previous.wordFontSizeOverrides,
                     sourceSectionID: newSlide.sourceSectionID,
                     simplePlaySectionID: previous.simplePlaySectionID
                 )
@@ -39,6 +40,7 @@ enum LyricSlideMetadataPreservation {
             var merged = newSlide
             merged.style = previous.style
             merged.animationProfile = previous.animationProfile
+            merged.wordFontSizeOverrides = previous.wordFontSizeOverrides
             merged.simplePlaySectionID = previous.simplePlaySectionID
             return merged
         }

@@ -13,6 +13,7 @@ struct PresentationState: Equatable, Sendable {
     var background: PresentationBackground?
     var slideStyle: SlideTextStyle?
     var slideAnimationProfile: SlideAnimationProfile?
+    var wordFontSizeOverrides: [WordFontSizeOverride] = []
     var slideID: UUID?
     var slidePresentationToken: Int = 0
     var videoLoops: Bool = true
