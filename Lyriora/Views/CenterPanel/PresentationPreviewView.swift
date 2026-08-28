@@ -150,6 +150,7 @@ struct PresentationPreviewView: View {
                         text: slideText,
                         configuration: textConfiguration,
                         animationProfile: state.slideAnimationProfile ?? SlideAnimationProfile(),
+                        wordFontSizeOverrides: state.wordFontSizeOverrides,
                         slideID: state.slideID ?? AdaptivePresentationText.placeholderSlideID,
                         presentationToken: state.slidePresentationToken,
                         animationQuality: .preview
@@ -353,6 +354,7 @@ struct PresentationContentView: View {
                             text: slideText,
                             configuration: textConfiguration,
                             animationProfile: state.slideAnimationProfile ?? SlideAnimationProfile(),
+                            wordFontSizeOverrides: state.wordFontSizeOverrides,
                             slideID: state.slideID ?? AdaptivePresentationText.placeholderSlideID,
                             presentationToken: state.slidePresentationToken,
                             isAnimating: isAnimating,

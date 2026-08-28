@@ -9,6 +9,7 @@ struct AdaptivePresentationText: View {
     let text: String
     let configuration: PresentationTextConfiguration
     var animationProfile: SlideAnimationProfile = SlideAnimationProfile()
+    var wordFontSizeOverrides: [WordFontSizeOverride] = []
     var slideID: UUID = AdaptivePresentationText.placeholderSlideID
     var presentationToken: Int = 0
     var isAnimating: Bool = true
@@ -34,7 +35,7 @@ struct AdaptivePresentationText: View {
                 : configuration.maxFontSize
 
             Group {
-                if animationProfile.hasAnimations {
+                if animationProfile.hasAnimations || !wordFontSizeOverrides.isEmpty {
                     SlideTransitionTextContainer(
                         slideID: slideID,
                         text: text,
@@ -52,7 +53,8 @@ struct AdaptivePresentationText: View {
                             transitionState: transitionState,
                             isAnimating: isAnimating,
                             animationQuality: animationQuality,
-                            scalesToFitWidth: configuration.isAdaptiveScalingEnabled
+                            scalesToFitWidth: configuration.isAdaptiveScalingEnabled,
+                            wordFontSizeOverrides: wordFontSizeOverrides
                         )
                     }
                 } else {

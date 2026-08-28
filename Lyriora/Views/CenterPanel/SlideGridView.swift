@@ -82,19 +82,21 @@ struct SlideGridView: View {
             ForEach(Array(rows.enumerated()), id: \.offset) { _, rowSlides in
                 HStack(spacing: gridSpacing) {
                     ForEach(rowSlides, id: \.order) { slide in
-                        SlideThumbnailView(
-                            slide: slide,
-                            style: styleProfile?.resolvedStyle(for: slide),
-                            language: language,
-                            isSelected: slide.index == selectedSlideIndex,
-                            presentationState: presentationState,
-                            defaultBackgroundSettings: defaultBackgroundSettings,
-                            backgroundContentMode: backgroundContentMode
-                        )
-                        .frame(width: thumbnailWidth)
-                        .onTapGesture {
+                        Button {
                             onSelect(slide)
+                        } label: {
+                            SlideThumbnailView(
+                                slide: slide,
+                                style: styleProfile?.resolvedStyle(for: slide),
+                                language: language,
+                                isSelected: slide.index == selectedSlideIndex,
+                                presentationState: presentationState,
+                                defaultBackgroundSettings: defaultBackgroundSettings,
+                                backgroundContentMode: backgroundContentMode
+                            )
+                            .frame(width: thumbnailWidth)
                         }
+                        .buttonStyle(.plain)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -189,6 +191,7 @@ private struct SlideThumbnailView: View {
             }
             .frame(minHeight: textAreaMinHeight)
             .clipped()
+            .allowsHitTesting(false)
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay {
@@ -198,6 +201,7 @@ private struct SlideThumbnailView: View {
                     lineWidth: isSelected ? 2 : 1
                 )
         }
+        .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

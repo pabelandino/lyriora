@@ -23,6 +23,7 @@ struct GlobalStyleEditorContent: View {
     @State private var fallbackAnimationProfile = SlideAnimationProfile()
     @State private var selectedTransitionTarget: TextAnimationTarget?
     @State private var selectedEffectTarget: TextAnimationTarget?
+    @State private var selectedFontSizeTarget: TextAnimationTarget?
     @State private var isAnimationPreviewPlaying = true
     @State private var transitionReplayToken = 0
     @State private var transitionSettingsReplayTask: Task<Void, Never>?
@@ -78,6 +79,20 @@ struct GlobalStyleEditorContent: View {
         )
     }
 
+    private var previewWordFontSizeOverrides: [WordFontSizeOverride] {
+        currentSlide?.wordFontSizeOverrides ?? []
+    }
+
+    private var wordFontSizeOverridesBinding: Binding<[WordFontSizeOverride]>? {
+        guard let slides, slides.wrappedValue.indices.contains(previewSlideIndex) else { return nil }
+        return Binding(
+            get: { slides.wrappedValue[previewSlideIndex].wordFontSizeOverrides },
+            set: { newValue in
+                slides.wrappedValue[previewSlideIndex].wordFontSizeOverrides = newValue
+            }
+        )
+    }
+
     private var animationProfileBinding: Binding<SlideAnimationProfile> {
         switch animationApplyScope {
         case .allSlides:
@@ -119,6 +134,8 @@ struct GlobalStyleEditorContent: View {
                 animationProfile: animationProfileBinding.wrappedValue,
                 selectedTransitionTarget: selectedTransitionTarget,
                 selectedEffectTarget: selectedEffectTarget,
+                selectedFontSizeTarget: selectedFontSizeTarget,
+                wordFontSizeOverrides: previewWordFontSizeOverrides,
                 isAnimationPlaying: isAnimationPreviewPlaying,
                 showsAnimations: isAnimationPreviewPlaying,
                 isInteractive: true,
@@ -156,6 +173,8 @@ struct GlobalStyleEditorContent: View {
                 SlideStyleControlsView(
                     style: $style,
                     showsMaxLinesStepper: true,
+                    selectedWordTarget: selectedFontSizeTarget,
+                    wordFontSizeOverrides: wordFontSizeOverridesBinding,
                     onMaxLinesPerSlideChange: onLayoutStyleChange,
                     onFontSizeChange: onLayoutStyleChange,
                     onLayoutStyleChange: onLayoutStyleChange
@@ -260,6 +279,12 @@ struct GlobalStyleEditorContent: View {
         )
         selectedEffectTarget = TextAnimationSelectionResolver.escalateSelection(
             current: selectedEffectTarget,
+            tappedLine: lineIndex,
+            tappedWord: wordIndex,
+            parsed: parsed
+        )
+        selectedFontSizeTarget = TextAnimationSelectionResolver.escalateSelection(
+            current: selectedFontSizeTarget,
             tappedLine: lineIndex,
             tappedWord: wordIndex,
             parsed: parsed

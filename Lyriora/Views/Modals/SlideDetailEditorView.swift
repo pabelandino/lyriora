@@ -17,6 +17,7 @@ struct SlideDetailEditorView: View {
     @State private var usesCustomStyle: Bool
     @State private var selectedTransitionTarget: TextAnimationTarget?
     @State private var selectedEffectTarget: TextAnimationTarget?
+    @State private var selectedFontSizeTarget: TextAnimationTarget?
     @State private var isAnimationPreviewPlaying = true
     @State private var transitionReplayToken = 0
     @State private var transitionSettingsReplayTask: Task<Void, Never>?
@@ -72,6 +73,13 @@ struct SlideDetailEditorView: View {
         styleProfile.resolvedAnimationProfile(for: slide)
     }
 
+    private var resolvedStyleForWordSizing: Binding<SlideTextStyle> {
+        Binding(
+            get: { styleProfile.resolvedStyle(for: slide) },
+            set: { _ in }
+        )
+    }
+
     var body: some View {
         StickyPreviewEditorLayout {
             LyricSlideLivePreview(
@@ -84,6 +92,8 @@ struct SlideDetailEditorView: View {
                 animationProfile: animationProfileBinding.wrappedValue,
                 selectedTransitionTarget: selectedTransitionTarget,
                 selectedEffectTarget: selectedEffectTarget,
+                selectedFontSizeTarget: selectedFontSizeTarget,
+                wordFontSizeOverrides: slide.wordFontSizeOverrides,
                 isAnimationPlaying: isAnimationPreviewPlaying,
                 showsAnimations: isAnimationPreviewPlaying,
                 isInteractive: true,
@@ -124,11 +134,24 @@ struct SlideDetailEditorView: View {
                         }
 
                     if usesCustomStyle {
-                        SlideStyleControlsView(style: activeStyle)
+                        SlideStyleControlsView(
+                            style: activeStyle,
+                            selectedWordTarget: selectedFontSizeTarget,
+                            wordFontSizeOverrides: $slide.wordFontSizeOverrides
+                        )
                     } else {
-                        Text("Using global style from \"\(styleProfile.name)\".")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Using global style from \"\(styleProfile.name)\".")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+
+                            SlideStyleControlsView(
+                                style: resolvedStyleForWordSizing,
+                                showsGlobalTypography: false,
+                                selectedWordTarget: selectedFontSizeTarget,
+                                wordFontSizeOverrides: $slide.wordFontSizeOverrides
+                            )
+                        }
                     }
                 }
 
@@ -217,6 +240,12 @@ struct SlideDetailEditorView: View {
         )
         selectedEffectTarget = TextAnimationSelectionResolver.escalateSelection(
             current: selectedEffectTarget,
+            tappedLine: lineIndex,
+            tappedWord: wordIndex,
+            parsed: parsed
+        )
+        selectedFontSizeTarget = TextAnimationSelectionResolver.escalateSelection(
+            current: selectedFontSizeTarget,
             tappedLine: lineIndex,
             tappedWord: wordIndex,
             parsed: parsed

@@ -23,6 +23,8 @@ struct LyricSlideLivePreview: View {
     var animationProfile: SlideAnimationProfile = SlideAnimationProfile()
     var selectedTransitionTarget: TextAnimationTarget?
     var selectedEffectTarget: TextAnimationTarget?
+    var selectedFontSizeTarget: TextAnimationTarget?
+    var wordFontSizeOverrides: [WordFontSizeOverride] = []
     var isAnimationPlaying: Bool = true
     var showsAnimations: Bool = false
     var isInteractive: Bool = false
@@ -61,9 +63,7 @@ struct LyricSlideLivePreview: View {
 
     var body: some View {
         if compact {
-            referenceCanvasPreview
-                .frame(maxWidth: resolvedContainerSize.width)
-                .frame(maxWidth: .infinity)
+            compactCanvasPreview
         } else {
             VStack(spacing: 12) {
                 headerRow
@@ -88,6 +88,63 @@ struct LyricSlideLivePreview: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(.ultraThinMaterial, in: Capsule())
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var compactCanvasPreview: some View {
+        GeometryReader { geometry in
+            let fittedSize = geometry.size
+            let canvas = referenceCanvasSize
+            let scale = fittedSize.width / canvas.width
+
+            ZStack {
+                previewBackground
+                    .frame(width: canvas.width, height: canvas.height)
+                    .scaleEffect(scale)
+                    .frame(width: fittedSize.width, height: fittedSize.height)
+
+                if !displayText.isEmpty {
+                    editorTextPreview(
+                        text: displayText,
+                        containerSize: canvas,
+                        sizing: .exact,
+                        scale: scale,
+                        fittedSize: fittedSize
+                    )
+                } else {
+                    Text("Select a slide or import lyrics to preview.")
+                        .font(.callout)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(
+                            backgroundStyle == .borderOnly
+                                ? Color.secondary
+                                : Color.white.opacity(0.65)
+                        )
+                        .padding(24)
+                }
+            }
+            .frame(width: fittedSize.width, height: fittedSize.height)
+            .clipShape(shape)
+            .overlay {
+                if backgroundStyle == .borderOnly {
+                    shape.strokeBorder(Color.primary.opacity(0.18), lineWidth: 1.5)
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if let onTransitionReplay, animationProfile.hasTransition {
+                    Button(action: onTransitionReplay) {
+                        Label("Replay", systemImage: "arrow.clockwise")
+                            .font(.caption.weight(.semibold))
+                            .labelStyle(.iconOnly)
+                            .frame(width: 32, height: 32)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(10)
+                    .help("Replay transition")
+                }
             }
         }
     }
@@ -270,9 +327,11 @@ struct LyricSlideLivePreview: View {
                     selectedTransitionTarget: selectedTransitionTarget,
                     selectedEffectTarget: selectedEffectTarget,
                     isAnimating: showsAnimations && isAnimationPlaying,
-                    animationQuality: .live,
+                    animationQuality: .preview,
                     isInteractive: isInteractive,
                     scalesToFitWidth: activeConfiguration.isAdaptiveScalingEnabled,
+                    wordFontSizeOverrides: wordFontSizeOverrides,
+                    selectedFontSizeTarget: selectedFontSizeTarget,
                     onSelectionTap: onWordTap
                 )
             } else {

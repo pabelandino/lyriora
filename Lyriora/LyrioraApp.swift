@@ -28,7 +28,7 @@ struct LyrioraApp: App {
                     viewModel: viewModel,
                     existingLyricID: launch.existingLyricID
                 )
-                .macHiddenTitleBarWindow()
+                .macHiddenTitleBarWindow(allowsBackgroundDrag: false)
             }
         }
         .windowStyle(.hiddenTitleBar)
