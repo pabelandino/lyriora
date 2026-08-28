@@ -108,6 +108,19 @@
       "norm_label": "videoassetmetadataloader"
     },
     {
+      "label": "VideoDurationFormatter",
+      "file_type": "code",
+      "source_file": "Lyriora/Services/VideoAssetMetadataLoader.swift",
+      "source_location": "L109",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "lyriora_services_videoassetmetadataloader_videodurationformatter",
+      "community": 100,
+      "community_name": ".loadThumbnail",
+      "norm_label": "videodurationformatter"
+    },
+    {
       "label": "ConfigurableDefaultGradientView",
       "file_type": "code",
       "source_file": "Lyriora/Utilities/DefaultBackgroundPreset.swift",
@@ -340,19 +353,6 @@
       "community": 124,
       "community_name": "AppViewModel.swift",
       "norm_label": "videocontrolsreveal"
-    },
-    {
-      "label": "VideoDurationFormatter",
-      "file_type": "code",
-      "source_file": "Lyriora/Services/VideoAssetMetadataLoader.swift",
-      "source_location": "L109",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "lyriora_services_videoassetmetadataloader_videodurationformatter",
-      "community": 129,
-      "community_name": ".playbackTime",
-      "norm_label": "videodurationformatter"
     },
     {
       "label": "ParsedSlideText",
@@ -602,19 +602,6 @@
       "norm_label": "glassoverflowmenu"
     },
     {
-      "label": "PlaylistFilterBar",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/Components/PlaylistFilterBar.swift",
-      "source_location": "L8",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "lyriora_views_components_playlistfilterbar_playlistfilterbar",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": "playlistfilterbar"
-    },
-    {
       "label": "ClipboardLinkReader",
       "file_type": "code",
       "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
@@ -678,19 +665,6 @@
       "community": 17,
       "community_name": "MediaThumbnailView",
       "norm_label": "mediaimportcontenttypes"
-    },
-    {
-      "label": "MediaImportToolbarButton",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L356",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_mediaimporttoolbarbutton",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": "mediaimporttoolbarbutton"
     },
     {
       "label": "MediaLibraryPanelView",
@@ -873,6 +847,32 @@
       "community": 2,
       "community_name": "LibraryPlaylist",
       "norm_label": "playlistrepositoryprotocol"
+    },
+    {
+      "label": "PlaylistFilterBar",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/Components/PlaylistFilterBar.swift",
+      "source_location": "L8",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "lyriora_views_components_playlistfilterbar_playlistfilterbar",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": "playlistfilterbar"
+    },
+    {
+      "label": "PlaylistPickerSheet",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
+      "source_location": "L8",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": "playlistpickersheet"
     },
     {
       "label": "ExternalDisplayDiscovery",
@@ -1099,7 +1099,7 @@
       "label": "PlaylistGlassEmptyState",
       "file_type": "code",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L342",
+      "source_location": "L340",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
@@ -1229,7 +1229,7 @@
       "label": "View",
       "file_type": "code",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L369",
+      "source_location": "L367",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
@@ -2763,7 +2763,7 @@
       "label": "LyricEditorHeaderBar",
       "file_type": "code",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L88",
+      "source_location": "L92",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
@@ -2802,7 +2802,7 @@
       "label": "MacLyricEditorHeaderChrome",
       "file_type": "code",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L135",
+      "source_location": "L139",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
@@ -3159,7 +3159,7 @@
       "_origin": "ast",
       "id": "lyriora_viewmodels_appviewmodel_pickedimagefile",
       "community": 67,
-      "community_name": "String",
+      "community_name": "PickedImageFile",
       "norm_label": "pickedimagefile"
     },
     {
@@ -3172,7 +3172,7 @@
       "_origin": "ast",
       "id": "lyriora_viewmodels_appviewmodel_pickedvideofile",
       "community": 67,
-      "community_name": "String",
+      "community_name": "PickedImageFile",
       "norm_label": "pickedvideofile"
     },
     {
@@ -3475,17 +3475,17 @@
       "norm_label": "presentationstate"
     },
     {
-      "label": "PlaylistPickerSheet",
+      "label": "PhotosPickerDisplayNameResolver",
       "file_type": "code",
-      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
-      "source_location": "L8",
+      "source_file": "Lyriora/Services/PhotosPickerDisplayNameResolver.swift",
+      "source_location": "L10",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet",
+      "id": "lyriora_services_photospickerdisplaynameresolver_photospickerdisplaynameresolver",
       "community": 79,
-      "community_name": "PlaylistPickerSheet",
-      "norm_label": "playlistpickersheet"
+      "community_name": ".displayName",
+      "norm_label": "photospickerdisplaynameresolver"
     },
     {
       "label": "TransitionSpeedControl",
@@ -3696,17 +3696,17 @@
       "norm_label": "mediarepositoryprotocol"
     },
     {
-      "label": "PhotosPickerDisplayNameResolver",
+      "label": "MediaImportToolbarButton",
       "file_type": "code",
-      "source_file": "Lyriora/Services/PhotosPickerDisplayNameResolver.swift",
-      "source_location": "L10",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L356",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "id": "lyriora_services_photospickerdisplaynameresolver_photospickerdisplaynameresolver",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_mediaimporttoolbarbutton",
       "community": 9,
       "community_name": "MediaAsset",
-      "norm_label": "photospickerdisplaynameresolver"
+      "norm_label": "mediaimporttoolbarbutton"
     },
     {
       "label": "ThemeSavePromptSheet",
@@ -4102,6 +4102,30 @@
       "community": 100,
       "community_name": ".loadThumbnail",
       "norm_label": ".makeimage()"
+    },
+    {
+      "label": ".playbackTime()",
+      "file_type": "code",
+      "source_file": "Lyriora/Services/VideoAssetMetadataLoader.swift",
+      "source_location": "L114",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_services_videoassetmetadataloader_videodurationformatter_playbacktime",
+      "community": 100,
+      "community_name": ".loadThumbnail",
+      "norm_label": ".playbacktime()"
+    },
+    {
+      "label": ".string()",
+      "file_type": "code",
+      "source_file": "Lyriora/Services/VideoAssetMetadataLoader.swift",
+      "source_location": "L110",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_services_videoassetmetadataloader_videodurationformatter_string",
+      "community": 100,
+      "community_name": ".loadThumbnail",
+      "norm_label": ".string()"
     },
     {
       "label": ".init()",
@@ -4558,30 +4582,6 @@
       "community": 12,
       "community_name": "TextAnimationEditorSection",
       "norm_label": ".upserttransitionassignment()"
-    },
-    {
-      "label": ".playbackTime()",
-      "file_type": "code",
-      "source_file": "Lyriora/Services/VideoAssetMetadataLoader.swift",
-      "source_location": "L114",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_services_videoassetmetadataloader_videodurationformatter_playbacktime",
-      "community": 129,
-      "community_name": ".playbackTime",
-      "norm_label": ".playbacktime()"
-    },
-    {
-      "label": ".string()",
-      "file_type": "code",
-      "source_file": "Lyriora/Services/VideoAssetMetadataLoader.swift",
-      "source_location": "L110",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_services_videoassetmetadataloader_videodurationformatter_string",
-      "community": 129,
-      "community_name": ".playbackTime",
-      "norm_label": ".string()"
     },
     {
       "label": ".resolvedTransitionAnimation()",
@@ -5112,42 +5112,6 @@
       "norm_label": ".previewcardcontent()"
     },
     {
-      "label": ".deleteMediaAsset()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L973",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_deletemediaasset",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".deletemediaasset()"
-    },
-    {
-      "label": ".isBackgroundSelected()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L969",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_isbackgroundselected",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".isbackgroundselected()"
-    },
-    {
-      "label": ".renameMediaAsset()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L997",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_renamemediaasset",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".renamemediaasset()"
-    },
-    {
       "label": ".playlistActions()",
       "file_type": "code",
       "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
@@ -5172,18 +5136,6 @@
       "norm_label": ".make()"
     },
     {
-      "label": ".durationLoader()",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L242",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_videolibrarysection_durationloader",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".durationloader()"
-    },
-    {
       "label": ".playlistActions()",
       "file_type": "code",
       "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
@@ -5194,30 +5146,6 @@
       "community": 17,
       "community_name": "MediaThumbnailView",
       "norm_label": ".playlistactions()"
-    },
-    {
-      "label": ".videoThumbnail()",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L224",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_videolibrarysection_videothumbnail",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".videothumbnail()"
-    },
-    {
-      "label": ".renameMediaAlert()",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L565",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_view_renamemediaalert",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".renamemediaalert()"
     },
     {
       "label": ".applyPlaybackSettings()",
@@ -5472,6 +5400,18 @@
       "norm_label": ".clearplaylistselection()"
     },
     {
+      "label": ".createLyric()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L659",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_createlyric",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".createlyric()"
+    },
+    {
       "label": ".createPlaylist()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -5506,6 +5446,30 @@
       "community": 2,
       "community_name": "LibraryPlaylist",
       "norm_label": ".filteredlyrics()"
+    },
+    {
+      "label": ".filteredMediaAssets()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L347",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_filteredmediaassets",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".filteredmediaassets()"
+    },
+    {
+      "label": ".init()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L78",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_init",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".init()"
     },
     {
       "label": ".loadPlaylists()",
@@ -5544,6 +5508,18 @@
       "norm_label": ".mediafileurl()"
     },
     {
+      "label": ".playlistItemLabel()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L364",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_playlistitemlabel",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".playlistitemlabel()"
+    },
+    {
       "label": ".playlists()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -5554,6 +5530,18 @@
       "community": 2,
       "community_name": "LibraryPlaylist",
       "norm_label": ".playlists()"
+    },
+    {
+      "label": ".presentPlaylistEditor()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L238",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_presentplaylisteditor",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".presentplaylisteditor()"
     },
     {
       "label": ".presentPlaylistPicker()",
@@ -5580,18 +5568,6 @@
       "norm_label": ".removeitem()"
     },
     {
-      "label": ".removeItemFromAllPlaylists()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L325",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_removeitemfromallplaylists",
-      "community": 2,
-      "community_name": "LibraryPlaylist",
-      "norm_label": ".removeitemfromallplaylists()"
-    },
-    {
       "label": ".renamePlaylist()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -5614,6 +5590,18 @@
       "community": 2,
       "community_name": "LibraryPlaylist",
       "norm_label": ".reorderplaylistitems()"
+    },
+    {
+      "label": ".saveLyric()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L594",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_savelyric",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".savelyric()"
     },
     {
       "label": ".savePlaylist()",
@@ -5662,6 +5650,30 @@
       "community": 2,
       "community_name": "LibraryPlaylist",
       "norm_label": ".selectplaylist()"
+    },
+    {
+      "label": ".createPlaylist()",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
+      "source_location": "L177",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_createplaylist",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".createplaylist()"
+    },
+    {
+      "label": ".openEditor()",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
+      "source_location": "L185",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_openeditor",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".openeditor()"
     },
     {
       "label": ".playlistActions()",
@@ -6111,7 +6123,7 @@
       "label": ".playlistItemGlassRow()",
       "file_type": "code",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L370",
+      "source_location": "L368",
       "_callable": true,
       "_origin": "ast",
       "id": "lyriora_views_modals_playlistglassmodal_view_playlistitemglassrow",
@@ -7152,6 +7164,54 @@
       "norm_label": ".upserteffectassignment()"
     },
     {
+      "label": ".resetProgress()",
+      "file_type": "code",
+      "source_file": "Lyriora/Services/YouTubePlaybackController.swift",
+      "source_location": "L46",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_services_youtubeplaybackcontroller_youtubeplaybackcontroller_resetprogress",
+      "community": 42,
+      "community_name": "AppViewModel",
+      "norm_label": ".resetprogress()"
+    },
+    {
+      "label": ".cancelVideoControlsReveal()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L546",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_cancelvideocontrolsreveal",
+      "community": 42,
+      "community_name": "AppViewModel",
+      "norm_label": ".cancelvideocontrolsreveal()"
+    },
+    {
+      "label": ".clearAll()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L672",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_clearall",
+      "community": 42,
+      "community_name": "AppViewModel",
+      "norm_label": ".clearall()"
+    },
+    {
+      "label": ".clearBackground()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L683",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_clearbackground",
+      "community": 42,
+      "community_name": "AppViewModel",
+      "norm_label": ".clearbackground()"
+    },
+    {
       "label": ".clearLyrics()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -7176,16 +7236,16 @@
       "norm_label": ".handleremoteshowslide()"
     },
     {
-      "label": ".init()",
+      "label": ".importSelectedPhotos()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L78",
+      "source_location": "L1081",
       "_callable": true,
       "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_init",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_importselectedphotos",
       "community": 42,
       "community_name": "AppViewModel",
-      "norm_label": ".init()"
+      "norm_label": ".importselectedphotos()"
     },
     {
       "label": ".loadInitialData()",
@@ -7198,30 +7258,6 @@
       "community": 42,
       "community_name": "AppViewModel",
       "norm_label": ".loadinitialdata()"
-    },
-    {
-      "label": ".playlistItemMatchesSearch()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L375",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_playlistitemmatchessearch",
-      "community": 42,
-      "community_name": "AppViewModel",
-      "norm_label": ".playlistitemmatchessearch()"
-    },
-    {
-      "label": ".presentPlaylistEditor()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L238",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_presentplaylisteditor",
-      "community": 42,
-      "community_name": "AppViewModel",
-      "norm_label": ".presentplaylisteditor()"
     },
     {
       "label": ".refreshExternalPresentation()",
@@ -7260,6 +7296,18 @@
       "norm_label": ".resetsettings()"
     },
     {
+      "label": ".resetVideoPlaybackState()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L541",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_resetvideoplaybackstate",
+      "community": 42,
+      "community_name": "AppViewModel",
+      "norm_label": ".resetvideoplaybackstate()"
+    },
+    {
       "label": ".resolvedSlides()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -7284,6 +7332,18 @@
       "norm_label": ".savesettings()"
     },
     {
+      "label": ".scheduleVideoControlsReveal()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L551",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_schedulevideocontrolsreveal",
+      "community": 42,
+      "community_name": "AppViewModel",
+      "norm_label": ".schedulevideocontrolsreveal()"
+    },
+    {
       "label": ".seekVideo()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -7294,6 +7354,18 @@
       "community": 42,
       "community_name": "AppViewModel",
       "norm_label": ".seekvideo()"
+    },
+    {
+      "label": ".selectBackgroundMedia()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L483",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_selectbackgroundmedia",
+      "community": 42,
+      "community_name": "AppViewModel",
+      "norm_label": ".selectbackgroundmedia()"
     },
     {
       "label": ".selectSlide()",
@@ -7318,18 +7390,6 @@
       "community": 42,
       "community_name": "AppViewModel",
       "norm_label": ".setsimpleplaymanualmode()"
-    },
-    {
-      "label": ".shouldRefreshYouTubeTitle()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L789",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_shouldrefreshyoutubetitle",
-      "community": 42,
-      "community_name": "AppViewModel",
-      "norm_label": ".shouldrefreshyoutubetitle()"
     },
     {
       "label": ".startSimplePlayConnectionMonitor()",
@@ -8748,54 +8808,6 @@
       "norm_label": ".wordfontsizebinding()"
     },
     {
-      "label": ".createLyric()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L659",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_createlyric",
-      "community": 67,
-      "community_name": "String",
-      "norm_label": ".createlyric()"
-    },
-    {
-      "label": ".filteredMediaAssets()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L347",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_filteredmediaassets",
-      "community": 67,
-      "community_name": "String",
-      "norm_label": ".filteredmediaassets()"
-    },
-    {
-      "label": ".playlistItemLabel()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L364",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_playlistitemlabel",
-      "community": 67,
-      "community_name": "String",
-      "norm_label": ".playlistitemlabel()"
-    },
-    {
-      "label": ".saveLyric()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L594",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_savelyric",
-      "community": 67,
-      "community_name": "String",
-      "norm_label": ".savelyric()"
-    },
-    {
       "label": ".columnCount()",
       "file_type": "code",
       "source_file": "Lyriora/Views/CenterPanel/SlideGridView.swift",
@@ -9480,28 +9492,16 @@
       "norm_label": ".init()"
     },
     {
-      "label": ".createPlaylist()",
+      "label": ".displayName()",
       "file_type": "code",
-      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
-      "source_location": "L177",
+      "source_file": "Lyriora/Services/PhotosPickerDisplayNameResolver.swift",
+      "source_location": "L11",
       "_callable": true,
       "_origin": "ast",
-      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_createplaylist",
+      "id": "lyriora_services_photospickerdisplaynameresolver_photospickerdisplaynameresolver_displayname",
       "community": 79,
-      "community_name": "PlaylistPickerSheet",
-      "norm_label": ".createplaylist()"
-    },
-    {
-      "label": ".openEditor()",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
-      "source_location": "L185",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_openeditor",
-      "community": 79,
-      "community_name": "PlaylistPickerSheet",
-      "norm_label": ".openeditor()"
+      "community_name": ".displayName",
+      "norm_label": ".displayname()"
     },
     {
       "label": ".addItem()",
@@ -10056,30 +10056,6 @@
       "norm_label": ".init()"
     },
     {
-      "label": ".displayName()",
-      "file_type": "code",
-      "source_file": "Lyriora/Services/PhotosPickerDisplayNameResolver.swift",
-      "source_location": "L11",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_services_photospickerdisplaynameresolver_photospickerdisplaynameresolver_displayname",
-      "community": 9,
-      "community_name": "MediaAsset",
-      "norm_label": ".displayname()"
-    },
-    {
-      "label": ".resetProgress()",
-      "file_type": "code",
-      "source_file": "Lyriora/Services/YouTubePlaybackController.swift",
-      "source_location": "L46",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_services_youtubeplaybackcontroller_youtubeplaybackcontroller_resetprogress",
-      "community": 9,
-      "community_name": "MediaAsset",
-      "norm_label": ".resetprogress()"
-    },
-    {
       "label": ".addYouTubeBackground()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -10104,40 +10080,16 @@
       "norm_label": ".applyyoutubetitle()"
     },
     {
-      "label": ".cancelVideoControlsReveal()",
+      "label": ".deleteMediaAsset()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L546",
+      "source_location": "L973",
       "_callable": true,
       "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_cancelvideocontrolsreveal",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_deletemediaasset",
       "community": 9,
       "community_name": "MediaAsset",
-      "norm_label": ".cancelvideocontrolsreveal()"
-    },
-    {
-      "label": ".clearAll()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L672",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_clearall",
-      "community": 9,
-      "community_name": "MediaAsset",
-      "norm_label": ".clearall()"
-    },
-    {
-      "label": ".clearBackground()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L683",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_clearbackground",
-      "community": 9,
-      "community_name": "MediaAsset",
-      "norm_label": ".clearbackground()"
+      "norm_label": ".deletemediaasset()"
     },
     {
       "label": ".ensureVideoDuration()",
@@ -10176,18 +10128,6 @@
       "norm_label": ".importimagefiles()"
     },
     {
-      "label": ".importSelectedPhotos()",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L1081",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_importselectedphotos",
-      "community": 9,
-      "community_name": "MediaAsset",
-      "norm_label": ".importselectedphotos()"
-    },
-    {
       "label": ".importVideoFiles()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -10200,6 +10140,18 @@
       "norm_label": ".importvideofiles()"
     },
     {
+      "label": ".isBackgroundSelected()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L969",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_isbackgroundselected",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": ".isbackgroundselected()"
+    },
+    {
       "label": ".loadSelectedVideoBackground()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -10210,6 +10162,18 @@
       "community": 9,
       "community_name": "MediaAsset",
       "norm_label": ".loadselectedvideobackground()"
+    },
+    {
+      "label": ".playlistItemMatchesSearch()",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L375",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_playlistitemmatchessearch",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": ".playlistitemmatchessearch()"
     },
     {
       "label": ".preloadVideoDurations()",
@@ -10236,40 +10200,40 @@
       "norm_label": ".refreshyoutubetitleifneeded()"
     },
     {
-      "label": ".resetVideoPlaybackState()",
+      "label": ".removeItemFromAllPlaylists()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L541",
+      "source_location": "L325",
       "_callable": true,
       "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_resetvideoplaybackstate",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_removeitemfromallplaylists",
       "community": 9,
       "community_name": "MediaAsset",
-      "norm_label": ".resetvideoplaybackstate()"
+      "norm_label": ".removeitemfromallplaylists()"
     },
     {
-      "label": ".scheduleVideoControlsReveal()",
+      "label": ".renameMediaAsset()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L551",
+      "source_location": "L997",
       "_callable": true,
       "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_schedulevideocontrolsreveal",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_renamemediaasset",
       "community": 9,
       "community_name": "MediaAsset",
-      "norm_label": ".schedulevideocontrolsreveal()"
+      "norm_label": ".renamemediaasset()"
     },
     {
-      "label": ".selectBackgroundMedia()",
+      "label": ".shouldRefreshYouTubeTitle()",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L483",
+      "source_location": "L789",
       "_callable": true,
       "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_selectbackgroundmedia",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_shouldrefreshyoutubetitle",
       "community": 9,
       "community_name": "MediaAsset",
-      "norm_label": ".selectbackgroundmedia()"
+      "norm_label": ".shouldrefreshyoutubetitle()"
     },
     {
       "label": ".videoDuration()",
@@ -10320,10 +10284,46 @@
       "norm_label": "importselectedvideos()"
     },
     {
+      "label": ".durationLoader()",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L242",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_videolibrarysection_durationloader",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": ".durationloader()"
+    },
+    {
+      "label": ".videoThumbnail()",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L224",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_videolibrarysection_videothumbnail",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": ".videothumbnail()"
+    },
+    {
+      "label": ".renameMediaAlert()",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L565",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_view_renamemediaalert",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": ".renamemediaalert()"
+    },
+    {
       "label": ".saveTheme()",
       "file_type": "code",
       "source_file": "Lyriora/Views/Components/ThemeSavePromptSheet.swift",
-      "source_location": "L136",
+      "source_location": "L135",
       "_callable": true,
       "_origin": "ast",
       "id": "lyriora_views_components_themesavepromptsheet_themesavepromptsheet_savetheme",
@@ -11087,6 +11087,28 @@
       "norm_label": "cmtime"
     },
     {
+      "label": "String",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "lyriora_services_videoassetmetadataloader_swift_string",
+      "community": 100,
+      "community_name": ".loadThumbnail",
+      "norm_label": "string"
+    },
+    {
+      "label": "TimeInterval",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "lyriora_services_videoassetmetadataloader_swift_timeinterval",
+      "community": 100,
+      "community_name": ".loadThumbnail",
+      "norm_label": "timeinterval"
+    },
+    {
       "label": "URL",
       "file_type": "code",
       "source_file": "",
@@ -11096,6 +11118,28 @@
       "community": 100,
       "community_name": ".loadThumbnail",
       "norm_label": "url"
+    },
+    {
+      "label": ".body",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/CenterPanel/PresentationPreviewView.swift",
+      "source_location": "L197",
+      "_origin": "ast",
+      "id": "lyriora_views_centerpanel_presentationpreviewview_presentationvideocontrols_body",
+      "community": 100,
+      "community_name": ".loadThumbnail",
+      "norm_label": ".body"
+    },
+    {
+      "label": ".body",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L600",
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_localfilevideothumbnail_body",
+      "community": 100,
+      "community_name": ".loadThumbnail",
+      "norm_label": ".body"
     },
     {
       "label": ".layerIdentity",
@@ -12775,39 +12819,6 @@
       "norm_label": "graphify reference: extraction subagent prompt"
     },
     {
-      "label": "String",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "lyriora_services_videoassetmetadataloader_swift_string",
-      "community": 129,
-      "community_name": ".playbackTime",
-      "norm_label": "string"
-    },
-    {
-      "label": "TimeInterval",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "lyriora_services_videoassetmetadataloader_swift_timeinterval",
-      "community": 129,
-      "community_name": ".playbackTime",
-      "norm_label": "timeinterval"
-    },
-    {
-      "label": ".body",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/CenterPanel/PresentationPreviewView.swift",
-      "source_location": "L197",
-      "_origin": "ast",
-      "id": "lyriora_views_centerpanel_presentationpreviewview_presentationvideocontrols_body",
-      "community": 129,
-      "community_name": ".playbackTime",
-      "norm_label": ".body"
-    },
-    {
       "label": "SlideTextTokenizer.swift",
       "file_type": "code",
       "source_file": "Lyriora/Utilities/SlideTextTokenizer.swift",
@@ -13646,17 +13657,6 @@
       "norm_label": "void"
     },
     {
-      "label": ".selectedPlaylist",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/Components/PlaylistFilterBar.swift",
-      "source_location": "L14",
-      "_origin": "ast",
-      "id": "lyriora_views_components_playlistfilterbar_playlistfilterbar_selectedplaylist",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".selectedplaylist"
-    },
-    {
       "label": "MediaLibraryPanelView.swift",
       "file_type": "code",
       "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
@@ -13679,17 +13679,6 @@
       "norm_label": ".string"
     },
     {
-      "label": ".body",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L51",
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_imagelibrarysection_body",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".body"
-    },
-    {
       "label": ".isPlaylistFiltered",
       "file_type": "code",
       "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
@@ -13699,17 +13688,6 @@
       "community": 17,
       "community_name": "MediaThumbnailView",
       "norm_label": ".isplaylistfiltered"
-    },
-    {
-      "label": ".photoPickerSelection",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L422",
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_mediaimporttoolbarbutton_photopickerselection",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".photopickerselection"
     },
     {
       "label": ".body",
@@ -13800,17 +13778,6 @@
       "norm_label": ".youtubelinkstring"
     },
     {
-      "label": "Binding",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_swift_binding",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": "binding"
-    },
-    {
       "label": "Bool",
       "file_type": "code",
       "source_file": "",
@@ -13831,17 +13798,6 @@
       "community": 17,
       "community_name": "MediaThumbnailView",
       "norm_label": "cgfloat"
-    },
-    {
-      "label": "PhotosPickerItem",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_swift_photospickeritem",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": "photospickeritem"
     },
     {
       "label": "RoundedRectangle",
@@ -13886,28 +13842,6 @@
       "community": 17,
       "community_name": "MediaThumbnailView",
       "norm_label": "uuid"
-    },
-    {
-      "label": "Void",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_swift_void",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": "void"
-    },
-    {
-      "label": ".body",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L143",
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_videolibrarysection_body",
-      "community": 17,
-      "community_name": "MediaThumbnailView",
-      "norm_label": ".body"
     },
     {
       "label": ".isPlaylistFiltered",
@@ -14295,6 +14229,17 @@
       "norm_label": "url"
     },
     {
+      "label": "String",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_swift_string",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": "string"
+    },
+    {
       "label": "UUID",
       "file_type": "code",
       "source_file": "",
@@ -14317,6 +14262,39 @@
       "norm_label": ".body"
     },
     {
+      "label": ".selectedPlaylist",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/Components/PlaylistFilterBar.swift",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "lyriora_views_components_playlistfilterbar_playlistfilterbar_selectedplaylist",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".selectedplaylist"
+    },
+    {
+      "label": ".filteredAssets",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_imagelibrarysection_filteredassets",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".filteredassets"
+    },
+    {
+      "label": ".filteredAssets",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L131",
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_videolibrarysection_filteredassets",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".filteredassets"
+    },
+    {
       "label": ".body",
       "file_type": "code",
       "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
@@ -14326,6 +14304,72 @@
       "community": 2,
       "community_name": "LibraryPlaylist",
       "norm_label": ".body"
+    },
+    {
+      "label": ".createPlaylistCard",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
+      "source_location": "L134",
+      "_origin": "ast",
+      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_createplaylistcard",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".createplaylistcard"
+    },
+    {
+      "label": ".filteredPlaylists",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_filteredplaylists",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".filteredplaylists"
+    },
+    {
+      "label": ".isSearching",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_issearching",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".issearching"
+    },
+    {
+      "label": ".totalItemCount",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
+      "source_location": "L169",
+      "_origin": "ast",
+      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_totalitemcount",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": ".totalitemcount"
+    },
+    {
+      "label": "Bool",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "lyriora_views_modals_playlistsheets_swift_bool",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": "bool"
+    },
+    {
+      "label": "Int",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "lyriora_views_modals_playlistsheets_swift_int",
+      "community": 2,
+      "community_name": "LibraryPlaylist",
+      "norm_label": "int"
     },
     {
       "label": "ExternalDisplayDiscovery.swift",
@@ -15310,7 +15354,7 @@
       "label": ".body",
       "file_type": "code",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L347",
+      "source_location": "L345",
       "_origin": "ast",
       "id": "lyriora_views_modals_playlistglassmodal_playlistglassemptystate_body",
       "community": 24,
@@ -15588,17 +15632,6 @@
       "source_location": "L633",
       "_origin": "ast",
       "id": "lyriora_views_leftpanel_medialibrarypanelview_localfilethumbnailimage_body",
-      "community": 25,
-      "community_name": "Image",
-      "norm_label": ".body"
-    },
-    {
-      "label": ".body",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L600",
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_localfilevideothumbnail_body",
       "community": 25,
       "community_name": "Image",
       "norm_label": ".body"
@@ -19168,6 +19201,17 @@
       "norm_label": ".selectedlyricslides"
     },
     {
+      "label": ".selectedPhotoItems",
+      "file_type": "code",
+      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
+      "source_location": "L56",
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_selectedphotoitems",
+      "community": 42,
+      "community_name": "AppViewModel",
+      "norm_label": ".selectedphotoitems"
+    },
+    {
       "label": ".selectedSlide",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -19188,17 +19232,6 @@
       "community": 42,
       "community_name": "AppViewModel",
       "norm_label": ".simpleplaysyncdisplaystate"
-    },
-    {
-      "label": "Bool",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_swift_bool",
-      "community": 42,
-      "community_name": "AppViewModel",
-      "norm_label": "bool"
     },
     {
       "label": "CGSize",
@@ -19243,6 +19276,17 @@
       "community": 42,
       "community_name": "AppViewModel",
       "norm_label": "photospickeritem"
+    },
+    {
+      "label": "Task",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "lyriora_viewmodels_appviewmodel_swift_task",
+      "community": 42,
+      "community_name": "AppViewModel",
+      "norm_label": "task"
     },
     {
       "label": "TimeInterval",
@@ -21064,7 +21108,7 @@
       "label": ".body",
       "file_type": "code",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L95",
+      "source_location": "L99",
       "_origin": "ast",
       "id": "lyriora_views_modals_lyriceditorchrome_lyriceditorheaderbar_body",
       "community": 53,
@@ -21086,7 +21130,7 @@
       "label": ".body",
       "file_type": "code",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L142",
+      "source_location": "L146",
       "_origin": "ast",
       "id": "lyriora_views_modals_lyriceditorchrome_maclyriceditorheaderchrome_body",
       "community": 53,
@@ -22744,7 +22788,7 @@
       "_origin": "ast",
       "id": "lyriora_viewmodels_appviewmodel_pickedimagefile_transferrepresentation",
       "community": 67,
-      "community_name": "String",
+      "community_name": "PickedImageFile",
       "norm_label": ".transferrepresentation"
     },
     {
@@ -22755,41 +22799,8 @@
       "_origin": "ast",
       "id": "lyriora_viewmodels_appviewmodel_pickedvideofile_transferrepresentation",
       "community": 67,
-      "community_name": "String",
+      "community_name": "PickedImageFile",
       "norm_label": ".transferrepresentation"
-    },
-    {
-      "label": "String",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_swift_string",
-      "community": 67,
-      "community_name": "String",
-      "norm_label": "string"
-    },
-    {
-      "label": ".filteredAssets",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L39",
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_imagelibrarysection_filteredassets",
-      "community": 67,
-      "community_name": "String",
-      "norm_label": ".filteredassets"
-    },
-    {
-      "label": ".filteredAssets",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
-      "source_location": "L131",
-      "_origin": "ast",
-      "id": "lyriora_views_leftpanel_medialibrarypanelview_videolibrarysection_filteredassets",
-      "community": 67,
-      "community_name": "String",
-      "norm_label": ".filteredassets"
     },
     {
       "label": "Transferable",
@@ -22799,7 +22810,7 @@
       "_origin": "ast",
       "id": "transferable",
       "community": 67,
-      "community_name": "String",
+      "community_name": "PickedImageFile",
       "norm_label": "transferable"
     },
     {
@@ -22810,7 +22821,7 @@
       "_origin": "ast",
       "id": "transferrepresentation",
       "community": 67,
-      "community_name": "String",
+      "community_name": "PickedImageFile",
       "norm_label": "transferrepresentation"
     },
     {
@@ -23753,7 +23764,7 @@
       "label": ".themeNameField",
       "file_type": "code",
       "source_file": "Lyriora/Views/Components/ThemeSavePromptSheet.swift",
-      "source_location": "L110",
+      "source_location": "L109",
       "_origin": "ast",
       "id": "lyriora_views_components_themesavepromptsheet_themesavepromptsheet_themenamefield",
       "community": 71,
@@ -24267,70 +24278,26 @@
       "norm_label": "uuid"
     },
     {
-      "label": ".createPlaylistCard",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
-      "source_location": "L134",
-      "_origin": "ast",
-      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_createplaylistcard",
-      "community": 79,
-      "community_name": "PlaylistPickerSheet",
-      "norm_label": ".createplaylistcard"
-    },
-    {
-      "label": ".filteredPlaylists",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
-      "source_location": "L18",
-      "_origin": "ast",
-      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_filteredplaylists",
-      "community": 79,
-      "community_name": "PlaylistPickerSheet",
-      "norm_label": ".filteredplaylists"
-    },
-    {
-      "label": ".isSearching",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
-      "source_location": "L24",
-      "_origin": "ast",
-      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_issearching",
-      "community": 79,
-      "community_name": "PlaylistPickerSheet",
-      "norm_label": ".issearching"
-    },
-    {
-      "label": ".totalItemCount",
-      "file_type": "code",
-      "source_file": "Lyriora/Views/Modals/PlaylistSheets.swift",
-      "source_location": "L169",
-      "_origin": "ast",
-      "id": "lyriora_views_modals_playlistsheets_playlistpickersheet_totalitemcount",
-      "community": 79,
-      "community_name": "PlaylistPickerSheet",
-      "norm_label": ".totalitemcount"
-    },
-    {
-      "label": "Bool",
+      "label": "PhotosPickerItem",
       "file_type": "code",
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "id": "lyriora_views_modals_playlistsheets_swift_bool",
+      "id": "lyriora_services_photospickerdisplaynameresolver_swift_photospickeritem",
       "community": 79,
-      "community_name": "PlaylistPickerSheet",
-      "norm_label": "bool"
+      "community_name": ".displayName",
+      "norm_label": "photospickeritem"
     },
     {
-      "label": "Int",
+      "label": "String",
       "file_type": "code",
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "id": "lyriora_views_modals_playlistsheets_swift_int",
+      "id": "lyriora_services_photospickerdisplaynameresolver_swift_string",
       "community": 79,
-      "community_name": "PlaylistPickerSheet",
-      "norm_label": "int"
+      "community_name": ".displayName",
+      "norm_label": "string"
     },
     {
       "label": ".agents/skills/graphify/SKILL.md",
@@ -25539,28 +25506,6 @@
       "norm_label": "uuid"
     },
     {
-      "label": "PhotosPickerItem",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "lyriora_services_photospickerdisplaynameresolver_swift_photospickeritem",
-      "community": 9,
-      "community_name": "MediaAsset",
-      "norm_label": "photospickeritem"
-    },
-    {
-      "label": "String",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "lyriora_services_photospickerdisplaynameresolver_swift_string",
-      "community": 9,
-      "community_name": "MediaAsset",
-      "norm_label": "string"
-    },
-    {
       "label": ".isYouTubeLink",
       "file_type": "code",
       "source_file": "Lyriora/Utilities/YouTubeLinkParser.swift",
@@ -25594,17 +25539,6 @@
       "norm_label": ".selectedbackgroundasset"
     },
     {
-      "label": ".selectedPhotoItems",
-      "file_type": "code",
-      "source_file": "Lyriora/ViewModels/AppViewModel.swift",
-      "source_location": "L56",
-      "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_appviewmodel_selectedphotoitems",
-      "community": 9,
-      "community_name": "MediaAsset",
-      "norm_label": ".selectedphotoitems"
-    },
-    {
       "label": ".selectedVideoItems",
       "file_type": "code",
       "source_file": "Lyriora/ViewModels/AppViewModel.swift",
@@ -25616,15 +25550,15 @@
       "norm_label": ".selectedvideoitems"
     },
     {
-      "label": "Task",
+      "label": "Bool",
       "file_type": "code",
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "id": "lyriora_viewmodels_appviewmodel_swift_task",
+      "id": "lyriora_viewmodels_appviewmodel_swift_bool",
       "community": 9,
       "community_name": "MediaAsset",
-      "norm_label": "task"
+      "norm_label": "bool"
     },
     {
       "label": "URL",
@@ -25641,9 +25575,75 @@
       "label": ".body",
       "file_type": "code",
       "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_imagelibrarysection_body",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": ".body"
+    },
+    {
+      "label": ".body",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
       "source_location": "L366",
       "_origin": "ast",
       "id": "lyriora_views_leftpanel_medialibrarypanelview_mediaimporttoolbarbutton_body",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": ".body"
+    },
+    {
+      "label": ".photoPickerSelection",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L422",
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_mediaimporttoolbarbutton_photopickerselection",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": ".photopickerselection"
+    },
+    {
+      "label": "Binding",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_swift_binding",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": "binding"
+    },
+    {
+      "label": "PhotosPickerItem",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_swift_photospickeritem",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": "photospickeritem"
+    },
+    {
+      "label": "Void",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_swift_void",
+      "community": 9,
+      "community_name": "MediaAsset",
+      "norm_label": "void"
+    },
+    {
+      "label": ".body",
+      "file_type": "code",
+      "source_file": "Lyriora/Views/LeftPanel/MediaLibraryPanelView.swift",
+      "source_location": "L143",
+      "_origin": "ast",
+      "id": "lyriora_views_leftpanel_medialibrarypanelview_videolibrarysection_body",
       "community": 9,
       "community_name": "MediaAsset",
       "norm_label": ".body"
@@ -25696,7 +25696,7 @@
       "label": ".header",
       "file_type": "code",
       "source_file": "Lyriora/Views/Components/ThemeSavePromptSheet.swift",
-      "source_location": "L71",
+      "source_location": "L70",
       "_origin": "ast",
       "id": "lyriora_views_components_themesavepromptsheet_themesavepromptsheet_header",
       "community": 90,
@@ -34374,7 +34374,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "Lyriora/Views/Components/ThemeSavePromptSheet.swift",
-      "source_location": "L132",
+      "source_location": "L131",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_components_themesavepromptsheet_themesavepromptsheet_themenamefield",
@@ -35525,7 +35525,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L98",
+      "source_location": "L102",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_lyriceditorchrome_lyriceditorheaderbar_body",
@@ -35538,7 +35538,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L81",
+      "source_location": "L85",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_lyriceditorchrome_lyriceditorheaderbutton_body",
@@ -35573,7 +35573,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L145",
+      "source_location": "L149",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_lyriceditorchrome_maclyriceditorheaderchrome_body",
@@ -44560,7 +44560,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L90",
+      "source_location": "L94",
       "weight": 1.0,
       "context": "field",
       "_origin": "ast",
@@ -44572,7 +44572,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L91",
+      "source_location": "L95",
       "weight": 1.0,
       "context": "field",
       "_origin": "ast",
@@ -44584,7 +44584,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L93",
+      "source_location": "L97",
       "weight": 1.0,
       "context": "field",
       "_origin": "ast",
@@ -44668,7 +44668,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L137",
+      "source_location": "L141",
       "weight": 1.0,
       "context": "field",
       "_origin": "ast",
@@ -44680,7 +44680,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L138",
+      "source_location": "L142",
       "weight": 1.0,
       "context": "field",
       "_origin": "ast",
@@ -44692,7 +44692,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L140",
+      "source_location": "L144",
       "weight": 1.0,
       "context": "field",
       "_origin": "ast",
@@ -45004,7 +45004,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L345",
+      "source_location": "L343",
       "weight": 1.0,
       "context": "field",
       "_origin": "ast",
@@ -56656,7 +56656,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L370",
+      "source_location": "L368",
       "weight": 1.0,
       "context": "parameter_type",
       "_origin": "ast",
@@ -66057,7 +66057,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L135",
+      "source_location": "L139",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_lyriceditorchrome",
@@ -66101,7 +66101,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L88",
+      "source_location": "L92",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_lyriceditorchrome",
@@ -66244,7 +66244,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L342",
+      "source_location": "L340",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_playlistglassmodal",
@@ -66255,7 +66255,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L369",
+      "source_location": "L367",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_playlistglassmodal",
@@ -69544,7 +69544,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L88",
+      "source_location": "L92",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_lyriceditorchrome_lyriceditorheaderbar",
@@ -69577,7 +69577,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L135",
+      "source_location": "L139",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_lyriceditorchrome_maclyriceditorheaderchrome",
@@ -69665,7 +69665,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L342",
+      "source_location": "L340",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_playlistglassmodal_playlistglassemptystate",
@@ -78036,7 +78036,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Components/ThemeSavePromptSheet.swift",
-      "source_location": "L110",
+      "source_location": "L109",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_components_themesavepromptsheet_themesavepromptsheet",
@@ -78047,7 +78047,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Components/ThemeSavePromptSheet.swift",
-      "source_location": "L136",
+      "source_location": "L135",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_components_themesavepromptsheet_themesavepromptsheet",
@@ -78080,7 +78080,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Components/ThemeSavePromptSheet.swift",
-      "source_location": "L71",
+      "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_components_themesavepromptsheet_themesavepromptsheet",
@@ -79158,7 +79158,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L95",
+      "source_location": "L99",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_lyriceditorchrome_lyriceditorheaderbar",
@@ -79191,7 +79191,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/LyricEditorChrome.swift",
-      "source_location": "L142",
+      "source_location": "L146",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_lyriceditorchrome_maclyriceditorheaderchrome",
@@ -79807,7 +79807,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L347",
+      "source_location": "L345",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_playlistglassmodal_playlistglassemptystate",
@@ -79906,7 +79906,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L370",
+      "source_location": "L368",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_playlistglassmodal_view",
@@ -82642,7 +82642,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "Lyriora/Views/Components/ThemeSavePromptSheet.swift",
-      "source_location": "L90",
+      "source_location": "L89",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_components_themesavepromptsheet_themesavepromptsheet_header",
@@ -83578,7 +83578,7 @@
       "confidence": "INFERRED",
       "confidence_score": 0.8,
       "source_file": "Lyriora/Views/Modals/PlaylistGlassModal.swift",
-      "source_location": "L349",
+      "source_location": "L347",
       "weight": 1.0,
       "_origin": "ast",
       "source": "lyriora_views_modals_playlistglassmodal_playlistglassemptystate_body",
