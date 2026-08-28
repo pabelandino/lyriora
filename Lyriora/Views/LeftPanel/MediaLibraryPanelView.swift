@@ -7,6 +7,12 @@ import PhotosUI
 import SwiftUI
 import UniformTypeIdentifiers
 
+#if canImport(UIKit)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
+
 struct MediaLibraryPanelView: View {
     @Bindable var viewModel: AppViewModel
     @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
@@ -119,6 +125,8 @@ private struct VideoLibrarySection: View {
     @State private var assetPendingRename: MediaAsset?
     @State private var renameDraft = ""
     @State private var searchText = ""
+    @State private var isYouTubeLinkAlertPresented = false
+    @State private var youtubeLinkDraft = ""
 
     private var filteredAssets: [MediaAsset] {
         viewModel.filteredMediaAssets(
@@ -141,11 +149,19 @@ private struct VideoLibrarySection: View {
                     searchText: $searchText,
                     placeholder: "Search videos"
                 ) {
-                    MediaImportToolbarButton(
-                        title: "Videos",
-                        kind: .video,
-                        viewModel: viewModel
-                    )
+                    HStack(spacing: 8) {
+                        YouTubeLinkToolbarButton(
+                            onPaste: {
+                                youtubeLinkDraft = ClipboardLinkReader.string ?? ""
+                                isYouTubeLinkAlertPresented = true
+                            }
+                        )
+                        MediaImportToolbarButton(
+                            title: "Videos",
+                            kind: .video,
+                            viewModel: viewModel
+                        )
+                    }
                 }
                 .padding(.top, workspaceCompactLayout ? 8 : 10)
 
@@ -153,44 +169,28 @@ private struct VideoLibrarySection: View {
                     .padding(.horizontal, 12)
 
                 ScrollView {
-                        LazyVStack(spacing: 10) {
-                            if filteredAssets.isEmpty, !LibrarySearch.normalize(searchText).isEmpty || isPlaylistFiltered {
-                                if !LibrarySearch.normalize(searchText).isEmpty {
-                                    LibrarySearchEmptyState(query: searchText)
-                                } else {
-                                    Text("This playlist is empty")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 24)
-                                }
+                    LazyVStack(spacing: 10) {
+                        if filteredAssets.isEmpty, !LibrarySearch.normalize(searchText).isEmpty || isPlaylistFiltered {
+                            if !LibrarySearch.normalize(searchText).isEmpty {
+                                LibrarySearchEmptyState(query: searchText)
                             } else {
-                                ForEach(filteredAssets) { asset in
-                                    MediaThumbnailView(
-                                        asset: asset,
-                                        fileURL: viewModel.videoURL(for: asset),
-                                        isSelected: viewModel.isBackgroundSelected(asset),
-                                        showsDuration: true,
-                                        durationLabel: viewModel.videoDurationLabel(for: asset),
-                                        onEnsureDuration: {
-                                            await viewModel.ensureVideoDuration(for: asset)
-                                        },
-                                        onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
-                                        onRename: {
-                                            renameDraft = asset.listLabel
-                                            assetPendingRename = asset
-                                        },
-                                        onRemove: { viewModel.deleteMediaAsset(asset) },
-                                        addToPlaylistActions: playlistActions(for: asset.id, kind: .video)
-                                    )
+                                Text("This playlist is empty")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 24)
+                            }
+                        } else {
+                            ForEach(filteredAssets) { asset in
+                                videoThumbnail(for: asset)
                                     .id(asset.fileName)
-                                }
                             }
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.bottom, 12)
                     }
-                    .clippedPanelScrollContent()
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 12)
+                }
+                .clippedPanelScrollContent()
             }
             .padding(.bottom, 4)
         }
@@ -201,10 +201,46 @@ private struct VideoLibrarySection: View {
                 viewModel.renameMediaAsset(asset, to: name)
             }
         )
+        .sheet(isPresented: $isYouTubeLinkAlertPresented) {
+            YouTubeLinkEntrySheet(
+                linkDraft: $youtubeLinkDraft,
+                onAdd: {
+                    viewModel.addYouTubeBackground(from: youtubeLinkDraft)
+                    youtubeLinkDraft = ""
+                    isYouTubeLinkAlertPresented = false
+                },
+                onCancel: {
+                    youtubeLinkDraft = ""
+                    isYouTubeLinkAlertPresented = false
+                }
+            )
+        }
     }
 
     private func playlistActions(for assetID: UUID, kind: LibraryPlaylistKind) -> [GlassOverflowMenu.Action] {
         MediaLibraryPlaylistActions.make(for: assetID, kind: kind, viewModel: viewModel)
+    }
+
+    private func videoThumbnail(for asset: MediaAsset) -> some View {
+        MediaThumbnailView(
+            asset: asset,
+            fileURL: viewModel.videoURL(for: asset),
+            isSelected: viewModel.isBackgroundSelected(asset),
+            showsDuration: true,
+            durationLabel: viewModel.videoDurationLabel(for: asset),
+            onEnsureDuration: durationLoader(for: asset),
+            onSelect: { viewModel.selectBackgroundMedia(withID: asset.id) },
+            onRename: {
+                renameDraft = asset.listLabel
+                assetPendingRename = asset
+            },
+            onRemove: { viewModel.deleteMediaAsset(asset) },
+            addToPlaylistActions: playlistActions(for: asset.id, kind: .video)
+        )
+    }
+
+    private func durationLoader(for asset: MediaAsset) -> (() async -> Void)? {
+        { await viewModel.ensureVideoDuration(for: asset) }
     }
 }
 
@@ -230,6 +266,90 @@ private enum MediaLibraryPlaylistActions {
                 }
             )
         }
+    }
+}
+
+private struct YouTubeLinkToolbarButton: View {
+    let onPaste: () -> Void
+
+    @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
+
+    var body: some View {
+        Button(action: onPaste) {
+            GlassCircleIcon(
+                systemName: "link",
+                diameter: LibraryPanelMetrics.actionDiameter(compact: workspaceCompactLayout),
+                symbolSize: LibraryPanelMetrics.actionSymbolSize(compact: workspaceCompactLayout)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Add YouTube link")
+    }
+}
+
+private enum ClipboardLinkReader {
+    static var string: String? {
+        #if canImport(UIKit)
+        UIPasteboard.general.string
+        #elseif os(macOS)
+        NSPasteboard.general.string(forType: .string)
+        #else
+        nil
+        #endif
+    }
+}
+
+private struct YouTubeLinkEntrySheet: View {
+    @Binding var linkDraft: String
+    let onAdd: () -> Void
+    let onCancel: () -> Void
+
+    @FocusState private var isFieldFocused: Bool
+
+    private let placeholder = "https://youtube.com/watch?v=…"
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Paste a YouTube URL to use it as a background video.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                TextField("", text: $linkDraft, prompt: Text(placeholder))
+                    #if os(iOS)
+                    .textInputAutocapitalization(.never)
+                    .textFieldStyle(.roundedBorder)
+                    #elseif os(macOS)
+                    .textFieldStyle(.roundedBorder)
+                    #endif
+                    .autocorrectionDisabled()
+                    #if os(iOS)
+                    .keyboardType(.URL)
+                    #endif
+                    .focused($isFieldFocused)
+
+                Spacer(minLength: 0)
+            }
+            .padding(20)
+            .frame(minWidth: 360, minHeight: 140)
+            .navigationTitle("YouTube Link")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add", action: onAdd)
+                        .disabled(YouTubeLinkParser.videoID(from: linkDraft) == nil)
+                }
+            }
+            .onAppear {
+                isFieldFocused = true
+            }
+        }
+        #if os(iOS)
+        .presentationDetents([.medium])
+        #endif
     }
 }
 
@@ -427,9 +547,17 @@ private struct MediaThumbnailView: View {
     private var thumbnailContent: some View {
         if asset.kind == .image {
             LocalFileThumbnailImage(url: fileURL)
+        } else if asset.isYouTubeLink,
+                  let sourceURL = YouTubeLinkParser.normalizedURL(from: youtubeLinkString),
+                  let videoID = YouTubeLinkParser.videoID(from: sourceURL) {
+            YouTubeThumbnailView(videoID: videoID)
         } else {
             LocalFileVideoThumbnail(url: fileURL)
         }
+    }
+
+    private var youtubeLinkString: String {
+        (try? String(contentsOf: fileURL, encoding: .utf8)) ?? ""
     }
 }
 

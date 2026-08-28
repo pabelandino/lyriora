@@ -28,12 +28,11 @@ final class AppViewModel {
     var videoPlaybackMode: VideoPlaybackMode = .loop
     var isVideoPlaying = true
     let videoPlayback = VideoPlaybackController()
+    let youtubePlayback = YouTubePlaybackController()
     private(set) var showsVideoPlaybackControls = false
+    private(set) var videoStopToken = 0
     private var videoControlsRevealTask: Task<Void, Never>?
-    private var backgroundVideoLoadTask: Task<Void, Never>?
-    private var backgroundVideoLoadGeneration = 0
     private(set) var videoDurationByFileName: [String: TimeInterval] = [:]
-    private var videoDurationLoadInFlight: Set<String> = []
 
     private(set) var themes: [LyricTheme] = []
     private(set) var playlists: [LibraryPlaylist] = []
@@ -94,6 +93,10 @@ final class AppViewModel {
             guard let self, let asset = selectedBackgroundAsset else { return }
             videoDurationByFileName[asset.fileName] = duration
         }
+        self.youtubePlayback.onDurationUpdate = { [weak self] duration in
+            guard let self, let asset = selectedBackgroundAsset, asset.isYouTubeLink else { return }
+            videoDurationByFileName[asset.fileName] = duration
+        }
     }
 
     var selectedLyric: LyricDocument? {
@@ -145,13 +148,25 @@ final class AppViewModel {
             },
             slideID: slide?.id,
             slidePresentationToken: slidePresentationToken,
-            videoLoops: hasVideoBackgroundSelected ? videoPlaybackMode.loopsVideo : true,
-            isVideoPlaying: hasVideoBackgroundSelected ? isVideoPlaying : true
+            videoLoops: resolvedVideoLoops,
+            isVideoPlaying: hasControllableVideoBackgroundSelected ? isVideoPlaying : true,
+            videoStopToken: videoStopToken
         )
     }
 
     var activePresentationBackground: PresentationBackground? {
         guard let asset = selectedBackgroundAsset else { return nil }
+
+        if asset.isYouTubeLink,
+           let sourceURL = mediaRepository.youtubeLinkURL(for: asset),
+           let videoID = YouTubeLinkParser.videoID(from: sourceURL) {
+            return PresentationBackground(
+                url: sourceURL,
+                kind: .video,
+                youtubeVideoID: videoID
+            )
+        }
+
         return PresentationBackground(
             url: mediaRepository.fileURL(for: asset),
             kind: asset.kind
@@ -178,6 +193,7 @@ final class AppViewModel {
         loadThemes()
         loadPlaylists()
         Task { await preloadVideoDurations() }
+        Task { await refreshYouTubeTitlesIfNeeded() }
     }
 
     func loadPlaylists() {
@@ -470,46 +486,60 @@ final class AppViewModel {
     func selectBackgroundMedia(withID id: UUID) {
         cancelVideoControlsReveal()
         showsVideoPlaybackControls = false
-        cancelBackgroundVideoLoading()
 
         selectedBackgroundAssetID = id
         showBackground = true
-        videoPlayback.teardown()
+        resetVideoPlaybackState()
 
-        guard let asset = selectedBackgroundAsset else { return }
+        guard let asset = selectedBackgroundAsset else {
+            videoPlayback.teardown()
+            return
+        }
 
-        if asset.kind == .video {
+        if asset.kind == .video, !asset.isYouTubeLink {
             videoPlaybackMode = .loop
             isVideoPlaying = true
 
-            let assetID = asset.id
-            let generation = backgroundVideoLoadGeneration
-
-            backgroundVideoLoadTask = Task { @MainActor in
-                defer { backgroundVideoLoadTask = nil }
-                guard !Task.isCancelled else { return }
-                guard generation == backgroundVideoLoadGeneration else { return }
-                guard selectedBackgroundAssetID == assetID,
-                      selectedBackgroundAsset?.kind == .video else { return }
-
+            Task { @MainActor in
                 loadSelectedVideoBackground(asset)
-
-                guard !Task.isCancelled else { return }
-                guard generation == backgroundVideoLoadGeneration else { return }
                 scheduleVideoControlsReveal()
             }
+        } else if asset.isYouTubeLink {
+            videoPlaybackMode = .loop
+            isVideoPlaying = true
+            videoPlayback.teardown()
+            youtubePlayback.resetProgress()
+
+            Task { @MainActor in
+                scheduleVideoControlsReveal()
+                await refreshYouTubeTitleIfNeeded(for: asset)
+            }
+        } else {
+            videoPlayback.teardown()
         }
     }
 
-    private func cancelBackgroundVideoLoading() {
-        backgroundVideoLoadTask?.cancel()
-        backgroundVideoLoadTask = nil
-        backgroundVideoLoadGeneration &+= 1
+    func addYouTubeBackground(from link: String) {
+        let trimmed = link.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = YouTubeLinkParser.normalizedURL(from: trimmed),
+              YouTubeLinkParser.videoID(from: url) != nil else { return }
+
+        do {
+            let asset = try mediaRepository.importYouTubeLink(url, displayName: nil)
+            videoAssets.insert(asset, at: 0)
+            selectBackgroundMedia(asset)
+
+            Task {
+                await refreshYouTubeTitleIfNeeded(for: asset)
+            }
+        } catch {
+            return
+        }
     }
 
     private func resetVideoPlaybackState() {
-        cancelBackgroundVideoLoading()
         videoPlayback.teardown()
+        youtubePlayback.resetProgress()
     }
 
     private func cancelVideoControlsReveal() {
@@ -523,7 +553,7 @@ final class AppViewModel {
         videoControlsRevealTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(VideoControlsReveal.delayMilliseconds))
             guard !Task.isCancelled else { return }
-            guard hasVideoBackgroundSelected, showBackground else { return }
+            guard hasControllableVideoBackgroundSelected, showBackground else { return }
 
             withAnimation(GlassMorphAnimation.standard) {
                 showsVideoPlaybackControls = true
@@ -532,10 +562,6 @@ final class AppViewModel {
     }
 
     private func loadSelectedVideoBackground(_ asset: MediaAsset) {
-        guard selectedBackgroundAssetID == asset.id,
-              asset.kind == .video,
-              showBackground else { return }
-
         let url = videoURL(for: asset)
         videoPlayback.loops = videoPlaybackMode.loopsVideo
         videoPlayback.isPlaying = isVideoPlaying
@@ -544,10 +570,12 @@ final class AppViewModel {
     }
 
     private func syncVideoPlaybackSettings() {
-        guard hasVideoBackgroundSelected else { return }
-        videoPlayback.loops = videoPlaybackMode.loopsVideo
-        videoPlayback.isPlaying = isVideoPlaying
-        videoPlayback.applyPlaybackSettings()
+        if hasVideoBackgroundSelected {
+            videoPlayback.loops = videoPlaybackMode.loopsVideo
+            videoPlayback.isPlaying = isVideoPlaying
+            videoPlayback.applyPlaybackSettings()
+        }
+        refreshExternalPresentation()
     }
 
     func presentNewLyricEditor() {
@@ -670,10 +698,27 @@ final class AppViewModel {
     }
 
     var hasVideoBackgroundSelected: Bool {
-        selectedBackgroundAsset?.kind == .video
+        guard let asset = selectedBackgroundAsset else { return false }
+        return asset.kind == .video && !asset.isYouTubeLink
+    }
+
+    var hasYouTubeBackgroundSelected: Bool {
+        selectedBackgroundAsset?.isYouTubeLink == true
+    }
+
+    var hasControllableVideoBackgroundSelected: Bool {
+        hasVideoBackgroundSelected || hasYouTubeBackgroundSelected
+    }
+
+    private var resolvedVideoLoops: Bool {
+        if hasYouTubeBackgroundSelected {
+            return false
+        }
+        return hasControllableVideoBackgroundSelected ? videoPlaybackMode.loopsVideo : true
     }
 
     func toggleVideoPlaybackMode() {
+        guard !hasYouTubeBackgroundSelected else { return }
         videoPlaybackMode = videoPlaybackMode.toggled
         syncVideoPlaybackSettings()
     }
@@ -685,10 +730,21 @@ final class AppViewModel {
 
     func stopVideo() {
         isVideoPlaying = false
-        videoPlayback.stop()
+        if hasVideoBackgroundSelected {
+            videoPlayback.stop()
+        }
+        if hasYouTubeBackgroundSelected {
+            videoStopToken += 1
+        }
+        syncVideoPlaybackSettings()
     }
 
     func seekVideo(to time: TimeInterval) {
+        if hasYouTubeBackgroundSelected {
+            youtubePlayback.requestSeek(to: time)
+            return
+        }
+
         let clamped = max(0, min(time, max(videoPlayback.duration, 0)))
         videoPlayback.seek(to: clamped)
     }
@@ -703,15 +759,51 @@ final class AppViewModel {
     }
 
     func ensureVideoDuration(for asset: MediaAsset) async {
-        guard asset.kind == .video, videoDuration(for: asset) == nil else { return }
-        guard !videoDurationLoadInFlight.contains(asset.fileName) else { return }
+        if asset.isYouTubeLink {
+            await refreshYouTubeTitleIfNeeded(for: asset)
+            return
+        }
 
-        videoDurationLoadInFlight.insert(asset.fileName)
-        defer { videoDurationLoadInFlight.remove(asset.fileName) }
+        guard asset.kind == .video, videoDuration(for: asset) == nil else { return }
 
         let url = videoURL(for: asset)
         if let duration = await VideoAssetMetadataLoader.loadDuration(from: url) {
             videoDurationByFileName[asset.fileName] = duration
+        }
+    }
+
+    private func refreshYouTubeTitlesIfNeeded() async {
+        for asset in videoAssets where asset.isYouTubeLink {
+            await refreshYouTubeTitleIfNeeded(for: asset)
+        }
+    }
+
+    private func refreshYouTubeTitleIfNeeded(for asset: MediaAsset) async {
+        guard asset.isYouTubeLink, shouldRefreshYouTubeTitle(asset) else { return }
+        guard let url = mediaRepository.youtubeLinkURL(for: asset) else { return }
+        guard let title = await YouTubeMetadataLoader.fetchTitle(for: url) else { return }
+        applyYouTubeTitle(title, to: asset)
+    }
+
+    private func shouldRefreshYouTubeTitle(_ asset: MediaAsset) -> Bool {
+        guard asset.isYouTubeLink else { return false }
+
+        let label = asset.listLabel
+        if label == "YouTube" { return true }
+
+        guard label.hasPrefix("YouTube ") else { return false }
+        let suffix = String(label.dropFirst("YouTube ".count))
+        return YouTubeLinkParser.videoID(from: suffix) != nil
+    }
+
+    private func applyYouTubeTitle(_ title: String, to asset: MediaAsset) {
+        guard let index = videoAssets.firstIndex(where: { $0.id == asset.id }) else { return }
+
+        do {
+            let updated = try mediaRepository.updateDisplayName(for: videoAssets[index], to: title)
+            videoAssets[index] = updated
+        } catch {
+            return
         }
     }
 
@@ -837,18 +929,10 @@ final class AppViewModel {
 
     func handleRemoteShowSlide(_ command: ShowSlideCommand) {
         guard let lyric = lyrics.first(where: { $0.id == command.lyricID }) else { return }
+        selectLyric(lyric)
         guard let slide = lyric.slides.first(where: { $0.id == command.slideID }) else { return }
-
-        if selectedLyricID != lyric.id {
-            selectedLyricID = lyric.id
-        }
-
-        let isReselect = selectedSlideIndex == slide.index
-        selectedSlideIndex = slide.index
-        if isReselect {
-            slidePresentationToken += 1
-        }
-        showLyrics = true
+        selectSlide(slide)
+        refreshExternalPresentation()
     }
 
     func applySimplePlaySectionLink(_ command: LinkSectionCommand) {

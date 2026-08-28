@@ -9,6 +9,8 @@ protocol MediaRepositoryProtocol {
     func loadAll(kind: MediaAssetKind) throws -> [MediaAsset]
     func importData(_ data: Data, kind: MediaAssetKind, preferredExtension: String, displayName: String?) throws -> MediaAsset
     func importFile(from sourceURL: URL, kind: MediaAssetKind, displayName: String?) throws -> MediaAsset
+    func importYouTubeLink(_ url: URL, displayName: String?) throws -> MediaAsset
+    func youtubeLinkURL(for asset: MediaAsset) -> URL?
     func updateDisplayName(for asset: MediaAsset, to displayName: String) throws -> MediaAsset
     func fileURL(for asset: MediaAsset) -> URL
     func delete(_ asset: MediaAsset) throws
@@ -129,6 +131,40 @@ final class MediaRepository: MediaRepositoryProtocol {
         return asset
     }
 
+    func importYouTubeLink(_ url: URL, displayName: String? = nil) throws -> MediaAsset {
+        guard YouTubeLinkParser.videoID(from: url) != nil else {
+            throw MediaRepositoryError.invalidYouTubeLink
+        }
+
+        let fileName = "\(UUID().uuidString).ytlink"
+        let destination = mediaDirectory
+            .appendingPathComponent(MediaAssetKind.video.rawValue, isDirectory: true)
+            .appendingPathComponent(fileName)
+
+        try url.absoluteString.write(to: destination, atomically: true, encoding: .utf8)
+
+        let resolvedDisplayName = sanitizedDisplayName(displayName, fallbackFileName: "YouTube")
+        let asset = MediaAsset(
+            kind: .video,
+            fileName: fileName,
+            displayName: resolvedDisplayName
+        )
+        saveIndexEntry(
+            MediaIndexEntry(displayName: resolvedDisplayName, assetID: asset.id),
+            for: fileName
+        )
+
+        return asset
+    }
+
+    func youtubeLinkURL(for asset: MediaAsset) -> URL? {
+        guard asset.isYouTubeLink else { return nil }
+        let fileURL = fileURL(for: asset)
+        guard let raw = try? String(contentsOf: fileURL, encoding: .utf8) else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return YouTubeLinkParser.normalizedURL(from: trimmed)
+    }
+
     func fileURL(for asset: MediaAsset) -> URL {
         mediaDirectory
             .appendingPathComponent(asset.kind.rawValue, isDirectory: true)
@@ -208,4 +244,8 @@ final class MediaRepository: MediaRepositoryProtocol {
         guard let data = try? JSONEncoder().encode(index) else { return }
         try? data.write(to: indexURL, options: .atomic)
     }
+}
+
+enum MediaRepositoryError: Error {
+    case invalidYouTubeLink
 }
