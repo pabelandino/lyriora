@@ -120,9 +120,13 @@ struct PresentationPreviewView: View {
             .allowsHitTesting(false)
     }
 
+    private var usesLocalVideoPlayerStage: Bool {
+        isVideoBackground && !(state.background?.isYouTube ?? false)
+    }
+
     @ViewBuilder
     private func previewStageContent(fittedSize: CGSize, scale: CGFloat) -> some View {
-        if isVideoBackground {
+        if usesLocalVideoPlayerStage {
             ZStack {
                 Color.black
 
@@ -132,7 +136,11 @@ struct PresentationPreviewView: View {
                         defaultBackgroundSettings: defaultBackgroundSettings,
                         contentMode: backgroundContentMode,
                         canvasSize: canvasSize,
-                        sharedVideoPlayer: viewModel.videoPlayback.player
+                        sharedVideoPlayer: viewModel.videoPlayback.player,
+                        videoLoops: state.videoLoops,
+                        isVideoPlaying: state.isVideoPlaying,
+                        videoStopToken: state.videoStopToken,
+                        youtubePlayback: viewModel.youtubePlayback
                     )
                     .frame(width: fittedSize.width, height: fittedSize.height)
                 }
@@ -161,6 +169,7 @@ struct PresentationPreviewView: View {
                 backgroundContentMode: backgroundContentMode,
                 canvasSize: canvasSize,
                 sharedVideoPlayer: viewModel.videoPlayback.player,
+                youtubePlayback: viewModel.youtubePlayback,
                 animationQuality: .preview
             )
             .frame(width: canvasSize.width, height: canvasSize.height)
@@ -175,24 +184,35 @@ private struct PresentationVideoControls: View {
     @Bindable var viewModel: AppViewModel
     @Binding var scrubValue: TimeInterval
     @Bindable private var videoPlayback: VideoPlaybackController
+    @Bindable private var youtubePlayback: YouTubePlaybackController
 
     init(viewModel: AppViewModel, scrubValue: Binding<TimeInterval>) {
         self.viewModel = viewModel
         self._scrubValue = scrubValue
         self._videoPlayback = Bindable(viewModel.videoPlayback)
+        self._youtubePlayback = Bindable(viewModel.youtubePlayback)
     }
 
     var body: some View {
         VStack(spacing: 6) {
             Slider(
                 value: sliderBinding,
-                in: 0...max(videoPlayback.duration, 0.01)
+                in: 0...max(activeDuration, 0.01)
             ) { editing in
-                videoPlayback.isScrubbing = editing
-                if editing {
-                    scrubValue = videoPlayback.currentTime
+                if usesYouTubePlayback {
+                    youtubePlayback.isScrubbing = editing
+                    if editing {
+                        scrubValue = youtubePlayback.currentTime
+                    } else {
+                        viewModel.seekVideo(to: scrubValue)
+                    }
                 } else {
-                    viewModel.seekVideo(to: scrubValue)
+                    videoPlayback.isScrubbing = editing
+                    if editing {
+                        scrubValue = videoPlayback.currentTime
+                    } else {
+                        viewModel.seekVideo(to: scrubValue)
+                    }
                 }
             }
             .tint(.green)
@@ -204,7 +224,7 @@ private struct PresentationVideoControls: View {
 
                 Spacer(minLength: 8)
 
-                Text(VideoDurationFormatter.playbackTime(for: videoPlayback.duration))
+                Text(VideoDurationFormatter.playbackTime(for: activeDuration))
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
@@ -212,10 +232,21 @@ private struct PresentationVideoControls: View {
         .padding(.horizontal, 4)
     }
 
+    private var usesYouTubePlayback: Bool {
+        viewModel.hasYouTubeBackgroundSelected
+    }
+
+    private var activeDuration: TimeInterval {
+        usesYouTubePlayback ? youtubePlayback.duration : videoPlayback.duration
+    }
+
     private var sliderBinding: Binding<TimeInterval> {
         Binding(
             get: {
-                videoPlayback.isScrubbing ? scrubValue : videoPlayback.currentTime
+                if usesYouTubePlayback {
+                    return youtubePlayback.isScrubbing ? scrubValue : youtubePlayback.currentTime
+                }
+                return videoPlayback.isScrubbing ? scrubValue : videoPlayback.currentTime
             },
             set: { newValue in
                 scrubValue = newValue
@@ -224,7 +255,10 @@ private struct PresentationVideoControls: View {
     }
 
     private var displayedCurrentTime: TimeInterval {
-        videoPlayback.isScrubbing ? scrubValue : videoPlayback.currentTime
+        if usesYouTubePlayback {
+            return youtubePlayback.isScrubbing ? scrubValue : youtubePlayback.currentTime
+        }
+        return videoPlayback.isScrubbing ? scrubValue : videoPlayback.currentTime
     }
 }
 
@@ -268,6 +302,7 @@ struct ExternalPresentationView: View {
                 viewModel.externalDisplayManager.presentationCanvasSize
             ),
             sharedVideoPlayer: viewModel.videoPlayback.player,
+            youtubePlayback: viewModel.youtubePlayback,
             isAnimating: true,
             animationQuality: .live
         )
@@ -283,6 +318,7 @@ struct PresentationContentView: View {
     var backgroundContentMode: BackgroundContentMode = .fill
     var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
     var sharedVideoPlayer: AVPlayer?
+    var youtubePlayback: YouTubePlaybackController?
     var isAnimating: Bool = true
     var animationQuality: PresentationAnimationQuality = .live
 
@@ -304,7 +340,11 @@ struct PresentationContentView: View {
                             defaultBackgroundSettings: defaultBackgroundSettings,
                             contentMode: backgroundContentMode,
                             canvasSize: canvasSize,
-                            sharedVideoPlayer: sharedVideoPlayer
+                            sharedVideoPlayer: sharedVideoPlayer,
+                            videoLoops: state.videoLoops,
+                            isVideoPlaying: state.isVideoPlaying,
+                            videoStopToken: state.videoStopToken,
+                            youtubePlayback: youtubePlayback
                         )
                     }
 

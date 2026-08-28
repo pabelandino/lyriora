@@ -17,6 +17,7 @@ struct PresentationState: Equatable, Sendable {
     var slidePresentationToken: Int = 0
     var videoLoops: Bool = true
     var isVideoPlaying: Bool = true
+    var videoStopToken: Int = 0
 
     static let empty = PresentationState(
         showBackground: false,

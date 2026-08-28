@@ -65,6 +65,7 @@ struct CenterPanelView: View {
         HStack(alignment: .center, spacing: workspaceCompactLayout ? 8 : 16) {
             PresentationActionsToolbar(
                 showsVideoControls: viewModel.showsVideoPlaybackControls,
+                showsLoopControl: !viewModel.hasYouTubeBackgroundSelected,
                 playbackMode: viewModel.videoPlaybackMode,
                 isVideoPlaying: viewModel.isVideoPlaying,
                 hasCustomBackgroundSelected: viewModel.hasCustomBackgroundSelected,
