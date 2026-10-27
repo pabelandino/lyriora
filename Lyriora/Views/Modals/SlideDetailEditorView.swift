@@ -110,15 +110,21 @@ struct SlideDetailEditorView: View {
                         .scrollContentBackground(.hidden)
                         .padding(8)
                         .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .onChange(of: slide.text) { _, _ in
+                            onSlideContentChanged?()
+                        }
                 }
 
                 GroupBox("Tag") {
                     Picker("Section", selection: $slide.tag) {
-                        ForEach(LyricSlideTag.allCases) { tag in
-                            Text(tag.localizedName(for: language)).tag(tag)
+                        ForEach(LyricSlideTag.allCases) { sectionTag in
+                            Text(sectionTag.localizedName(for: language)).tag(sectionTag)
                         }
                     }
                     .pickerStyle(.menu)
+                    .onChange(of: slide.tag) { _, _ in
+                        onSlideContentChanged?()
+                    }
                 }
 
                 GroupBox("Typography") {

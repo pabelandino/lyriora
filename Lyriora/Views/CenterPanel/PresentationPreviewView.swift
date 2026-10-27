@@ -266,9 +266,23 @@ private struct PresentationVideoControls: View {
 extension PresentationPreviewView {
     private var previewMetadataBar: some View {
         HStack(spacing: 8) {
-            Label("Live preview", systemImage: "play.rectangle")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+            if state.isBiblePresentation,
+               let reference = state.bibleReferenceLabel,
+               let version = state.bibleVersionName {
+                Label(reference, systemImage: "book")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+
+                Text(version)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+            } else {
+                Label("Live preview", systemImage: "play.rectangle")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
 
             Spacer(minLength: 8)
 
@@ -361,9 +375,44 @@ struct PresentationContentView: View {
                             animationQuality: animationQuality
                         )
                     }
+
+                    if state.isBiblePresentation,
+                       let reference = state.bibleReferenceLabel,
+                       let version = state.bibleVersionName {
+                        VStack {
+                            Spacer()
+                            BiblePresentationFooterView(reference: reference, versionName: version)
+                                .padding(.horizontal, canvasSize.width * 0.06)
+                                .padding(.bottom, canvasSize.height * 0.05)
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .ignoresSafeArea()
+    }
+}
+
+struct BiblePresentationFooterView: View {
+    let reference: String
+    let versionName: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(reference)
+                .font(.title3.weight(.semibold))
+            Spacer(minLength: 8)
+            Text(versionName)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 10)
+        .background {
+            Capsule(style: .continuous)
+                .fill(.black.opacity(0.45))
+                .glassEffect(.regular, in: .capsule)
+        }
     }
 }

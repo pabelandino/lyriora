@@ -137,6 +137,7 @@ extension LyricDocument {
             style: layoutStyle,
             containerSize: containerSize
         )
-        return LyricSlideMetadataPreservation.apply(previousSlides: previousSlides, to: rechunks)
+        let preserved = LyricSlideMetadataPreservation.apply(previousSlides: previousSlides, to: rechunks)
+        return LyricSlideMetadataPreservation.applySectionTags(from: sourceSections, to: preserved)
     }
 }

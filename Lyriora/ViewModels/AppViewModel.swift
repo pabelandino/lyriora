@@ -51,6 +51,20 @@ final class AppViewModel {
     var isSettingsSheetPresented = false
     var isSimplePlayConnectionInfoPresented = false
 
+    private(set) var bibleVersions: [BibleVersionManifest] = []
+    var selectedBibleVersionID: UUID?
+    var isBiblePresentationPresented = false
+    var isBibleVersionImportPresented = false
+    var bibleSearchQuery = ""
+    private(set) var bibleSearchHints: [BibleSearchHint] = []
+    var bibleReadingSession: BibleReadingSession?
+    private(set) var loadedBibleIndex: BibleVersionIndex?
+    private(set) var loadedBibleSearchIndex: BibleSearchIndex?
+    private(set) var isSearchingBible = false
+    private var bibleSearchTask: Task<Void, Never>?
+    var bibleImportErrorMessage: String?
+    private(set) var isLoadingBibleIndex = false
+
     private(set) var simplePlayConnectionRefreshToken = 0
 
     var selectedPhotoItems: [PhotosPickerItem] = [] {
@@ -74,6 +88,7 @@ final class AppViewModel {
     private let settingsRepository: SettingsRepositoryProtocol
     private let themeRepository: ThemeRepositoryProtocol
     private let playlistRepository: PlaylistRepositoryProtocol
+    private let bibleVersionRepository: BibleVersionRepositoryProtocol
 
     init(
         lyricRepository: LyricRepositoryProtocol? = nil,
@@ -81,6 +96,7 @@ final class AppViewModel {
         settingsRepository: SettingsRepositoryProtocol? = nil,
         themeRepository: ThemeRepositoryProtocol? = nil,
         playlistRepository: PlaylistRepositoryProtocol? = nil,
+        bibleVersionRepository: BibleVersionRepositoryProtocol? = nil,
         externalDisplayManager: ExternalDisplayManager? = nil
     ) {
         self.lyricRepository = lyricRepository ?? LyricRepository()
@@ -88,6 +104,7 @@ final class AppViewModel {
         self.settingsRepository = settingsRepository ?? SettingsRepository()
         self.themeRepository = themeRepository ?? ThemeRepository()
         self.playlistRepository = playlistRepository ?? PlaylistRepository()
+        self.bibleVersionRepository = bibleVersionRepository ?? BibleVersionRepository()
         self.externalDisplayManager = externalDisplayManager ?? ExternalDisplayManager()
         self.videoPlayback.onDurationUpdate = { [weak self] duration in
             guard let self, let asset = selectedBackgroundAsset else { return }
@@ -131,6 +148,28 @@ final class AppViewModel {
     }
 
     var presentationState: PresentationState {
+        if let session = bibleReadingSession, let slide = session.previewSlide {
+            let animationProfile = settings.biblePresentation.animationProfile.transitionsOnly
+            return PresentationState(
+                showBackground: showBackground,
+                showLyrics: showLyrics,
+                slideText: slide.text,
+                lyricTitle: nil,
+                background: activePresentationBackground,
+                slideStyle: settings.biblePresentation.style,
+                slideAnimationProfile: animationProfile,
+                wordFontSizeOverrides: [],
+                slideID: slide.id,
+                slidePresentationToken: slidePresentationToken,
+                videoLoops: resolvedVideoLoops,
+                isVideoPlaying: hasControllableVideoBackgroundSelected ? isVideoPlaying : true,
+                videoStopToken: videoStopToken,
+                bibleReferenceLabel: slide.referenceLabel,
+                bibleVersionName: session.versionName,
+                isBiblePresentation: true
+            )
+        }
+
         let slide = selectedSlide
         let slideStyle = slide.flatMap { slide in
             selectedLyric.map { $0.styleProfile.resolvedStyle(for: slide) }
@@ -193,6 +232,7 @@ final class AppViewModel {
 
         loadThemes()
         loadPlaylists()
+        loadBibleVersions()
         Task { await preloadVideoDurations() }
         Task { await refreshYouTubeTitlesIfNeeded() }
     }
@@ -445,6 +485,7 @@ final class AppViewModel {
     }
 
     func selectLyric(_ lyric: LyricDocument) {
+        clearBibleReadingSession()
         selectedLyricID = lyric.id
         selectedSlideIndex = nil
         showLyrics = false
@@ -472,6 +513,7 @@ final class AppViewModel {
     }
 
     func selectSlide(_ slide: LyricSlide) {
+        clearBibleReadingSession()
         let isReselect = selectedSlideIndex == slide.index
         selectedSlideIndex = slide.index
         if isReselect {
@@ -603,22 +645,32 @@ final class AppViewModel {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty, !slides.isEmpty else { return }
 
-        let canonicalSections = sourceSections.isEmpty
-            ? LyricImportParser.parseSections(rawContent).sections
-            : sourceSections
+        let canonicalSections = {
+            let base = sourceSections.isEmpty
+                ? LyricImportParser.parseSections(rawContent).sections
+                : sourceSections
+            guard !slides.isEmpty, !base.isEmpty else { return base }
+            return LyricSlideMetadataPreservation.syncSections(from: slides, into: base)
+        }()
         let canonicalContent = canonicalSections.isEmpty
             ? rawContent
             : LyricImportParser.rawText(from: canonicalSections, language: language)
+
+        let normalizedSlides = slides.enumerated().map { index, slide in
+            var normalized = slide
+            normalized.order = index
+            return normalized
+        }
+        let taggedSlides = LyricSlideMetadataPreservation.applySectionTags(
+            from: canonicalSections,
+            to: normalizedSlides
+        )
 
         var lyric = LyricDocument(
             id: id ?? UUID(),
             title: trimmedTitle,
             content: canonicalContent,
-            storedSlides: slides.enumerated().map { index, slide in
-                var normalized = slide
-                normalized.order = index
-                return normalized
-            },
+            storedSlides: taggedSlides,
             sourceSections: canonicalSections,
             styleProfile: styleProfile,
             language: language
@@ -674,9 +726,11 @@ final class AppViewModel {
         withAnimation(GlassMorphAnimation.standard) {
             selectedBackgroundAssetID = nil
             showBackground = true
+            selectedSlideIndex = nil
             showLyrics = false
             showsVideoPlaybackControls = false
             resetVideoPlaybackState()
+            clearBibleReadingSession()
         }
     }
 
@@ -691,7 +745,9 @@ final class AppViewModel {
     }
 
     func clearLyrics() {
+        selectedSlideIndex = nil
         showLyrics = false
+        clearBibleReadingSession()
     }
 
     var hasCustomBackgroundSelected: Bool {
@@ -1251,6 +1307,368 @@ private struct PickedImageFile: Transferable {
         }
     }
 }
+
+// MARK: - Bible Presentation
+
+extension AppViewModel {
+    var selectedBibleVersion: BibleVersionManifest? {
+        guard let selectedBibleVersionID else { return bibleVersions.first }
+        return bibleVersions.first { $0.id == selectedBibleVersionID } ?? bibleVersions.first
+    }
+
+    var isBiblePresentationActive: Bool {
+        bibleReadingSession != nil
+    }
+
+    var bibleSlides: [BiblePresentationSlide] {
+        bibleReadingSession?.slides ?? []
+    }
+
+    var selectedBibleSlideIndex: Int? {
+        bibleReadingSession?.previewSlideIndex
+    }
+
+    var recentBibleThemes: [LyricTheme] {
+        Array(themes.prefix(8))
+    }
+
+    func loadBibleVersions() {
+        do {
+            bibleVersions = try bibleVersionRepository.loadManifests()
+            if let savedID = settings.biblePresentation.selectedVersionID,
+               bibleVersions.contains(where: { $0.id == savedID }) {
+                selectedBibleVersionID = savedID
+            } else {
+                selectedBibleVersionID = bibleVersions.first?.id
+            }
+
+            if selectedBibleVersion != nil {
+                Task { await reloadBibleIndex() }
+            }
+        } catch {
+            bibleVersions = []
+            selectedBibleVersionID = nil
+            loadedBibleIndex = nil
+            loadedBibleSearchIndex = nil
+        }
+    }
+
+    func openBiblePresentation() {
+        isBiblePresentationPresented = true
+        bibleImportErrorMessage = nil
+        if loadedBibleIndex == nil, selectedBibleVersion != nil {
+            Task { await reloadBibleIndex() }
+        }
+    }
+
+    func updateBibleSearchQuery(_ query: String) {
+        bibleSearchQuery = query
+        bibleSearchTask?.cancel()
+
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let index = loadedBibleIndex else {
+            bibleSearchHints = []
+            isSearchingBible = false
+            return
+        }
+
+        guard !trimmed.isEmpty else {
+            bibleSearchHints = []
+            isSearchingBible = false
+            return
+        }
+
+        if let referenceHints = BibleSearchEngine.referenceHints(for: trimmed, in: index, limit: 12),
+           !referenceHints.isEmpty {
+            bibleSearchHints = referenceHints
+            isSearchingBible = false
+            return
+        }
+
+        guard trimmed.count >= 3 else {
+            bibleSearchHints = []
+            isSearchingBible = false
+            return
+        }
+
+        guard let searchIndex = loadedBibleSearchIndex else {
+            bibleSearchHints = []
+            isSearchingBible = false
+            return
+        }
+
+        isSearchingBible = true
+        let snapshot = trimmed
+        bibleSearchTask = Task {
+            try? await Task.sleep(nanoseconds: 280_000_000)
+            guard !Task.isCancelled else { return }
+
+            let hints = BibleSearchEngine.hints(
+                for: snapshot,
+                in: index,
+                searchIndex: searchIndex,
+                limit: 12
+            )
+
+            await MainActor.run {
+                guard bibleSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == snapshot else { return }
+                bibleSearchHints = hints
+                isSearchingBible = false
+            }
+        }
+    }
+
+    func importBibleVersion(from url: URL) {
+        bibleImportErrorMessage = nil
+        do {
+            let (manifest, index) = try bibleVersionRepository.importXML(
+                from: url,
+                suggestedName: url.deletingPathExtension().lastPathComponent
+            )
+            var manifests = bibleVersions
+            manifests.insert(manifest, at: 0)
+            try bibleVersionRepository.saveManifests(manifests)
+            bibleVersions = manifests
+            selectedBibleVersionID = manifest.id
+            loadedBibleIndex = index
+            rebuildBibleSearchIndex(from: index)
+            settings.biblePresentation.selectedVersionID = manifest.id
+            saveSettings()
+        } catch {
+            bibleImportErrorMessage = error.localizedDescription
+        }
+    }
+
+    func deleteBibleVersion(_ manifest: BibleVersionManifest) {
+        do {
+            try bibleVersionRepository.delete(manifest)
+            var manifests = bibleVersions
+            manifests.removeAll { $0.id == manifest.id }
+            try bibleVersionRepository.saveManifests(manifests)
+            bibleVersions = manifests
+
+            if bibleReadingSession?.versionID == manifest.id {
+                clearBibleReadingSession()
+            }
+
+            if selectedBibleVersionID == manifest.id {
+                selectedBibleVersionID = manifests.first?.id
+                settings.biblePresentation.selectedVersionID = selectedBibleVersionID
+                saveSettings()
+                loadedBibleIndex = nil
+                loadedBibleSearchIndex = nil
+                if selectedBibleVersion != nil {
+                    Task { await reloadBibleIndex() }
+                }
+            }
+        } catch {
+            bibleImportErrorMessage = error.localizedDescription
+        }
+    }
+
+    func selectBibleVersion(_ manifest: BibleVersionManifest) {
+        selectedBibleVersionID = manifest.id
+        settings.biblePresentation.selectedVersionID = manifest.id
+        saveSettings()
+        loadedBibleIndex = nil
+        loadedBibleSearchIndex = nil
+        bibleSearchHints = []
+        Task { await reloadBibleIndex() }
+    }
+
+    func presentBibleHint(_ hint: BibleSearchHint) {
+        guard let index = loadedBibleIndex,
+              let version = selectedBibleVersion else { return }
+
+        let (bookNumber, chapter, verse) = passageContext(for: hint)
+        let slides = BibleSlideBuilder.slides(
+            for: hint,
+            index: index,
+            style: settings.biblePresentation.style,
+            containerSize: presentationLayoutCanvasSize
+        )
+        guard !slides.isEmpty else { return }
+
+        bibleReadingSession = BibleReadingSession(
+            versionID: version.id,
+            versionName: version.prettyDisplayName,
+            bookNumber: bookNumber,
+            chapter: chapter,
+            slides: slides,
+            previewSlideIndex: 0,
+            stripFocusIndex: 0
+        )
+        showLyrics = true
+        slidePresentationToken += 1
+        isBiblePresentationPresented = false
+    }
+
+    func presentBibleSelection(bookNumber: Int, chapter: Int, verse: Int?) {
+        guard let index = loadedBibleIndex,
+              let version = selectedBibleVersion else { return }
+
+        let slides = BibleSlideBuilder.initialSlides(
+            bookNumber: bookNumber,
+            chapter: chapter,
+            verse: verse,
+            index: index,
+            style: settings.biblePresentation.style,
+            containerSize: presentationLayoutCanvasSize
+        )
+        guard !slides.isEmpty else { return }
+
+        bibleReadingSession = BibleReadingSession(
+            versionID: version.id,
+            versionName: version.prettyDisplayName,
+            bookNumber: bookNumber,
+            chapter: chapter,
+            slides: slides,
+            previewSlideIndex: 0,
+            stripFocusIndex: 0
+        )
+        showLyrics = true
+        slidePresentationToken += 1
+        isBiblePresentationPresented = false
+    }
+
+    func selectBibleSlide(at index: Int) {
+        guard var session = bibleReadingSession else { return }
+        session.presentSlide(at: index)
+        bibleReadingSession = session
+        slidePresentationToken += 1
+        showLyrics = true
+    }
+
+    func goToPreviousBibleSlide() {
+        guard var session = bibleReadingSession, session.canGoPreviousInStrip else { return }
+        session.focusStrip(at: session.stripFocusIndex - 1)
+        bibleReadingSession = session
+    }
+
+    func goToNextBibleSlide() {
+        guard var session = bibleReadingSession else { return }
+
+        if session.stripFocusIndex + 1 < session.slides.count {
+            session.focusStrip(at: session.stripFocusIndex + 1)
+            bibleReadingSession = session
+            return
+        }
+
+        guard let index = loadedBibleIndex,
+              let nextSlide = BibleSlideBuilder.nextAppendableSlide(
+                after: session,
+                bibleIndex: index,
+                style: settings.biblePresentation.style,
+                containerSize: presentationLayoutCanvasSize
+              ) else { return }
+
+        session.slides.append(nextSlide)
+        session.focusStrip(at: session.slides.count - 1)
+        bibleReadingSession = session
+    }
+
+    func bibleCanGoNext(in session: BibleReadingSession) -> Bool {
+        guard let index = loadedBibleIndex else { return false }
+        return session.canGoNextInStrip(
+            in: index,
+            style: settings.biblePresentation.style,
+            containerSize: presentationLayoutCanvasSize
+        )
+    }
+
+    func applyBibleTheme(_ theme: LyricTheme) {
+        settings.biblePresentation.style = theme.style
+        settings.biblePresentation.selectedThemeID = theme.id
+        saveSettings()
+        refreshBibleSlidesIfNeeded()
+    }
+
+    func updateBibleTransitionProfile(_ update: (inout SlideAnimationProfile) -> Void) {
+        update(&settings.biblePresentation.animationProfile)
+        settings.biblePresentation.animationProfile.resetEffects()
+        saveSettings()
+    }
+
+    func clearBibleReadingSession() {
+        bibleReadingSession = nil
+    }
+
+    func dismissBibleReadingSession() {
+        clearBibleReadingSession()
+        showLyrics = false
+    }
+
+    func refreshBibleSlidesIfNeeded() {
+        guard var session = bibleReadingSession,
+              let index = loadedBibleIndex else { return }
+
+        let slides = BibleSlideBuilder.rebuildSlides(
+            from: session,
+            index: index,
+            style: settings.biblePresentation.style,
+            containerSize: presentationLayoutCanvasSize
+        )
+        guard !slides.isEmpty else { return }
+
+        let preservedPreview = min(session.previewSlideIndex, slides.count - 1)
+        let preservedFocus = min(session.stripFocusIndex, slides.count - 1)
+        session.slides = slides
+        session.previewSlideIndex = preservedPreview
+        session.stripFocusIndex = preservedFocus
+        bibleReadingSession = session
+        slidePresentationToken += 1
+    }
+
+    private func passageContext(for hint: BibleSearchHint) -> (Int, Int, Int?) {
+        switch hint.kind {
+        case let .reference(bookNumber, chapter, verse):
+            return (bookNumber, chapter, verse)
+        case let .textMatch(location, _):
+            return (location.bookNumber, location.chapter, location.verse)
+        }
+    }
+
+    @MainActor
+    func reloadBibleIndex() async {
+        guard let version = selectedBibleVersion else {
+            loadedBibleIndex = nil
+            loadedBibleSearchIndex = nil
+            bibleSearchHints = []
+            return
+        }
+
+        isLoadingBibleIndex = true
+        defer { isLoadingBibleIndex = false }
+
+        do {
+            let index = try bibleVersionRepository.loadIndex(for: version)
+            loadedBibleIndex = index
+            rebuildBibleSearchIndex(from: index)
+        } catch {
+            loadedBibleIndex = nil
+            loadedBibleSearchIndex = nil
+            bibleSearchHints = []
+            bibleImportErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func rebuildBibleSearchIndex(from index: BibleVersionIndex) {
+        bibleSearchTask?.cancel()
+        isSearchingBible = false
+        loadedBibleSearchIndex = nil
+
+        Task.detached(priority: .userInitiated) {
+            let built = BibleSearchIndex.build(from: index)
+            await MainActor.run { [self] in
+                loadedBibleSearchIndex = built
+                if !bibleSearchQuery.isEmpty {
+                    updateBibleSearchQuery(bibleSearchQuery)
+                }
+            }
+        }
+    }
+}
+
 
 private struct PickedVideoFile: Transferable {
     let url: URL

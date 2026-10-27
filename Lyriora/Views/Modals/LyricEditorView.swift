@@ -549,17 +549,36 @@ struct LyricEditorView: View {
         styleProfile = existingLyric.styleProfile
         language = existingLyric.language
 
+        slides = existingLyric.storedSlides.isEmpty
+            ? existingLyric.slides
+            : existingLyric.storedSlides.sorted { $0.order < $1.order }
+
         if !existingLyric.sourceSections.isEmpty {
             sourceSections = existingLyric.sourceSections
         } else if !existingLyric.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             sourceSections = LyricImportParser.parseSections(existingLyric.content).sections
         } else {
-            sourceSections = LyricImportParser.sections(from: existingLyric.slides)
+            sourceSections = LyricImportParser.sections(from: slides)
         }
 
-        slides = existingLyric.slides
+        if !slides.isEmpty {
+            let linkedSectionIDs = Set(slides.compactMap(\.sourceSectionID))
+            let canonicalSectionIDs = Set(sourceSections.map(\.id))
+            if linkedSectionIDs.isEmpty || !linkedSectionIDs.isSubset(of: canonicalSectionIDs) {
+                sourceSections = LyricImportParser.sections(from: slides)
+            }
+        }
+
+        if !sourceSections.isEmpty, !slides.isEmpty {
+            sourceSections = LyricSlideMetadataPreservation.syncSections(
+                from: slides,
+                into: sourceSections
+            )
+        }
         if !sourceSections.isEmpty {
             rechunkSlides()
+        } else {
+            slides = []
         }
 
         syncRawContentFromSections()
@@ -598,7 +617,8 @@ struct LyricEditorView: View {
             from: sourceSections,
             style: styleProfile.defaultStyle
         )
-        slides = LyricSlideMetadataPreservation.apply(previousSlides: previousSlides, to: rechunks)
+        let preserved = LyricSlideMetadataPreservation.apply(previousSlides: previousSlides, to: rechunks)
+        slides = LyricSlideMetadataPreservation.applySectionTags(from: sourceSections, to: preserved)
     }
 
     private func reparseFromRawContent() {
@@ -617,22 +637,45 @@ struct LyricEditorView: View {
         rawContent = LyricImportParser.rawText(from: sourceSections, language: language)
     }
 
-    private func syncSectionFromEditedSlide(_ slideID: UUID) {
-        guard let slide = slides.first(where: { $0.id == slideID }),
-              let sectionID = slide.sourceSectionID,
-              let sectionIndex = sourceSections.firstIndex(where: { $0.id == sectionID }) else {
-            sourceSections = LyricImportParser.sections(from: slides)
-            syncRawContentFromSections()
+    /// Applies slide-level edits (tag/text) back onto canonical sections before save or re-chunking.
+    private func syncSourceSectionsFromSlides() {
+        guard !sourceSections.isEmpty else {
+            if !slides.isEmpty {
+                sourceSections = LyricImportParser.sections(from: slides)
+            }
             return
         }
 
-        let sectionSlides = slides
-            .filter { $0.sourceSectionID == sectionID }
-            .sorted { $0.order < $1.order }
+        sourceSections = LyricSlideMetadataPreservation.syncSections(
+            from: slides,
+            into: sourceSections
+        )
 
-        sourceSections[sectionIndex].lines = sectionSlides.flatMap { LyricImportParser.lines(from: $0.text) }
-        sourceSections[sectionIndex].tag = sectionSlides.first?.tag ?? sourceSections[sectionIndex].tag
+        let tagsBySectionID = Dictionary(uniqueKeysWithValues: sourceSections.map { ($0.id, $0.tag) })
+        for index in slides.indices {
+            guard let sectionID = slides[index].sourceSectionID,
+                  let canonicalTag = tagsBySectionID[sectionID] else { continue }
+            slides[index].tag = canonicalTag
+        }
+    }
 
+    private func syncRawContentIfEdited() {
+        let expectedRaw = LyricImportParser.rawText(from: sourceSections, language: language)
+        let normalizedExpected = LyricImportParser.normalizedLineBreaks(expectedRaw)
+        let normalizedRaw = LyricImportParser.normalizedLineBreaks(rawContent)
+        guard normalizedRaw != normalizedExpected else { return }
+
+        let parsed = LyricImportParser.parseSections(rawContent)
+        sourceSections = parsed.sections
+        language = parsed.language
+        if parsed.sections.isEmpty {
+            slides = []
+        }
+    }
+
+    private func syncSectionFromEditedSlide(_ slideID: UUID) {
+        _ = slideID
+        syncSourceSectionsFromSlides()
         rechunkSlides()
         syncRawContentFromSections()
     }
@@ -692,9 +735,12 @@ struct LyricEditorView: View {
     }
 
     private func performSaveLyric() {
+        syncRawContentIfEdited()
+        syncSourceSectionsFromSlides()
         if !sourceSections.isEmpty {
             rechunkSlides()
         }
+        syncRawContentFromSections()
         viewModel.saveLyric(
             id: existingLyricID,
             title: title,

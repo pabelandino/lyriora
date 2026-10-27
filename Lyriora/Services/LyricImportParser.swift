@@ -50,11 +50,15 @@ enum LyricImportParser {
             from: sectionResult.sections,
             style: styleProfile.defaultStyle
         )
+        let taggedSlides = LyricSlideMetadataPreservation.applySectionTags(
+            from: sectionResult.sections,
+            to: slides
+        )
 
         return LyricImportResult(
             title: sectionResult.title,
             sections: sectionResult.sections,
-            slides: slides,
+            slides: taggedSlides,
             language: sectionResult.language,
             warnings: sectionResult.warnings.isEmpty && slides.isEmpty
                 ? ["No slides could be generated"]

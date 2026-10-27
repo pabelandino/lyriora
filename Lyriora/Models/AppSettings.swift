@@ -12,13 +12,15 @@ struct AppSettings: Codable, Equatable, Sendable {
     var backgroundContentMode: BackgroundContentMode
     /// When true, SimplePlay can still connect but Lyriora ignores automatic slide triggers.
     var isSimplePlayManualMode: Bool
+    var biblePresentation: BiblePresentationSettings
 
     static let `default` = AppSettings(
         externalDisplay: .externalDefault,
         preview: .previewDefault,
         defaultBackground: .default,
         backgroundContentMode: .fill,
-        isSimplePlayManualMode: false
+        isSimplePlayManualMode: false,
+        biblePresentation: .default
     )
 
     init(
@@ -26,13 +28,15 @@ struct AppSettings: Codable, Equatable, Sendable {
         preview: PresentationTextSettings,
         defaultBackground: DefaultBackgroundSettings,
         backgroundContentMode: BackgroundContentMode = .fill,
-        isSimplePlayManualMode: Bool = false
+        isSimplePlayManualMode: Bool = false,
+        biblePresentation: BiblePresentationSettings = .default
     ) {
         self.externalDisplay = externalDisplay
         self.preview = preview
         self.defaultBackground = defaultBackground
         self.backgroundContentMode = backgroundContentMode
         self.isSimplePlayManualMode = isSimplePlayManualMode
+        self.biblePresentation = biblePresentation
     }
 
     init(from decoder: Decoder) throws {
@@ -48,6 +52,10 @@ struct AppSettings: Codable, Equatable, Sendable {
             forKey: .backgroundContentMode
         ) ?? .fill
         isSimplePlayManualMode = try container.decodeIfPresent(Bool.self, forKey: .isSimplePlayManualMode) ?? false
+        biblePresentation = try container.decodeIfPresent(
+            BiblePresentationSettings.self,
+            forKey: .biblePresentation
+        ) ?? .default
     }
 }
 

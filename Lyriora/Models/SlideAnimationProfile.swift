@@ -241,6 +241,13 @@ struct SlideAnimationProfile: Codable, Equatable, Sendable {
         resetEffects()
     }
 
+    /// Bible presentation uses transitions only — no persistent pro effects.
+    var transitionsOnly: SlideAnimationProfile {
+        var profile = self
+        profile.resetEffects()
+        return profile
+    }
+
     /// Best target to select in the editor when restoring saved scoped transitions.
     var preferredTransitionSelectionTarget: TextAnimationTarget? {
         let scoped = Self.preferredSelectionTarget(

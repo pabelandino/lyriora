@@ -234,4 +234,31 @@ enum LyricSlideLayoutEngine {
 
         return chunks
     }
+
+    static func chunkedSlideTexts(
+        from text: String,
+        style: SlideTextStyle,
+        containerSize: CGSize = PresentationLayout.referenceCanvasSize
+    ) -> [String] {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return [] }
+
+        let configuration = PresentationTextConfiguration(style: style)
+        let configuredMax = max(1, style.maxLinesPerSlide)
+        let effectiveMax = effectiveMaxLinesPerSlide(
+            style: style,
+            configuration: configuration,
+            containerSize: containerSize,
+            configuredMax: configuredMax
+        )
+        let displayLines = displayLines(
+            for: [trimmed],
+            style: style,
+            configuration: configuration,
+            containerSize: containerSize
+        )
+        return chunkLines(displayLines, maxLines: effectiveMax)
+            .map { $0.joined(separator: "\n") }
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
 }

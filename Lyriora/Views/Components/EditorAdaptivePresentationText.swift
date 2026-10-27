@@ -78,6 +78,12 @@ struct ExplicitLinePresentationText: View {
     let availableSize: CGSize
     var scalesToFitWidth: Bool = false
 
+    private var renderedFontSize: CGFloat {
+        guard scalesToFitWidth else { return fontSize }
+        let scale = uniformWidthScale(for: fontSize)
+        return max(fontSize * scale, configuration.minFontSize)
+    }
+
     var body: some View {
         VStack(spacing: configuration.lineSpacing) {
             ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
@@ -96,18 +102,32 @@ struct ExplicitLinePresentationText: View {
 
     @ViewBuilder
     private func lineView(_ line: String) -> some View {
-        let content = Text(line.trimmingCharacters(in: .whitespaces).isEmpty ? " " : line)
-            .font(configuration.font(size: fontSize))
+        Text(line.trimmingCharacters(in: .whitespaces).isEmpty ? " " : line)
+            .font(configuration.font(size: renderedFontSize))
             .multilineTextAlignment(.center)
             .foregroundStyle(configuration.textColor)
             .lineLimit(1)
             .frame(maxWidth: availableSize.width)
+    }
 
-        if scalesToFitWidth {
-            content.minimumScaleFactor(0.5)
-        } else {
-            content
+    private func uniformWidthScale(for fontSize: CGFloat) -> CGFloat {
+        guard availableSize.width > 0 else { return 1 }
+
+        var widest: CGFloat = 0
+        for line in lines {
+            let content = line.trimmingCharacters(in: .whitespaces).isEmpty ? " " : line
+            widest = max(
+                widest,
+                PresentationTextMeasurer.measureSingleLine(
+                    content,
+                    fontSize: fontSize,
+                    configuration: configuration
+                ).width
+            )
         }
+
+        guard widest > availableSize.width, widest > 0 else { return 1 }
+        return availableSize.width / widest
     }
 }
 

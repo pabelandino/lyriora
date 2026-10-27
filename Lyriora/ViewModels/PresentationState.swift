@@ -19,6 +19,9 @@ struct PresentationState: Equatable, Sendable {
     var videoLoops: Bool = true
     var isVideoPlaying: Bool = true
     var videoStopToken: Int = 0
+    var bibleReferenceLabel: String?
+    var bibleVersionName: String?
+    var isBiblePresentation: Bool = false
 
     static let empty = PresentationState(
         showBackground: false,
