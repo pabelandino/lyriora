@@ -18,6 +18,7 @@ final class AppViewModel {
 
     var selectedLyricID: UUID?
     var selectedSlideIndex: Int?
+    var slidePresentationToken = 0
     var selectedBackgroundAssetID: UUID?
 
     var showBackground = true
@@ -27,15 +28,44 @@ final class AppViewModel {
     var videoPlaybackMode: VideoPlaybackMode = .loop
     var isVideoPlaying = true
     let videoPlayback = VideoPlaybackController()
+    let youtubePlayback = YouTubePlaybackController()
     private(set) var showsVideoPlaybackControls = false
+    private(set) var videoStopToken = 0
     private var videoControlsRevealTask: Task<Void, Never>?
     private(set) var videoDurationByFileName: [String: TimeInterval] = [:]
 
     private(set) var themes: [LyricTheme] = []
+    private(set) var playlists: [LibraryPlaylist] = []
+
+    var selectedLyricPlaylistID: UUID?
+    var selectedImagePlaylistID: UUID?
+    var selectedVideoPlaylistID: UUID?
+
+    var isPlaylistPickerPresented = false
+    var isPlaylistEditorPresented = false
+    var playlistPickerKind: LibraryPlaylistKind = .lyric
+    var playlistEditorTargetID: UUID?
 
     var lyricEditorLaunch: LyricEditorLaunch?
     var isDisplayInfoSheetPresented = false
     var isSettingsSheetPresented = false
+    var isSimplePlayConnectionInfoPresented = false
+
+    private(set) var bibleVersions: [BibleVersionManifest] = []
+    var selectedBibleVersionID: UUID?
+    var isBiblePresentationPresented = false
+    var isBibleVersionImportPresented = false
+    var bibleSearchQuery = ""
+    private(set) var bibleSearchHints: [BibleSearchHint] = []
+    var bibleReadingSession: BibleReadingSession?
+    private(set) var loadedBibleIndex: BibleVersionIndex?
+    private(set) var loadedBibleSearchIndex: BibleSearchIndex?
+    private(set) var isSearchingBible = false
+    private var bibleSearchTask: Task<Void, Never>?
+    var bibleImportErrorMessage: String?
+    private(set) var isLoadingBibleIndex = false
+
+    private(set) var simplePlayConnectionRefreshToken = 0
 
     var selectedPhotoItems: [PhotosPickerItem] = [] {
         didSet {
@@ -50,26 +80,38 @@ final class AppViewModel {
     }
 
     let externalDisplayManager: ExternalDisplayManager
+    private let simplePlaySync = LyricPlaySyncServer()
+    private var simplePlayConnectionMonitorTask: Task<Void, Never>?
 
     private let lyricRepository: LyricRepositoryProtocol
     private let mediaRepository: MediaRepositoryProtocol
     private let settingsRepository: SettingsRepositoryProtocol
     private let themeRepository: ThemeRepositoryProtocol
+    private let playlistRepository: PlaylistRepositoryProtocol
+    private let bibleVersionRepository: BibleVersionRepositoryProtocol
 
     init(
         lyricRepository: LyricRepositoryProtocol? = nil,
         mediaRepository: MediaRepositoryProtocol? = nil,
         settingsRepository: SettingsRepositoryProtocol? = nil,
         themeRepository: ThemeRepositoryProtocol? = nil,
+        playlistRepository: PlaylistRepositoryProtocol? = nil,
+        bibleVersionRepository: BibleVersionRepositoryProtocol? = nil,
         externalDisplayManager: ExternalDisplayManager? = nil
     ) {
         self.lyricRepository = lyricRepository ?? LyricRepository()
         self.mediaRepository = mediaRepository ?? MediaRepository()
         self.settingsRepository = settingsRepository ?? SettingsRepository()
         self.themeRepository = themeRepository ?? ThemeRepository()
+        self.playlistRepository = playlistRepository ?? PlaylistRepository()
+        self.bibleVersionRepository = bibleVersionRepository ?? BibleVersionRepository()
         self.externalDisplayManager = externalDisplayManager ?? ExternalDisplayManager()
         self.videoPlayback.onDurationUpdate = { [weak self] duration in
             guard let self, let asset = selectedBackgroundAsset else { return }
+            videoDurationByFileName[asset.fileName] = duration
+        }
+        self.youtubePlayback.onDurationUpdate = { [weak self] duration in
+            guard let self, let asset = selectedBackgroundAsset, asset.isYouTubeLink else { return }
             videoDurationByFileName[asset.fileName] = duration
         }
     }
@@ -106,6 +148,28 @@ final class AppViewModel {
     }
 
     var presentationState: PresentationState {
+        if let session = bibleReadingSession, let slide = session.previewSlide {
+            let animationProfile = settings.biblePresentation.animationProfile.transitionsOnly
+            return PresentationState(
+                showBackground: showBackground,
+                showLyrics: showLyrics,
+                slideText: slide.text,
+                lyricTitle: nil,
+                background: activePresentationBackground,
+                slideStyle: settings.biblePresentation.style,
+                slideAnimationProfile: animationProfile,
+                wordFontSizeOverrides: [],
+                slideID: slide.id,
+                slidePresentationToken: slidePresentationToken,
+                videoLoops: resolvedVideoLoops,
+                isVideoPlaying: hasControllableVideoBackgroundSelected ? isVideoPlaying : true,
+                videoStopToken: videoStopToken,
+                bibleReferenceLabel: slide.referenceLabel,
+                bibleVersionName: session.versionName,
+                isBiblePresentation: true
+            )
+        }
+
         let slide = selectedSlide
         let slideStyle = slide.flatMap { slide in
             selectedLyric.map { $0.styleProfile.resolvedStyle(for: slide) }
@@ -118,13 +182,31 @@ final class AppViewModel {
             lyricTitle: selectedLyric?.title,
             background: activePresentationBackground,
             slideStyle: slideStyle,
-            videoLoops: hasVideoBackgroundSelected ? videoPlaybackMode.loopsVideo : true,
-            isVideoPlaying: hasVideoBackgroundSelected ? isVideoPlaying : true
+            slideAnimationProfile: slide.flatMap { selectedSlide in
+                selectedLyric.map { $0.styleProfile.resolvedAnimationProfile(for: selectedSlide) }
+            },
+            wordFontSizeOverrides: slide?.wordFontSizeOverrides ?? [],
+            slideID: slide?.id,
+            slidePresentationToken: slidePresentationToken,
+            videoLoops: resolvedVideoLoops,
+            isVideoPlaying: hasControllableVideoBackgroundSelected ? isVideoPlaying : true,
+            videoStopToken: videoStopToken
         )
     }
 
     var activePresentationBackground: PresentationBackground? {
         guard let asset = selectedBackgroundAsset else { return nil }
+
+        if asset.isYouTubeLink,
+           let sourceURL = mediaRepository.youtubeLinkURL(for: asset),
+           let videoID = YouTubeLinkParser.videoID(from: sourceURL) {
+            return PresentationBackground(
+                url: sourceURL,
+                kind: .video,
+                youtubeVideoID: videoID
+            )
+        }
+
         return PresentationBackground(
             url: mediaRepository.fileURL(for: asset),
             kind: asset.kind
@@ -149,7 +231,222 @@ final class AppViewModel {
         }
 
         loadThemes()
+        loadPlaylists()
+        loadBibleVersions()
         Task { await preloadVideoDurations() }
+        Task { await refreshYouTubeTitlesIfNeeded() }
+    }
+
+    func loadPlaylists() {
+        playlists = (try? playlistRepository.loadAll()) ?? []
+    }
+
+    func playlists(for kind: LibraryPlaylistKind) -> [LibraryPlaylist] {
+        playlists.filter { $0.kind == kind }
+    }
+
+    func selectedPlaylistID(for kind: LibraryPlaylistKind) -> UUID? {
+        switch kind {
+        case .lyric: selectedLyricPlaylistID
+        case .image: selectedImagePlaylistID
+        case .video: selectedVideoPlaylistID
+        }
+    }
+
+    func selectedPlaylist(for kind: LibraryPlaylistKind) -> LibraryPlaylist? {
+        guard let id = selectedPlaylistID(for: kind) else { return nil }
+        return playlists.first { $0.id == id }
+    }
+
+    func selectPlaylist(_ playlist: LibraryPlaylist) {
+        selectPlaylist(for: playlist.kind, id: playlist.id)
+    }
+
+    func clearPlaylistSelection(for kind: LibraryPlaylistKind) {
+        switch kind {
+        case .lyric: selectedLyricPlaylistID = nil
+        case .image: selectedImagePlaylistID = nil
+        case .video: selectedVideoPlaylistID = nil
+        }
+    }
+
+    func presentPlaylistPicker(for kind: LibraryPlaylistKind) {
+        playlistPickerKind = kind
+        isPlaylistPickerPresented = true
+    }
+
+    func presentPlaylistEditor(for playlist: LibraryPlaylist?) {
+        if let playlist {
+            playlistEditorTargetID = playlist.id
+        } else {
+            playlistEditorTargetID = nil
+        }
+        isPlaylistEditorPresented = true
+    }
+
+    @discardableResult
+    func createPlaylist(name: String, kind: LibraryPlaylistKind) -> LibraryPlaylist? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        let playlist = LibraryPlaylist(name: trimmed, kind: kind)
+        try? playlistRepository.save(playlist)
+        loadPlaylists()
+        selectPlaylist(for: kind, id: playlist.id)
+        return playlist
+    }
+
+    func renamePlaylist(_ playlist: LibraryPlaylist, to name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        var updated = playlist
+        updated.name = trimmed
+        updated.updatedAt = .now
+        try? playlistRepository.save(updated)
+        loadPlaylists()
+    }
+
+    func deletePlaylist(_ playlist: LibraryPlaylist) {
+        try? playlistRepository.delete(playlist)
+        loadPlaylists()
+
+        if selectedPlaylistID(for: playlist.kind) == playlist.id {
+            clearPlaylistSelection(for: playlist.kind)
+        }
+    }
+
+    func addItems(to playlistID: UUID, itemIDs: [UUID]) {
+        guard var playlist = playlists.first(where: { $0.id == playlistID }) else { return }
+
+        for itemID in itemIDs where !playlist.itemIDs.contains(itemID) {
+            playlist.itemIDs.append(itemID)
+        }
+
+        playlist.updatedAt = .now
+        try? playlistRepository.save(playlist)
+        loadPlaylists()
+    }
+
+    func removeItem(from playlistID: UUID, itemID: UUID) {
+        guard var playlist = playlists.first(where: { $0.id == playlistID }) else { return }
+        playlist.itemIDs.removeAll { $0 == itemID }
+        playlist.updatedAt = .now
+        try? playlistRepository.save(playlist)
+        loadPlaylists()
+    }
+
+    func reorderPlaylistItems(in playlistID: UUID, itemIDs: [UUID]) {
+        guard var playlist = playlists.first(where: { $0.id == playlistID }) else { return }
+        playlist.itemIDs = itemIDs
+        playlist.updatedAt = .now
+        try? playlistRepository.save(playlist)
+        loadPlaylists()
+    }
+
+    func savePlaylist(id: UUID?, name: String, kind: LibraryPlaylistKind, itemIDs: [UUID]) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if let id, var playlist = playlists.first(where: { $0.id == id }) {
+            playlist.name = trimmed
+            playlist.itemIDs = itemIDs
+            playlist.updatedAt = .now
+            try? playlistRepository.save(playlist)
+        } else {
+            var playlist = LibraryPlaylist(name: trimmed, kind: kind, itemIDs: itemIDs)
+            try? playlistRepository.save(playlist)
+            selectPlaylist(for: kind, id: playlist.id)
+        }
+
+        loadPlaylists()
+    }
+
+    func removeItemFromAllPlaylists(itemID: UUID, kind: LibraryPlaylistKind) {
+        for playlist in playlists where playlist.kind == kind && playlist.itemIDs.contains(itemID) {
+            removeItem(from: playlist.id, itemID: itemID)
+        }
+    }
+
+    func filteredLyrics(searchText: String, playlistID: UUID?) -> [LyricDocument] {
+        var results = lyrics
+
+        if let playlistID,
+           let playlist = playlists.first(where: { $0.id == playlistID }) {
+            let allowed = Set(playlist.itemIDs)
+            results = results.filter { allowed.contains($0.id) }
+        }
+
+        guard !LibrarySearch.normalize(searchText).isEmpty else {
+            return results
+        }
+
+        return results.filter { $0.matchesSearch(searchText) }
+    }
+
+    func filteredMediaAssets(kind: MediaAssetKind, searchText: String, playlistID: UUID?) -> [MediaAsset] {
+        let source = kind == .image ? imageAssets : videoAssets
+        var results = source
+
+        if let playlistID,
+           let playlist = playlists.first(where: { $0.id == playlistID }) {
+            let allowed = Set(playlist.itemIDs)
+            results = results.filter { allowed.contains($0.id) }
+        }
+
+        guard !LibrarySearch.normalize(searchText).isEmpty else {
+            return results
+        }
+
+        return results.filter { $0.matchesSearch(searchText) }
+    }
+
+    func playlistItemLabel(for itemID: UUID, kind: LibraryPlaylistKind) -> String {
+        switch kind {
+        case .lyric:
+            lyrics.first { $0.id == itemID }?.title ?? "Unknown lyric"
+        case .image:
+            imageAssets.first { $0.id == itemID }?.listLabel ?? "Unknown image"
+        case .video:
+            videoAssets.first { $0.id == itemID }?.listLabel ?? "Unknown video"
+        }
+    }
+
+    func playlistItemMatchesSearch(_ itemID: UUID, kind: LibraryPlaylistKind, query: String) -> Bool {
+        guard !LibrarySearch.normalize(query).isEmpty else { return true }
+
+        switch kind {
+        case .lyric:
+            guard let lyric = lyrics.first(where: { $0.id == itemID }) else { return false }
+            return lyric.matchesSearch(query)
+        case .image:
+            guard let asset = imageAssets.first(where: { $0.id == itemID }) else { return false }
+            return asset.matchesSearch(query)
+        case .video:
+            guard let asset = videoAssets.first(where: { $0.id == itemID }) else { return false }
+            return asset.matchesSearch(query)
+        }
+    }
+
+    func mediaAsset(for itemID: UUID, kind: LibraryPlaylistKind) -> MediaAsset? {
+        switch kind {
+        case .lyric: nil
+        case .image: imageAssets.first { $0.id == itemID }
+        case .video: videoAssets.first { $0.id == itemID }
+        }
+    }
+
+    func mediaFileURL(for itemID: UUID, kind: LibraryPlaylistKind) -> URL? {
+        guard let asset = mediaAsset(for: itemID, kind: kind) else { return nil }
+        return mediaRepository.fileURL(for: asset)
+    }
+
+    private func selectPlaylist(for kind: LibraryPlaylistKind, id: UUID) {
+        switch kind {
+        case .lyric: selectedLyricPlaylistID = id
+        case .image: selectedImagePlaylistID = id
+        case .video: selectedVideoPlaylistID = id
+        }
     }
 
     func loadThemes() {
@@ -188,6 +485,7 @@ final class AppViewModel {
     }
 
     func selectLyric(_ lyric: LyricDocument) {
+        clearBibleReadingSession()
         selectedLyricID = lyric.id
         selectedSlideIndex = nil
         showLyrics = false
@@ -201,6 +499,7 @@ final class AppViewModel {
         }
 
         lyrics.removeAll { $0.id == lyric.id }
+        removeItemFromAllPlaylists(itemID: lyric.id, kind: .lyric)
 
         if selectedLyricID == lyric.id {
             if let next = lyrics.first {
@@ -214,7 +513,12 @@ final class AppViewModel {
     }
 
     func selectSlide(_ slide: LyricSlide) {
+        clearBibleReadingSession()
+        let isReselect = selectedSlideIndex == slide.index
         selectedSlideIndex = slide.index
+        if isReselect {
+            slidePresentationToken += 1
+        }
         showLyrics = true
     }
 
@@ -235,7 +539,7 @@ final class AppViewModel {
             return
         }
 
-        if asset.kind == .video {
+        if asset.kind == .video, !asset.isYouTubeLink {
             videoPlaybackMode = .loop
             isVideoPlaying = true
 
@@ -243,13 +547,42 @@ final class AppViewModel {
                 loadSelectedVideoBackground(asset)
                 scheduleVideoControlsReveal()
             }
+        } else if asset.isYouTubeLink {
+            videoPlaybackMode = .loop
+            isVideoPlaying = true
+            videoPlayback.teardown()
+            youtubePlayback.resetProgress()
+
+            Task { @MainActor in
+                scheduleVideoControlsReveal()
+                await refreshYouTubeTitleIfNeeded(for: asset)
+            }
         } else {
             videoPlayback.teardown()
         }
     }
 
+    func addYouTubeBackground(from link: String) {
+        let trimmed = link.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = YouTubeLinkParser.normalizedURL(from: trimmed),
+              YouTubeLinkParser.videoID(from: url) != nil else { return }
+
+        do {
+            let asset = try mediaRepository.importYouTubeLink(url, displayName: nil)
+            videoAssets.insert(asset, at: 0)
+            selectBackgroundMedia(asset)
+
+            Task {
+                await refreshYouTubeTitleIfNeeded(for: asset)
+            }
+        } catch {
+            return
+        }
+    }
+
     private func resetVideoPlaybackState() {
         videoPlayback.teardown()
+        youtubePlayback.resetProgress()
     }
 
     private func cancelVideoControlsReveal() {
@@ -263,7 +596,7 @@ final class AppViewModel {
         videoControlsRevealTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(VideoControlsReveal.delayMilliseconds))
             guard !Task.isCancelled else { return }
-            guard hasVideoBackgroundSelected, showBackground else { return }
+            guard hasControllableVideoBackgroundSelected, showBackground else { return }
 
             withAnimation(GlassMorphAnimation.standard) {
                 showsVideoPlaybackControls = true
@@ -280,10 +613,12 @@ final class AppViewModel {
     }
 
     private func syncVideoPlaybackSettings() {
-        guard hasVideoBackgroundSelected else { return }
-        videoPlayback.loops = videoPlaybackMode.loopsVideo
-        videoPlayback.isPlaying = isVideoPlaying
-        videoPlayback.applyPlaybackSettings()
+        if hasVideoBackgroundSelected {
+            videoPlayback.loops = videoPlaybackMode.loopsVideo
+            videoPlayback.isPlaying = isVideoPlaying
+            videoPlayback.applyPlaybackSettings()
+        }
+        refreshExternalPresentation()
     }
 
     func presentNewLyricEditor() {
@@ -310,22 +645,32 @@ final class AppViewModel {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty, !slides.isEmpty else { return }
 
-        let canonicalSections = sourceSections.isEmpty
-            ? LyricImportParser.parseSections(rawContent).sections
-            : sourceSections
+        let canonicalSections = {
+            let base = sourceSections.isEmpty
+                ? LyricImportParser.parseSections(rawContent).sections
+                : sourceSections
+            guard !slides.isEmpty, !base.isEmpty else { return base }
+            return LyricSlideMetadataPreservation.syncSections(from: slides, into: base)
+        }()
         let canonicalContent = canonicalSections.isEmpty
             ? rawContent
             : LyricImportParser.rawText(from: canonicalSections, language: language)
+
+        let normalizedSlides = slides.enumerated().map { index, slide in
+            var normalized = slide
+            normalized.order = index
+            return normalized
+        }
+        let taggedSlides = LyricSlideMetadataPreservation.applySectionTags(
+            from: canonicalSections,
+            to: normalizedSlides
+        )
 
         var lyric = LyricDocument(
             id: id ?? UUID(),
             title: trimmedTitle,
             content: canonicalContent,
-            storedSlides: slides.enumerated().map { index, slide in
-                var normalized = slide
-                normalized.order = index
-                return normalized
-            },
+            storedSlides: taggedSlides,
             sourceSections: canonicalSections,
             styleProfile: styleProfile,
             language: language
@@ -333,12 +678,26 @@ final class AppViewModel {
 
         do {
             try lyricRepository.save(lyric)
+            let preservedSlideIndex = id == selectedLyricID ? selectedSlideIndex : nil
             if let existingIndex = lyrics.firstIndex(where: { $0.id == lyric.id }) {
                 lyrics[existingIndex] = lyric
             } else {
                 lyrics.insert(lyric, at: 0)
             }
-            selectLyric(lyric)
+
+            selectedLyricID = lyric.id
+            let resolved = resolvedSlides(for: lyric)
+            if let preservedSlideIndex, resolved.indices.contains(preservedSlideIndex) {
+                selectedSlideIndex = preservedSlideIndex
+                showLyrics = true
+                slidePresentationToken += 1
+            } else if let first = resolved.first {
+                selectedSlideIndex = first.index
+                showLyrics = true
+            } else {
+                selectedSlideIndex = nil
+                showLyrics = false
+            }
         } catch {
             return
         }
@@ -367,9 +726,11 @@ final class AppViewModel {
         withAnimation(GlassMorphAnimation.standard) {
             selectedBackgroundAssetID = nil
             showBackground = true
+            selectedSlideIndex = nil
             showLyrics = false
             showsVideoPlaybackControls = false
             resetVideoPlaybackState()
+            clearBibleReadingSession()
         }
     }
 
@@ -384,7 +745,9 @@ final class AppViewModel {
     }
 
     func clearLyrics() {
+        selectedSlideIndex = nil
         showLyrics = false
+        clearBibleReadingSession()
     }
 
     var hasCustomBackgroundSelected: Bool {
@@ -392,10 +755,27 @@ final class AppViewModel {
     }
 
     var hasVideoBackgroundSelected: Bool {
-        selectedBackgroundAsset?.kind == .video
+        guard let asset = selectedBackgroundAsset else { return false }
+        return asset.kind == .video && !asset.isYouTubeLink
+    }
+
+    var hasYouTubeBackgroundSelected: Bool {
+        selectedBackgroundAsset?.isYouTubeLink == true
+    }
+
+    var hasControllableVideoBackgroundSelected: Bool {
+        hasVideoBackgroundSelected || hasYouTubeBackgroundSelected
+    }
+
+    private var resolvedVideoLoops: Bool {
+        if hasYouTubeBackgroundSelected {
+            return false
+        }
+        return hasControllableVideoBackgroundSelected ? videoPlaybackMode.loopsVideo : true
     }
 
     func toggleVideoPlaybackMode() {
+        guard !hasYouTubeBackgroundSelected else { return }
         videoPlaybackMode = videoPlaybackMode.toggled
         syncVideoPlaybackSettings()
     }
@@ -407,10 +787,21 @@ final class AppViewModel {
 
     func stopVideo() {
         isVideoPlaying = false
-        videoPlayback.stop()
+        if hasVideoBackgroundSelected {
+            videoPlayback.stop()
+        }
+        if hasYouTubeBackgroundSelected {
+            videoStopToken += 1
+        }
+        syncVideoPlaybackSettings()
     }
 
     func seekVideo(to time: TimeInterval) {
+        if hasYouTubeBackgroundSelected {
+            youtubePlayback.requestSeek(to: time)
+            return
+        }
+
         let clamped = max(0, min(time, max(videoPlayback.duration, 0)))
         videoPlayback.seek(to: clamped)
     }
@@ -425,11 +816,51 @@ final class AppViewModel {
     }
 
     func ensureVideoDuration(for asset: MediaAsset) async {
+        if asset.isYouTubeLink {
+            await refreshYouTubeTitleIfNeeded(for: asset)
+            return
+        }
+
         guard asset.kind == .video, videoDuration(for: asset) == nil else { return }
 
         let url = videoURL(for: asset)
         if let duration = await VideoAssetMetadataLoader.loadDuration(from: url) {
             videoDurationByFileName[asset.fileName] = duration
+        }
+    }
+
+    private func refreshYouTubeTitlesIfNeeded() async {
+        for asset in videoAssets where asset.isYouTubeLink {
+            await refreshYouTubeTitleIfNeeded(for: asset)
+        }
+    }
+
+    private func refreshYouTubeTitleIfNeeded(for asset: MediaAsset) async {
+        guard asset.isYouTubeLink, shouldRefreshYouTubeTitle(asset) else { return }
+        guard let url = mediaRepository.youtubeLinkURL(for: asset) else { return }
+        guard let title = await YouTubeMetadataLoader.fetchTitle(for: url) else { return }
+        applyYouTubeTitle(title, to: asset)
+    }
+
+    private func shouldRefreshYouTubeTitle(_ asset: MediaAsset) -> Bool {
+        guard asset.isYouTubeLink else { return false }
+
+        let label = asset.listLabel
+        if label == "YouTube" { return true }
+
+        guard label.hasPrefix("YouTube ") else { return false }
+        let suffix = String(label.dropFirst("YouTube ".count))
+        return YouTubeLinkParser.videoID(from: suffix) != nil
+    }
+
+    private func applyYouTubeTitle(_ title: String, to asset: MediaAsset) {
+        guard let index = videoAssets.firstIndex(where: { $0.id == asset.id }) else { return }
+
+        do {
+            let updated = try mediaRepository.updateDisplayName(for: videoAssets[index], to: title)
+            videoAssets[index] = updated
+        } catch {
+            return
         }
     }
 
@@ -446,6 +877,141 @@ final class AppViewModel {
 
     func refreshExternalPresentation() {
         externalDisplayManager.refreshPresentation()
+    }
+
+    var isSimplePlayConnected: Bool {
+        _ = simplePlayConnectionRefreshToken
+        guard !settings.isSimplePlayManualMode else { return false }
+        guard let lastActivity = simplePlaySync.lastClientActivityAt else { return false }
+        return Date().timeIntervalSince(lastActivity) < 12
+    }
+
+    var simplePlaySyncDisplayState: SimplePlaySyncDisplayState {
+        _ = simplePlayConnectionRefreshToken
+        if settings.isSimplePlayManualMode {
+            return .manual
+        }
+        if let lastActivity = simplePlaySync.lastClientActivityAt,
+           Date().timeIntervalSince(lastActivity) < 12 {
+            return .connected
+        }
+        return .disconnected
+    }
+
+    func setSimplePlayManualMode(_ enabled: Bool) {
+        settings.isSimplePlayManualMode = enabled
+        saveSettings()
+        simplePlayConnectionRefreshToken &+= 1
+    }
+
+    func startSimplePlaySyncService() {
+        simplePlaySync.start { [weak self] message in
+            guard let self else {
+                return LyricPlaySyncMessage(kind: .error, errorMessage: "Lyriora is unavailable.")
+            }
+            return handleSimplePlaySyncMessage(message)
+        }
+        startSimplePlayConnectionMonitor()
+    }
+
+    private func startSimplePlayConnectionMonitor() {
+        simplePlayConnectionMonitorTask?.cancel()
+        simplePlayConnectionMonitorTask = Task { @MainActor in
+            while !Task.isCancelled {
+                simplePlayConnectionRefreshToken &+= 1
+                try? await Task.sleep(for: .seconds(1))
+            }
+        }
+    }
+
+    private func handleSimplePlaySyncMessage(_ message: LyricPlaySyncMessage) -> LyricPlaySyncMessage {
+        switch message.kind {
+        case .catalogRequest:
+            if let catalog = buildSimplePlayCatalog() {
+                return LyricPlaySyncMessage(kind: .catalogResponse, catalog: catalog)
+            }
+            return LyricPlaySyncMessage(
+                kind: .error,
+                errorMessage: "Open a lyric in Lyriora to share its slides."
+            )
+        case .showSlide:
+            guard let command = message.showSlide else {
+                return LyricPlaySyncMessage(kind: .error, errorMessage: "Missing show slide payload.")
+            }
+            if !settings.isSimplePlayManualMode {
+                handleRemoteShowSlide(command)
+            }
+            return LyricPlaySyncMessage(kind: .linkSectionAck)
+        case .linkSection:
+            guard let command = message.linkSection else {
+                return LyricPlaySyncMessage(kind: .error, errorMessage: "Missing link section payload.")
+            }
+            applySimplePlaySectionLink(command)
+            return LyricPlaySyncMessage(kind: .linkSectionAck)
+        case .presence:
+            return LyricPlaySyncMessage(kind: .presenceAck)
+        default:
+            return LyricPlaySyncMessage(kind: .error, errorMessage: "Unsupported sync message.")
+        }
+    }
+
+    func buildSimplePlayCatalog() -> LyricSlideCatalog? {
+        guard let lyric = selectedLyric else { return nil }
+
+        let slides = lyric.slides
+            .sorted { $0.order < $1.order }
+            .map { slide in
+                let trimmedText = slide.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                let preview = trimmedText
+                    .components(separatedBy: .newlines)
+                    .first?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? trimmedText
+
+                return LyricSlideCatalogItem(
+                    slideID: slide.id,
+                    order: slide.order,
+                    preview: preview,
+                    text: trimmedText,
+                    tag: slide.tag.rawValue,
+                    linkedSectionID: slide.simplePlaySectionID
+                )
+            }
+
+        return LyricSlideCatalog(
+            lyricID: lyric.id,
+            lyricTitle: lyric.title,
+            slides: slides
+        )
+    }
+
+    func handleRemoteShowSlide(_ command: ShowSlideCommand) {
+        guard let lyric = lyrics.first(where: { $0.id == command.lyricID }) else { return }
+        selectLyric(lyric)
+        guard let slide = lyric.slides.first(where: { $0.id == command.slideID }) else { return }
+        selectSlide(slide)
+        refreshExternalPresentation()
+    }
+
+    func applySimplePlaySectionLink(_ command: LinkSectionCommand) {
+        guard var lyric = lyrics.first(where: { $0.id == command.lyricID }) else { return }
+        guard let slideIndex = lyric.storedSlides.firstIndex(where: { $0.id == command.slideID }) else { return }
+
+        lyric.storedSlides[slideIndex].simplePlaySectionID = command.sectionID
+        if let projectID = command.projectID {
+            lyric.simplePlayProjectID = projectID
+            lyric.simplePlayProjectName = command.projectName
+        }
+        lyric.updatedAt = .now
+
+        do {
+            try lyricRepository.save(lyric)
+        } catch {
+            return
+        }
+
+        if let existingIndex = lyrics.firstIndex(where: { $0.id == lyric.id }) {
+            lyrics[existingIndex] = lyric
+        }
     }
 
     func imageURL(for asset: MediaAsset) -> URL {
@@ -470,8 +1036,10 @@ final class AppViewModel {
         switch asset.kind {
         case .image:
             imageAssets.removeAll { $0.id == asset.id }
+            removeItemFromAllPlaylists(itemID: asset.id, kind: .image)
         case .video:
             videoAssets.removeAll { $0.id == asset.id }
+            removeItemFromAllPlaylists(itemID: asset.id, kind: .video)
         }
 
         if selectedBackgroundAssetID == asset.id {
@@ -739,6 +1307,368 @@ private struct PickedImageFile: Transferable {
         }
     }
 }
+
+// MARK: - Bible Presentation
+
+extension AppViewModel {
+    var selectedBibleVersion: BibleVersionManifest? {
+        guard let selectedBibleVersionID else { return bibleVersions.first }
+        return bibleVersions.first { $0.id == selectedBibleVersionID } ?? bibleVersions.first
+    }
+
+    var isBiblePresentationActive: Bool {
+        bibleReadingSession != nil
+    }
+
+    var bibleSlides: [BiblePresentationSlide] {
+        bibleReadingSession?.slides ?? []
+    }
+
+    var selectedBibleSlideIndex: Int? {
+        bibleReadingSession?.previewSlideIndex
+    }
+
+    var recentBibleThemes: [LyricTheme] {
+        Array(themes.prefix(8))
+    }
+
+    func loadBibleVersions() {
+        do {
+            bibleVersions = try bibleVersionRepository.loadManifests()
+            if let savedID = settings.biblePresentation.selectedVersionID,
+               bibleVersions.contains(where: { $0.id == savedID }) {
+                selectedBibleVersionID = savedID
+            } else {
+                selectedBibleVersionID = bibleVersions.first?.id
+            }
+
+            if selectedBibleVersion != nil {
+                Task { await reloadBibleIndex() }
+            }
+        } catch {
+            bibleVersions = []
+            selectedBibleVersionID = nil
+            loadedBibleIndex = nil
+            loadedBibleSearchIndex = nil
+        }
+    }
+
+    func openBiblePresentation() {
+        isBiblePresentationPresented = true
+        bibleImportErrorMessage = nil
+        if loadedBibleIndex == nil, selectedBibleVersion != nil {
+            Task { await reloadBibleIndex() }
+        }
+    }
+
+    func updateBibleSearchQuery(_ query: String) {
+        bibleSearchQuery = query
+        bibleSearchTask?.cancel()
+
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let index = loadedBibleIndex else {
+            bibleSearchHints = []
+            isSearchingBible = false
+            return
+        }
+
+        guard !trimmed.isEmpty else {
+            bibleSearchHints = []
+            isSearchingBible = false
+            return
+        }
+
+        if let referenceHints = BibleSearchEngine.referenceHints(for: trimmed, in: index, limit: 12),
+           !referenceHints.isEmpty {
+            bibleSearchHints = referenceHints
+            isSearchingBible = false
+            return
+        }
+
+        guard trimmed.count >= 3 else {
+            bibleSearchHints = []
+            isSearchingBible = false
+            return
+        }
+
+        guard let searchIndex = loadedBibleSearchIndex else {
+            bibleSearchHints = []
+            isSearchingBible = false
+            return
+        }
+
+        isSearchingBible = true
+        let snapshot = trimmed
+        bibleSearchTask = Task {
+            try? await Task.sleep(nanoseconds: 280_000_000)
+            guard !Task.isCancelled else { return }
+
+            let hints = BibleSearchEngine.hints(
+                for: snapshot,
+                in: index,
+                searchIndex: searchIndex,
+                limit: 12
+            )
+
+            await MainActor.run {
+                guard bibleSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == snapshot else { return }
+                bibleSearchHints = hints
+                isSearchingBible = false
+            }
+        }
+    }
+
+    func importBibleVersion(from url: URL) {
+        bibleImportErrorMessage = nil
+        do {
+            let (manifest, index) = try bibleVersionRepository.importXML(
+                from: url,
+                suggestedName: url.deletingPathExtension().lastPathComponent
+            )
+            var manifests = bibleVersions
+            manifests.insert(manifest, at: 0)
+            try bibleVersionRepository.saveManifests(manifests)
+            bibleVersions = manifests
+            selectedBibleVersionID = manifest.id
+            loadedBibleIndex = index
+            rebuildBibleSearchIndex(from: index)
+            settings.biblePresentation.selectedVersionID = manifest.id
+            saveSettings()
+        } catch {
+            bibleImportErrorMessage = error.localizedDescription
+        }
+    }
+
+    func deleteBibleVersion(_ manifest: BibleVersionManifest) {
+        do {
+            try bibleVersionRepository.delete(manifest)
+            var manifests = bibleVersions
+            manifests.removeAll { $0.id == manifest.id }
+            try bibleVersionRepository.saveManifests(manifests)
+            bibleVersions = manifests
+
+            if bibleReadingSession?.versionID == manifest.id {
+                clearBibleReadingSession()
+            }
+
+            if selectedBibleVersionID == manifest.id {
+                selectedBibleVersionID = manifests.first?.id
+                settings.biblePresentation.selectedVersionID = selectedBibleVersionID
+                saveSettings()
+                loadedBibleIndex = nil
+                loadedBibleSearchIndex = nil
+                if selectedBibleVersion != nil {
+                    Task { await reloadBibleIndex() }
+                }
+            }
+        } catch {
+            bibleImportErrorMessage = error.localizedDescription
+        }
+    }
+
+    func selectBibleVersion(_ manifest: BibleVersionManifest) {
+        selectedBibleVersionID = manifest.id
+        settings.biblePresentation.selectedVersionID = manifest.id
+        saveSettings()
+        loadedBibleIndex = nil
+        loadedBibleSearchIndex = nil
+        bibleSearchHints = []
+        Task { await reloadBibleIndex() }
+    }
+
+    func presentBibleHint(_ hint: BibleSearchHint) {
+        guard let index = loadedBibleIndex,
+              let version = selectedBibleVersion else { return }
+
+        let (bookNumber, chapter, verse) = passageContext(for: hint)
+        let slides = BibleSlideBuilder.slides(
+            for: hint,
+            index: index,
+            style: settings.biblePresentation.style,
+            containerSize: presentationLayoutCanvasSize
+        )
+        guard !slides.isEmpty else { return }
+
+        bibleReadingSession = BibleReadingSession(
+            versionID: version.id,
+            versionName: version.prettyDisplayName,
+            bookNumber: bookNumber,
+            chapter: chapter,
+            slides: slides,
+            previewSlideIndex: 0,
+            stripFocusIndex: 0
+        )
+        showLyrics = true
+        slidePresentationToken += 1
+        isBiblePresentationPresented = false
+    }
+
+    func presentBibleSelection(bookNumber: Int, chapter: Int, verse: Int?) {
+        guard let index = loadedBibleIndex,
+              let version = selectedBibleVersion else { return }
+
+        let slides = BibleSlideBuilder.initialSlides(
+            bookNumber: bookNumber,
+            chapter: chapter,
+            verse: verse,
+            index: index,
+            style: settings.biblePresentation.style,
+            containerSize: presentationLayoutCanvasSize
+        )
+        guard !slides.isEmpty else { return }
+
+        bibleReadingSession = BibleReadingSession(
+            versionID: version.id,
+            versionName: version.prettyDisplayName,
+            bookNumber: bookNumber,
+            chapter: chapter,
+            slides: slides,
+            previewSlideIndex: 0,
+            stripFocusIndex: 0
+        )
+        showLyrics = true
+        slidePresentationToken += 1
+        isBiblePresentationPresented = false
+    }
+
+    func selectBibleSlide(at index: Int) {
+        guard var session = bibleReadingSession else { return }
+        session.presentSlide(at: index)
+        bibleReadingSession = session
+        slidePresentationToken += 1
+        showLyrics = true
+    }
+
+    func goToPreviousBibleSlide() {
+        guard var session = bibleReadingSession, session.canGoPreviousInStrip else { return }
+        session.focusStrip(at: session.stripFocusIndex - 1)
+        bibleReadingSession = session
+    }
+
+    func goToNextBibleSlide() {
+        guard var session = bibleReadingSession else { return }
+
+        if session.stripFocusIndex + 1 < session.slides.count {
+            session.focusStrip(at: session.stripFocusIndex + 1)
+            bibleReadingSession = session
+            return
+        }
+
+        guard let index = loadedBibleIndex,
+              let nextSlide = BibleSlideBuilder.nextAppendableSlide(
+                after: session,
+                bibleIndex: index,
+                style: settings.biblePresentation.style,
+                containerSize: presentationLayoutCanvasSize
+              ) else { return }
+
+        session.slides.append(nextSlide)
+        session.focusStrip(at: session.slides.count - 1)
+        bibleReadingSession = session
+    }
+
+    func bibleCanGoNext(in session: BibleReadingSession) -> Bool {
+        guard let index = loadedBibleIndex else { return false }
+        return session.canGoNextInStrip(
+            in: index,
+            style: settings.biblePresentation.style,
+            containerSize: presentationLayoutCanvasSize
+        )
+    }
+
+    func applyBibleTheme(_ theme: LyricTheme) {
+        settings.biblePresentation.style = theme.style
+        settings.biblePresentation.selectedThemeID = theme.id
+        saveSettings()
+        refreshBibleSlidesIfNeeded()
+    }
+
+    func updateBibleTransitionProfile(_ update: (inout SlideAnimationProfile) -> Void) {
+        update(&settings.biblePresentation.animationProfile)
+        settings.biblePresentation.animationProfile.resetEffects()
+        saveSettings()
+    }
+
+    func clearBibleReadingSession() {
+        bibleReadingSession = nil
+    }
+
+    func dismissBibleReadingSession() {
+        clearBibleReadingSession()
+        showLyrics = false
+    }
+
+    func refreshBibleSlidesIfNeeded() {
+        guard var session = bibleReadingSession,
+              let index = loadedBibleIndex else { return }
+
+        let slides = BibleSlideBuilder.rebuildSlides(
+            from: session,
+            index: index,
+            style: settings.biblePresentation.style,
+            containerSize: presentationLayoutCanvasSize
+        )
+        guard !slides.isEmpty else { return }
+
+        let preservedPreview = min(session.previewSlideIndex, slides.count - 1)
+        let preservedFocus = min(session.stripFocusIndex, slides.count - 1)
+        session.slides = slides
+        session.previewSlideIndex = preservedPreview
+        session.stripFocusIndex = preservedFocus
+        bibleReadingSession = session
+        slidePresentationToken += 1
+    }
+
+    private func passageContext(for hint: BibleSearchHint) -> (Int, Int, Int?) {
+        switch hint.kind {
+        case let .reference(bookNumber, chapter, verse):
+            return (bookNumber, chapter, verse)
+        case let .textMatch(location, _):
+            return (location.bookNumber, location.chapter, location.verse)
+        }
+    }
+
+    @MainActor
+    func reloadBibleIndex() async {
+        guard let version = selectedBibleVersion else {
+            loadedBibleIndex = nil
+            loadedBibleSearchIndex = nil
+            bibleSearchHints = []
+            return
+        }
+
+        isLoadingBibleIndex = true
+        defer { isLoadingBibleIndex = false }
+
+        do {
+            let index = try bibleVersionRepository.loadIndex(for: version)
+            loadedBibleIndex = index
+            rebuildBibleSearchIndex(from: index)
+        } catch {
+            loadedBibleIndex = nil
+            loadedBibleSearchIndex = nil
+            bibleSearchHints = []
+            bibleImportErrorMessage = error.localizedDescription
+        }
+    }
+
+    private func rebuildBibleSearchIndex(from index: BibleVersionIndex) {
+        bibleSearchTask?.cancel()
+        isSearchingBible = false
+        loadedBibleSearchIndex = nil
+
+        Task.detached(priority: .userInitiated) {
+            let built = BibleSearchIndex.build(from: index)
+            await MainActor.run { [self] in
+                loadedBibleSearchIndex = built
+                if !bibleSearchQuery.isEmpty {
+                    updateBibleSearchQuery(bibleSearchQuery)
+                }
+            }
+        }
+    }
+}
+
 
 private struct PickedVideoFile: Transferable {
     let url: URL

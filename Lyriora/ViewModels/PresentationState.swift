@@ -12,8 +12,16 @@ struct PresentationState: Equatable, Sendable {
     var lyricTitle: String?
     var background: PresentationBackground?
     var slideStyle: SlideTextStyle?
+    var slideAnimationProfile: SlideAnimationProfile?
+    var wordFontSizeOverrides: [WordFontSizeOverride] = []
+    var slideID: UUID?
+    var slidePresentationToken: Int = 0
     var videoLoops: Bool = true
     var isVideoPlaying: Bool = true
+    var videoStopToken: Int = 0
+    var bibleReferenceLabel: String?
+    var bibleVersionName: String?
+    var isBiblePresentation: Bool = false
 
     static let empty = PresentationState(
         showBackground: false,

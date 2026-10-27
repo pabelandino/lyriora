@@ -15,7 +15,6 @@ struct PresentationPreviewView: View {
     let presentationCanvasSize: CGSize
     let displayInfo: ExternalDisplayInfo
 
-    @Bindable private var videoPlayback: VideoPlaybackController
     @State private var scrubValue: TimeInterval = 0
 
     private let cornerRadius: CGFloat = 28
@@ -37,7 +36,6 @@ struct PresentationPreviewView: View {
         self.backgroundContentMode = backgroundContentMode
         self.presentationCanvasSize = presentationCanvasSize
         self.displayInfo = displayInfo
-        self._videoPlayback = Bindable(viewModel.videoPlayback)
     }
 
     private var canvasSize: CGSize {
@@ -72,7 +70,7 @@ struct PresentationPreviewView: View {
             previewStage
 
             if showsVideoControls {
-                videoPlaybackControls
+                PresentationVideoControls(viewModel: viewModel, scrubValue: $scrubValue)
             }
 
             previewMetadataBar
@@ -122,9 +120,13 @@ struct PresentationPreviewView: View {
             .allowsHitTesting(false)
     }
 
+    private var usesLocalVideoPlayerStage: Bool {
+        isVideoBackground && !(state.background?.isYouTube ?? false)
+    }
+
     @ViewBuilder
     private func previewStageContent(fittedSize: CGSize, scale: CGFloat) -> some View {
-        if isVideoBackground {
+        if usesLocalVideoPlayerStage {
             ZStack {
                 Color.black
 
@@ -134,7 +136,11 @@ struct PresentationPreviewView: View {
                         defaultBackgroundSettings: defaultBackgroundSettings,
                         contentMode: backgroundContentMode,
                         canvasSize: canvasSize,
-                        sharedVideoPlayer: viewModel.videoPlayback.player
+                        sharedVideoPlayer: viewModel.videoPlayback.player,
+                        videoLoops: state.videoLoops,
+                        isVideoPlaying: state.isVideoPlaying,
+                        videoStopToken: state.videoStopToken,
+                        youtubePlayback: viewModel.youtubePlayback
                     )
                     .frame(width: fittedSize.width, height: fittedSize.height)
                 }
@@ -142,7 +148,12 @@ struct PresentationPreviewView: View {
                 if state.showLyrics, let slideText = state.slideText {
                     AdaptivePresentationText(
                         text: slideText,
-                        configuration: textConfiguration
+                        configuration: textConfiguration,
+                        animationProfile: state.slideAnimationProfile ?? SlideAnimationProfile(),
+                        wordFontSizeOverrides: state.wordFontSizeOverrides,
+                        slideID: state.slideID ?? AdaptivePresentationText.placeholderSlideID,
+                        presentationToken: state.slidePresentationToken,
+                        animationQuality: .preview
                     )
                     .frame(width: canvasSize.width, height: canvasSize.height)
                     .scaleEffect(scale)
@@ -158,27 +169,51 @@ struct PresentationPreviewView: View {
                 defaultBackgroundSettings: defaultBackgroundSettings,
                 backgroundContentMode: backgroundContentMode,
                 canvasSize: canvasSize,
-                sharedVideoPlayer: viewModel.videoPlayback.player
+                sharedVideoPlayer: viewModel.videoPlayback.player,
+                youtubePlayback: viewModel.youtubePlayback,
+                animationQuality: .preview
             )
             .frame(width: canvasSize.width, height: canvasSize.height)
             .scaleEffect(scale)
             .frame(width: fittedSize.width, height: fittedSize.height)
             .clipped()
-            .drawingGroup()
         }
     }
+}
 
-    private var videoPlaybackControls: some View {
+private struct PresentationVideoControls: View {
+    @Bindable var viewModel: AppViewModel
+    @Binding var scrubValue: TimeInterval
+    @Bindable private var videoPlayback: VideoPlaybackController
+    @Bindable private var youtubePlayback: YouTubePlaybackController
+
+    init(viewModel: AppViewModel, scrubValue: Binding<TimeInterval>) {
+        self.viewModel = viewModel
+        self._scrubValue = scrubValue
+        self._videoPlayback = Bindable(viewModel.videoPlayback)
+        self._youtubePlayback = Bindable(viewModel.youtubePlayback)
+    }
+
+    var body: some View {
         VStack(spacing: 6) {
             Slider(
                 value: sliderBinding,
-                in: 0...max(videoPlayback.duration, 0.01)
+                in: 0...max(activeDuration, 0.01)
             ) { editing in
-                videoPlayback.isScrubbing = editing
-                if editing {
-                    scrubValue = videoPlayback.currentTime
+                if usesYouTubePlayback {
+                    youtubePlayback.isScrubbing = editing
+                    if editing {
+                        scrubValue = youtubePlayback.currentTime
+                    } else {
+                        viewModel.seekVideo(to: scrubValue)
+                    }
                 } else {
-                    viewModel.seekVideo(to: scrubValue)
+                    videoPlayback.isScrubbing = editing
+                    if editing {
+                        scrubValue = videoPlayback.currentTime
+                    } else {
+                        viewModel.seekVideo(to: scrubValue)
+                    }
                 }
             }
             .tint(.green)
@@ -190,7 +225,7 @@ struct PresentationPreviewView: View {
 
                 Spacer(minLength: 8)
 
-                Text(VideoDurationFormatter.playbackTime(for: videoPlayback.duration))
+                Text(VideoDurationFormatter.playbackTime(for: activeDuration))
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
@@ -198,10 +233,21 @@ struct PresentationPreviewView: View {
         .padding(.horizontal, 4)
     }
 
+    private var usesYouTubePlayback: Bool {
+        viewModel.hasYouTubeBackgroundSelected
+    }
+
+    private var activeDuration: TimeInterval {
+        usesYouTubePlayback ? youtubePlayback.duration : videoPlayback.duration
+    }
+
     private var sliderBinding: Binding<TimeInterval> {
         Binding(
             get: {
-                videoPlayback.isScrubbing ? scrubValue : videoPlayback.currentTime
+                if usesYouTubePlayback {
+                    return youtubePlayback.isScrubbing ? scrubValue : youtubePlayback.currentTime
+                }
+                return videoPlayback.isScrubbing ? scrubValue : videoPlayback.currentTime
             },
             set: { newValue in
                 scrubValue = newValue
@@ -210,14 +256,33 @@ struct PresentationPreviewView: View {
     }
 
     private var displayedCurrentTime: TimeInterval {
-        videoPlayback.isScrubbing ? scrubValue : videoPlayback.currentTime
+        if usesYouTubePlayback {
+            return youtubePlayback.isScrubbing ? scrubValue : youtubePlayback.currentTime
+        }
+        return videoPlayback.isScrubbing ? scrubValue : videoPlayback.currentTime
     }
+}
 
+extension PresentationPreviewView {
     private var previewMetadataBar: some View {
         HStack(spacing: 8) {
-            Label("Live preview", systemImage: "play.rectangle")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+            if state.isBiblePresentation,
+               let reference = state.bibleReferenceLabel,
+               let version = state.bibleVersionName {
+                Label(reference, systemImage: "book")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+
+                Text(version)
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+            } else {
+                Label("Live preview", systemImage: "play.rectangle")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
 
             Spacer(minLength: 8)
 
@@ -251,7 +316,10 @@ struct ExternalPresentationView: View {
             canvasSize: PresentationLayout.resolvedCanvasSize(
                 viewModel.externalDisplayManager.presentationCanvasSize
             ),
-            sharedVideoPlayer: viewModel.videoPlayback.player
+            sharedVideoPlayer: viewModel.videoPlayback.player,
+            youtubePlayback: viewModel.youtubePlayback,
+            isAnimating: true,
+            animationQuality: .live
         )
         .id(layoutRevision)
         .ignoresSafeArea()
@@ -265,6 +333,9 @@ struct PresentationContentView: View {
     var backgroundContentMode: BackgroundContentMode = .fill
     var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
     var sharedVideoPlayer: AVPlayer?
+    var youtubePlayback: YouTubePlaybackController?
+    var isAnimating: Bool = true
+    var animationQuality: PresentationAnimationQuality = .live
 
     private var textConfiguration: PresentationTextConfiguration {
         if let style = state.slideStyle {
@@ -284,19 +355,64 @@ struct PresentationContentView: View {
                             defaultBackgroundSettings: defaultBackgroundSettings,
                             contentMode: backgroundContentMode,
                             canvasSize: canvasSize,
-                            sharedVideoPlayer: sharedVideoPlayer
+                            sharedVideoPlayer: sharedVideoPlayer,
+                            videoLoops: state.videoLoops,
+                            isVideoPlaying: state.isVideoPlaying,
+                            videoStopToken: state.videoStopToken,
+                            youtubePlayback: youtubePlayback
                         )
                     }
 
                     if state.showLyrics, let slideText = state.slideText {
                         AdaptivePresentationText(
                             text: slideText,
-                            configuration: textConfiguration
+                            configuration: textConfiguration,
+                            animationProfile: state.slideAnimationProfile ?? SlideAnimationProfile(),
+                            wordFontSizeOverrides: state.wordFontSizeOverrides,
+                            slideID: state.slideID ?? AdaptivePresentationText.placeholderSlideID,
+                            presentationToken: state.slidePresentationToken,
+                            isAnimating: isAnimating,
+                            animationQuality: animationQuality
                         )
+                    }
+
+                    if state.isBiblePresentation,
+                       let reference = state.bibleReferenceLabel,
+                       let version = state.bibleVersionName {
+                        VStack {
+                            Spacer()
+                            BiblePresentationFooterView(reference: reference, versionName: version)
+                                .padding(.horizontal, canvasSize.width * 0.06)
+                                .padding(.bottom, canvasSize.height * 0.05)
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .ignoresSafeArea()
+    }
+}
+
+struct BiblePresentationFooterView: View {
+    let reference: String
+    let versionName: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(reference)
+                .font(.title3.weight(.semibold))
+            Spacer(minLength: 8)
+            Text(versionName)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 10)
+        .background {
+            Capsule(style: .continuous)
+                .fill(.black.opacity(0.45))
+                .glassEffect(.regular, in: .capsule)
+        }
     }
 }

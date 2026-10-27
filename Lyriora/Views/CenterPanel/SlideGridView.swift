@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct SlideGridView: View {
+    @Bindable var viewModel: AppViewModel
     let slides: [LyricSlide]
     let styleProfile: LyricStyleProfile?
     let language: LyricLanguage
@@ -13,14 +14,9 @@ struct SlideGridView: View {
     let presentationState: PresentationState
     let defaultBackgroundSettings: DefaultBackgroundSettings
     var backgroundContentMode: BackgroundContentMode = .fill
-    var presentationCanvasSize: CGSize = .zero
     let onSelect: (LyricSlide) -> Void
 
     @Environment(\.workspaceCompactLayout) private var workspaceCompactLayout
-
-    private var layoutCanvasSize: CGSize {
-        PresentationLayout.resolvedCanvasSize(presentationCanvasSize)
-    }
 
     private var thumbnailWidth: CGFloat {
         workspaceCompactLayout ? 120 : 168
@@ -31,24 +27,45 @@ struct SlideGridView: View {
 
     var body: some View {
         GlassPanel(cornerRadius: 22) {
-            if slides.isEmpty {
-                ContentUnavailableView(
-                    "No slides",
-                    systemImage: "rectangle.on.rectangle.slash",
-                    description: Text("Select a lyric from the library to see its slides.")
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                GeometryReader { geometry in
-                    ScrollView {
-                        slideRows(in: geometry.size.width)
-                            .padding(.horizontal, horizontalPadding)
-                            .padding(.vertical, verticalPadding)
+            VStack(spacing: 0) {
+                slideGridHeader
+
+                if slides.isEmpty {
+                    ContentUnavailableView(
+                        "No slides",
+                        systemImage: "rectangle.on.rectangle.slash",
+                        description: Text("Select a lyric from the library to see its slides.")
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    GeometryReader { geometry in
+                        ScrollView {
+                            slideRows(in: geometry.size.width)
+                                .padding(.horizontal, horizontalPadding)
+                                .padding(.vertical, verticalPadding)
+                        }
+                        .clippedPanelScrollContent()
                     }
-                    .clippedPanelScrollContent()
                 }
             }
         }
+    }
+
+    private var slideGridHeader: some View {
+        HStack(spacing: 10) {
+            Text("Slides")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Spacer(minLength: 0)
+
+            SimplePlayConnectionIndicator(state: viewModel.simplePlaySyncDisplayState) {
+                viewModel.isSimplePlayConnectionInfoPresented = true
+            }
+        }
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, 12)
+        .padding(.bottom, 4)
     }
 
     @ViewBuilder
@@ -65,20 +82,21 @@ struct SlideGridView: View {
             ForEach(Array(rows.enumerated()), id: \.offset) { _, rowSlides in
                 HStack(spacing: gridSpacing) {
                     ForEach(rowSlides, id: \.order) { slide in
-                        SlideThumbnailView(
-                            slide: slide,
-                            style: styleProfile?.resolvedStyle(for: slide),
-                            language: language,
-                            isSelected: slide.index == selectedSlideIndex,
-                            presentationState: presentationState,
-                            defaultBackgroundSettings: defaultBackgroundSettings,
-                            backgroundContentMode: backgroundContentMode,
-                            canvasSize: layoutCanvasSize
-                        )
-                        .frame(width: thumbnailWidth)
-                        .onTapGesture {
+                        Button {
                             onSelect(slide)
+                        } label: {
+                            SlideThumbnailView(
+                                slide: slide,
+                                style: styleProfile?.resolvedStyle(for: slide),
+                                language: language,
+                                isSelected: slide.index == selectedSlideIndex,
+                                presentationState: presentationState,
+                                defaultBackgroundSettings: defaultBackgroundSettings,
+                                backgroundContentMode: backgroundContentMode
+                            )
+                            .frame(width: thumbnailWidth)
                         }
+                        .buttonStyle(.plain)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -112,7 +130,6 @@ private struct SlideThumbnailView: View {
     let presentationState: PresentationState
     let defaultBackgroundSettings: DefaultBackgroundSettings
     var backgroundContentMode: BackgroundContentMode = .fill
-    var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
 
     private let cornerRadius: CGFloat = 14
     private let textAreaMinHeight: CGFloat = 84
@@ -135,6 +152,11 @@ private struct SlideThumbnailView: View {
         presentationState.background?.kind == .video
     }
 
+    /// Local canvas for thumbnail letterboxing — not the full presentation stage.
+    private var thumbnailCanvasSize: CGSize {
+        CGSize(width: 320, height: 180)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Text(slide.tag.localizedName(for: language))
@@ -151,19 +173,25 @@ private struct SlideThumbnailView: View {
                     background: usesDefaultGradientBackground ? nil : presentationState.background,
                     defaultBackgroundSettings: defaultBackgroundSettings,
                     contentMode: backgroundContentMode,
-                    canvasSize: canvasSize,
+                    canvasSize: thumbnailCanvasSize,
                     blurDefaultBackground: false,
                     showsDefaultWhenEmpty: usesDefaultGradientBackground
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                AdaptivePresentationText(
-                    text: slide.text,
-                    configuration: textConfiguration
-                )
+                GeometryReader { geometry in
+                    EditorAdaptivePresentationText(
+                        text: slide.text,
+                        configuration: textConfiguration,
+                        containerSize: geometry.size,
+                        sizing: .scaledApproximation
+                    )
+                }
                 .padding(textInset)
             }
             .frame(minHeight: textAreaMinHeight)
+            .clipped()
+            .allowsHitTesting(false)
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay {
@@ -173,6 +201,7 @@ private struct SlideThumbnailView: View {
                     lineWidth: isSelected ? 2 : 1
                 )
         }
+        .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

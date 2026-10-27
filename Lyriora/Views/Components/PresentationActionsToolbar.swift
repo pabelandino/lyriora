@@ -7,6 +7,7 @@ import SwiftUI
 
 struct PresentationActionsToolbar: View {
     var showsVideoControls: Bool
+    var showsLoopControl: Bool = true
     var playbackMode: VideoPlaybackMode
     var isVideoPlaying: Bool
     var hasCustomBackgroundSelected: Bool
@@ -65,14 +66,16 @@ struct PresentationActionsToolbar: View {
 
     private var videoControlsCapsule: some View {
         HStack(spacing: GlassToolbarMetrics.itemSpacing) {
-            GlassIconButton(
-                systemName: playbackMode == .loop ? "repeat" : "repeat.1",
-                accessibilityLabel: playbackMode == .loop
-                    ? "Loop video"
-                    : "Play video once",
-                isActive: playbackMode == .loop,
-                action: onToggleVideoMode
-            )
+            if showsLoopControl {
+                GlassIconButton(
+                    systemName: playbackMode == .loop ? "repeat" : "repeat.1",
+                    accessibilityLabel: playbackMode == .loop
+                        ? "Loop video"
+                        : "Play video once",
+                    isActive: playbackMode == .loop,
+                    action: onToggleVideoMode
+                )
+            }
 
             GlassIconButton(
                 systemName: isVideoPlaying ? "pause.fill" : "play.fill",

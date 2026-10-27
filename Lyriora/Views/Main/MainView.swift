@@ -25,14 +25,21 @@ struct MainView: View {
         }
         .onAppear {
             viewModel.loadInitialData()
+            viewModel.startSimplePlaySyncService()
             viewModel.externalDisplayManager.refreshDisplayInfo()
+        }
+        .onChange(of: viewModel.externalDisplayManager.layoutRevision) { _, _ in
+            viewModel.refreshBibleSlidesIfNeeded()
         }
         #if !os(macOS)
         .fullScreenCover(item: $viewModel.lyricEditorLaunch) { launch in
-            LyricEditorView(
-                viewModel: viewModel,
-                existingLyricID: launch.existingLyricID
-            )
+            NavigationStack {
+                LyricEditorView(
+                    viewModel: viewModel,
+                    existingLyricID: launch.existingLyricID
+                )
+            }
+            .tint(.primary)
         }
         #endif
         .sheet(isPresented: $viewModel.isDisplayInfoSheetPresented) {
@@ -46,6 +53,26 @@ struct MainView: View {
         .sheet(isPresented: $viewModel.isSettingsSheetPresented) {
             SettingsSheet(viewModel: viewModel)
         }
+        .sheet(isPresented: $viewModel.isPlaylistPickerPresented) {
+            PlaylistPickerSheet(
+                viewModel: viewModel,
+                kind: viewModel.playlistPickerKind
+            )
+        }
+        .sheet(isPresented: $viewModel.isPlaylistEditorPresented) {
+            PlaylistEditorSheet(
+                viewModel: viewModel,
+                kind: viewModel.playlistPickerKind,
+                playlistID: viewModel.playlistEditorTargetID
+            )
+        }
+        .sheet(isPresented: $viewModel.isBiblePresentationPresented) {
+            BiblePresentationSheet(viewModel: viewModel)
+                #if os(macOS)
+                .frame(minWidth: 540, minHeight: 680)
+                #endif
+        }
+        .modifier(BibleImportRootModifier(viewModel: viewModel))
     }
 
     @ViewBuilder

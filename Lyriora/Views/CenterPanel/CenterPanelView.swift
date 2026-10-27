@@ -22,28 +22,10 @@ struct CenterPanelView: View {
                 presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
                 displayInfo: viewModel.externalDisplayManager.displayInfo
             )
-            .id(viewModel.externalDisplayManager.layoutRevision)
             .frame(maxWidth: .infinity, maxHeight: workspaceCompactLayout ? .infinity : nil)
             .layoutPriority(workspaceCompactLayout ? 1 : 0)
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
 
-            SlideGridView(
-                slides: viewModel.selectedLyricSlides,
-                styleProfile: viewModel.selectedLyric?.styleProfile,
-                language: viewModel.selectedLyric?.language ?? .unknown,
-                selectedSlideIndex: viewModel.selectedSlideIndex,
-                presentationState: viewModel.presentationState,
-                defaultBackgroundSettings: viewModel.settings.defaultBackground,
-                backgroundContentMode: viewModel.settings.backgroundContentMode,
-                presentationCanvasSize: viewModel.externalDisplayManager.presentationCanvasSize,
-                onSelect: viewModel.selectSlide
-            )
-            .frame(height: workspaceCompactLayout ? 84 : 220)
-            .transaction { transaction in
-                transaction.disablesAnimations = true
-            }
+            slideGridSection
 
             if !workspaceCompactLayout {
                 WorkspaceDisplayToolbar(viewModel: viewModel)
@@ -60,12 +42,58 @@ struct CenterPanelView: View {
                 }
             )
         }
+        .sheet(isPresented: $viewModel.isSimplePlayConnectionInfoPresented) {
+            SimplePlayConnectionInfoSheet(viewModel: viewModel)
+        }
+        #if os(macOS)
+        .onKeyPress(.leftArrow) {
+            guard viewModel.isBiblePresentationActive else { return .ignored }
+            viewModel.goToPreviousBibleSlide()
+            return .handled
+        }
+        .onKeyPress(.rightArrow) {
+            guard viewModel.isBiblePresentationActive else { return .ignored }
+            viewModel.goToNextBibleSlide()
+            return .handled
+        }
+        #endif
+    }
+
+    @ViewBuilder
+    private var slideGridSection: some View {
+        if let session = viewModel.bibleReadingSession {
+            BibleSlideGridView(
+                viewModel: viewModel,
+                session: session,
+                presentationState: viewModel.presentationState,
+                defaultBackgroundSettings: viewModel.settings.defaultBackground,
+                backgroundContentMode: viewModel.settings.backgroundContentMode
+            )
+            .frame(height: workspaceCompactLayout ? 84 : 220)
+        } else {
+            SlideGridView(
+                viewModel: viewModel,
+                slides: viewModel.selectedLyricSlides,
+                styleProfile: viewModel.selectedLyric?.styleProfile,
+                language: viewModel.selectedLyric?.language ?? .unknown,
+                selectedSlideIndex: viewModel.selectedSlideIndex,
+                presentationState: viewModel.presentationState,
+                defaultBackgroundSettings: viewModel.settings.defaultBackground,
+                backgroundContentMode: viewModel.settings.backgroundContentMode,
+                onSelect: viewModel.selectSlide
+            )
+            .frame(height: workspaceCompactLayout ? 84 : 220)
+            .transaction { transaction in
+                transaction.disablesAnimations = true
+            }
+        }
     }
 
     private var presentationToolbar: some View {
         HStack(alignment: .center, spacing: workspaceCompactLayout ? 8 : 16) {
             PresentationActionsToolbar(
                 showsVideoControls: viewModel.showsVideoPlaybackControls,
+                showsLoopControl: !viewModel.hasYouTubeBackgroundSelected,
                 playbackMode: viewModel.videoPlaybackMode,
                 isVideoPlaying: viewModel.isVideoPlaying,
                 hasCustomBackgroundSelected: viewModel.hasCustomBackgroundSelected,
@@ -79,6 +107,10 @@ struct CenterPanelView: View {
             )
 
             Spacer(minLength: 0)
+
+            GlassIconButton(systemName: "book", accessibilityLabel: "Bible presentation") {
+                viewModel.openBiblePresentation()
+            }
 
             Color.clear
                 .frame(

@@ -42,6 +42,6 @@ enum LyricClipboardImporter {
             throw LyricImportError.unsupportedContent
         }
 
-        return text
+        return LyricImportParser.normalizedLineBreaks(text)
     }
 }

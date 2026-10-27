@@ -18,6 +18,10 @@ struct PresentationBackgroundView: View {
     var contentMode: BackgroundContentMode = .fill
     var canvasSize: CGSize = PresentationLayout.referenceCanvasSize
     var sharedVideoPlayer: AVPlayer?
+    var videoLoops: Bool = true
+    var isVideoPlaying: Bool = true
+    var videoStopToken: Int = 0
+    var youtubePlayback: YouTubePlaybackController?
 
     var body: some View {
         GeometryReader { geometry in
@@ -39,7 +43,16 @@ struct PresentationBackgroundView: View {
                     canvasSize: canvasSize
                 )
             case .video:
-                if let sharedVideoPlayer {
+                if let youtubeVideoID = background.youtubeVideoID {
+                    YouTubeEmbedBackgroundView(
+                        videoID: youtubeVideoID,
+                        isPlaying: isVideoPlaying,
+                        stopToken: videoStopToken,
+                        contentMode: contentMode,
+                        canvasSize: canvasSize,
+                        playback: youtubePlayback
+                    )
+                } else if let sharedVideoPlayer {
                     AVPlayerLayerView(
                         player: sharedVideoPlayer,
                         contentMode: contentMode,
