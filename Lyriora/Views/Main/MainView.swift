@@ -26,7 +26,11 @@ struct MainView: View {
         .onAppear {
             viewModel.loadInitialData()
             viewModel.startSimplePlaySyncService()
+            viewModel.startAirService()
             viewModel.externalDisplayManager.refreshDisplayInfo()
+        }
+        .onChange(of: viewModel.airSignature) { _, _ in
+            viewModel.publishAirFrame()
         }
         .onChange(of: viewModel.externalDisplayManager.layoutRevision) { _, _ in
             viewModel.refreshBibleSlidesIfNeeded()

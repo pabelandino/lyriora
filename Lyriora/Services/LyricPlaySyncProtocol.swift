@@ -11,6 +11,8 @@ enum LyricPlaySync {
     static let bonjourType = "_lyriora-sync._tcp"
     static let bonjourDomain = "local."
     static let serviceName = "Lyriora"
+    /// EasyStream on the same Mac dials this port when Bonjour browse is denied.
+    static let loopbackPort: UInt16 = 47621
 }
 
 enum LyricPlaySyncMessageKind: String, Codable, Sendable {
@@ -22,6 +24,18 @@ enum LyricPlaySyncMessageKind: String, Codable, Sendable {
     case presence
     case presenceAck
     case error
+    /// EasyStream stays connected and receives `airFrame` pushes.
+    case subscribeAir
+    case airFrame
+}
+
+struct LyricAirSnapshot: Codable, Equatable, Sendable {
+    var revision: Int
+    var active: Bool
+    var content: String
+    var title: String
+    var reference: String
+    var body: String
 }
 
 struct LyricPlaySyncMessage: Codable, Sendable {
@@ -30,6 +44,7 @@ struct LyricPlaySyncMessage: Codable, Sendable {
     var showSlide: ShowSlideCommand?
     var linkSection: LinkSectionCommand?
     var errorMessage: String?
+    var air: LyricAirSnapshot?
 }
 
 struct LyricSlideCatalog: Codable, Sendable {
