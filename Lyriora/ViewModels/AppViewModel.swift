@@ -81,6 +81,7 @@ final class AppViewModel {
 
     let externalDisplayManager: ExternalDisplayManager
     private let simplePlaySync = LyricPlaySyncServer()
+    private var airRevision = 0
     private var simplePlayConnectionMonitorTask: Task<Void, Never>?
 
     private let lyricRepository: LyricRepositoryProtocol
@@ -191,6 +192,56 @@ final class AppViewModel {
             videoLoops: resolvedVideoLoops,
             isVideoPlaying: hasControllableVideoBackgroundSelected ? isVideoPlaying : true,
             videoStopToken: videoStopToken
+        )
+    }
+
+    /// Changes only when the lyric or verse on screen changes.
+    var airSignature: String {
+        let state = presentationState
+        return [
+            state.showLyrics ? "1" : "0",
+            state.isBiblePresentation ? "1" : "0",
+            state.slideID?.uuidString ?? "",
+            String(state.slidePresentationToken),
+            state.slideText ?? "",
+            state.lyricTitle ?? "",
+            state.bibleReferenceLabel ?? "",
+            state.bibleVersionName ?? ""
+        ].joined(separator: "\u{1}")
+    }
+
+    func startAirService() {
+        publishAirFrame()
+    }
+
+    func publishAirFrame() {
+        let state = presentationState
+        let text = state.slideText?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let showing = state.showLyrics && !text.isEmpty
+        airRevision += 1
+        let reference: String
+        if state.isBiblePresentation {
+            let label = state.bibleReferenceLabel?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let version = state.bibleVersionName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if label.isEmpty {
+                reference = version
+            } else if version.isEmpty {
+                reference = label
+            } else {
+                reference = "\(label) · \(version)"
+            }
+        } else {
+            reference = ""
+        }
+        simplePlaySync.publishAir(
+            LyricAirSnapshot(
+                revision: airRevision,
+                active: true,
+                content: showing ? (state.isBiblePresentation ? "bible" : "lyric") : "clear",
+                title: state.isBiblePresentation ? reference : (state.lyricTitle ?? ""),
+                reference: reference,
+                body: showing ? text : ""
+            )
         )
     }
 
