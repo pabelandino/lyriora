@@ -1,0 +1,99 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "App name on Home Screen and App Switcher.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show"
+          }
+        }
+      }
+    },
+    "NSLocalNetworkUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show uses the local network to sync slides with SimplePlay and to send the live lyric or verse to EasyStream."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show usa la red local para sincronizar diapositivas con SimplePlay y enviar la letra o el versículo en vivo a EasyStream."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Lvoq Show usa a rede local para sincronizar slides com o SimplePlay e enviar a letra ou o versículo ao vivo para o EasyStream."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show needs access to your photo library to import background images and videos."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show necesita acceso a tu biblioteca de fotos para importar imágenes y videos de fondo."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Lvoq Show precisa de acesso à sua biblioteca de fotos para importar imagens e vídeos de fundo."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -240,8 +240,8 @@
     "semantic_hash": "2c8ab7be813b8d9183db4b90ff3b46a8"
   },
   "Lyriora/ViewModels/AppViewModel.swift": {
-    "mtime": 1794875065.1487806,
-    "seen": 1794875353.00193,
+    "mtime": 1794875362.5652878,
+    "seen": 1794875364.44459,
     "ast_hash": "ef9477b4221bbabe9c49c5084486aff2",
     "semantic_hash": ""
   },
@@ -360,9 +360,9 @@
     "semantic_hash": ""
   },
   "Lyriora/Views/Main/MainView.swift": {
-    "mtime": 1793835463.326668,
-    "seen": 1794875353.001971,
-    "ast_hash": "d0a23af46216bb468770ac2e61c8e3e9",
+    "mtime": 1794875386.7887676,
+    "seen": 1794875395.814262,
+    "ast_hash": "b5ec605adf285d1390e16ade9b6b6ee5",
     "semantic_hash": ""
   },
   "Lyriora/Views/Modals/DisplayInfoSheet.swift": {
@@ -726,14 +726,14 @@
     "semantic_hash": ""
   },
   "Lyriora/Services/LyricPlaySyncProtocol.swift": {
-    "mtime": 1793838540.7851045,
-    "seen": 1794875353.0018969,
+    "mtime": 1794875362.5643501,
+    "seen": 1794875364.444556,
     "ast_hash": "8edb847e4ee2a22e7bfa7e8b77381dde",
     "semantic_hash": ""
   },
   "Lyriora/Services/LyricPlaySyncServer.swift": {
-    "mtime": 1793838572.8563783,
-    "seen": 1794875353.001898,
+    "mtime": 1794875362.5646203,
+    "seen": 1794875364.444557,
     "ast_hash": "4a5415fdbd8991b6253f981885295541",
     "semantic_hash": ""
   },
@@ -915,6 +915,24 @@
     "mtime": 1794875065.148653,
     "seen": 1794875353.001935,
     "ast_hash": "f0cc88cd67fe5f4fa42547e109b3c0c6",
+    "semantic_hash": ""
+  },
+  "Lyriora/Localization/AppBranding.swift": {
+    "mtime": 1794875382.0062015,
+    "seen": 1794875395.814136,
+    "ast_hash": "f873671f039bc747113e15941139c647",
+    "semantic_hash": ""
+  },
+  "Lyriora/Localization/AppLocale.swift": {
+    "mtime": 1794875381.332832,
+    "seen": 1794875395.814137,
+    "ast_hash": "4233b09fce518f4550e8c8dccef22314",
+    "semantic_hash": ""
+  },
+  "Lyriora/Localization/L10n.swift": {
+    "mtime": 1794875381.6405864,
+    "seen": 1794875395.8141382,
+    "ast_hash": "56c66226f4a0a00c59fef1ccbefaab3d",
     "semantic_hash": ""
   }
 }

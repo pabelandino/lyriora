@@ -48,8 +48,8 @@
     "semantic_hash": "b505ba08fb4e0a09cd928895619312d6"
   },
   "Lyriora/Models/LyricDocument.swift": {
-    "mtime": 1793071383.3051457,
-    "seen": 1793071384.983831,
+    "mtime": 1794875065.1486554,
+    "seen": 1794875353.001864,
     "ast_hash": "698f229d6aa355191c84174da26edb79",
     "semantic_hash": ""
   },
@@ -96,8 +96,8 @@
     "semantic_hash": ""
   },
   "Lyriora/Models/SlideTextStyle.swift": {
-    "mtime": 1793071378.2037427,
-    "seen": 1793071384.98384,
+    "mtime": 1794875065.1485844,
+    "seen": 1794875353.001874,
     "ast_hash": "5e6a85b629736d0c887bdd2d1836519a",
     "semantic_hash": "5e6a85b629736d0c887bdd2d1836519a"
   },
@@ -204,8 +204,8 @@
     "semantic_hash": "f2f179cf94b72221213c7c285f5ad208"
   },
   "Lyriora/Utilities/DefaultBackgroundPreset.swift": {
-    "mtime": 1793071373.42359,
-    "seen": 1793071384.983878,
+    "mtime": 1794875065.148954,
+    "seen": 1794875353.001915,
     "ast_hash": "f105b49bb1a2bc0d6e6019fd3dfe6997",
     "semantic_hash": "f105b49bb1a2bc0d6e6019fd3dfe6997"
   },
@@ -240,9 +240,9 @@
     "semantic_hash": "2c8ab7be813b8d9183db4b90ff3b46a8"
   },
   "Lyriora/ViewModels/AppViewModel.swift": {
-    "mtime": 1793071383.3074317,
-    "seen": 1793071384.983891,
-    "ast_hash": "f04ad9a64a1a0ce5aff0d846adf30f94",
+    "mtime": 1794875362.5652878,
+    "seen": 1794875364.44459,
+    "ast_hash": "ef9477b4221bbabe9c49c5084486aff2",
     "semantic_hash": ""
   },
   "Lyriora/ViewModels/PresentationState.swift": {
@@ -276,8 +276,8 @@
     "semantic_hash": ""
   },
   "Lyriora/Views/Components/AppBackgroundView.swift": {
-    "mtime": 1793071373.4258592,
-    "seen": 1793071384.983902,
+    "mtime": 1794875065.1488636,
+    "seen": 1794875353.001942,
     "ast_hash": "d0ed21e30069df155bfef3147996acc4",
     "semantic_hash": "d0ed21e30069df155bfef3147996acc4"
   },
@@ -300,14 +300,14 @@
     "semantic_hash": ""
   },
   "Lyriora/Views/Components/GlassPanel.swift": {
-    "mtime": 1793071378.2107742,
-    "seen": 1793071384.983906,
+    "mtime": 1794875065.1489444,
+    "seen": 1794875353.001947,
     "ast_hash": "ecd0181a881fb4c880a3408c3110db81",
     "semantic_hash": "ecd0181a881fb4c880a3408c3110db81"
   },
   "Lyriora/Views/Components/LoopingVideoBackground.swift": {
-    "mtime": 1793071373.426573,
-    "seen": 1793071384.9839082,
+    "mtime": 1794875065.1433747,
+    "seen": 1794875353.0019488,
     "ast_hash": "693f209b87eea87c64b7dcaf1a228375",
     "semantic_hash": "693f209b87eea87c64b7dcaf1a228375"
   },
@@ -342,8 +342,8 @@
     "semantic_hash": "5ca0daba065d4892511e4d25d22f6ce3"
   },
   "Lyriora/Views/Components/ThemePreviewCard.swift": {
-    "mtime": 1793071373.4275808,
-    "seen": 1793071384.983922,
+    "mtime": 1794875065.1486003,
+    "seen": 1794875353.001965,
     "ast_hash": "41752ce72a023cbe398e14d0914ec448",
     "semantic_hash": "41752ce72a023cbe398e14d0914ec448"
   },
@@ -360,9 +360,9 @@
     "semantic_hash": ""
   },
   "Lyriora/Views/Main/MainView.swift": {
-    "mtime": 1793071383.310112,
-    "seen": 1793071384.983927,
-    "ast_hash": "ed9575a68651ba683f76d67ec6b33387",
+    "mtime": 1794875362.5659533,
+    "seen": 1794875364.444631,
+    "ast_hash": "d0a23af46216bb468770ac2e61c8e3e9",
     "semantic_hash": ""
   },
   "Lyriora/Views/Modals/DisplayInfoSheet.swift": {
@@ -624,32 +624,32 @@
     "semantic_hash": ""
   },
   "Lyriora/Models/TextAnimationKind.swift": {
-    "mtime": 1793071378.203859,
-    "seen": 1793071384.983841,
+    "mtime": 1794875065.148771,
+    "seen": 1794875353.001874,
     "ast_hash": "d11de77c4bfe9219b95b7877d7a152e1",
     "semantic_hash": "d11de77c4bfe9219b95b7877d7a152e1"
   },
   "Lyriora/Models/TextAnimationStylePreset.swift": {
-    "mtime": 1793071378.2039557,
-    "seen": 1793071384.983841,
+    "mtime": 1794875065.0997415,
+    "seen": 1794875353.001875,
     "ast_hash": "c550fab8289a1f93ed8e53a9cd9b956d",
     "semantic_hash": "c550fab8289a1f93ed8e53a9cd9b956d"
   },
   "Lyriora/Rendering/Metal/MetalTextEffectRenderer.swift": {
-    "mtime": 1793071378.2042623,
-    "seen": 1793071384.983846,
+    "mtime": 1794875065.148803,
+    "seen": 1794875353.0018802,
     "ast_hash": "fe22ab34b5db3e6803736e445f8c0ba8",
     "semantic_hash": "fe22ab34b5db3e6803736e445f8c0ba8"
   },
   "Lyriora/Rendering/Metal/MetalTextEffectView.swift": {
-    "mtime": 1793071378.2043502,
-    "seen": 1793071384.983847,
+    "mtime": 1794875065.099775,
+    "seen": 1794875353.0018811,
     "ast_hash": "d99bfdceb1a3409943d463669db33491",
     "semantic_hash": "d99bfdceb1a3409943d463669db33491"
   },
   "Lyriora/Rendering/Metal/Shaders.metal": {
-    "mtime": 1793071378.2044485,
-    "seen": 1793071384.9838479,
+    "mtime": 1794875065.1488287,
+    "seen": 1794875353.001882,
     "ast_hash": "b08df1708e213157bd58a496842d487d",
     "semantic_hash": "b08df1708e213157bd58a496842d487d"
   },
@@ -666,14 +666,14 @@
     "semantic_hash": ""
   },
   "Lyriora/Utilities/SlideTextTokenizer.swift": {
-    "mtime": 1793071378.2075562,
-    "seen": 1793071384.983888,
+    "mtime": 1794875065.1254048,
+    "seen": 1794875353.001927,
     "ast_hash": "f11c0d3b0cfee938f42d705731beeba6",
     "semantic_hash": "f11c0d3b0cfee938f42d705731beeba6"
   },
   "Lyriora/Utilities/TextAnimationEffects.swift": {
-    "mtime": 1793071378.2076826,
-    "seen": 1793071384.9838889,
+    "mtime": 1794875065.099925,
+    "seen": 1794875353.0019279,
     "ast_hash": "5cbcb32783eed2e194768735c69d4a72",
     "semantic_hash": "5cbcb32783eed2e194768735c69d4a72"
   },
@@ -690,20 +690,20 @@
     "semantic_hash": ""
   },
   "Lyriora/Views/Components/SlideTransitionTextContainer.swift": {
-    "mtime": 1793071378.2126684,
-    "seen": 1793071384.9839182,
+    "mtime": 1794875065.0999146,
+    "seen": 1794875353.001961,
     "ast_hash": "78933abbb442644bf3f58a99c1d89b38",
     "semantic_hash": "78933abbb442644bf3f58a99c1d89b38"
   },
   "Lyriora/Views/Components/TextAnimationEditorSection.swift": {
-    "mtime": 1793071378.2134304,
-    "seen": 1793071384.98392,
+    "mtime": 1794875065.1490073,
+    "seen": 1794875353.001963,
     "ast_hash": "229ceb5b408638400f238811de03fc23",
     "semantic_hash": "229ceb5b408638400f238811de03fc23"
   },
   "Lyriora/Views/Components/TextStyleSlidePreviewNavigator.swift": {
-    "mtime": 1793071378.2136068,
-    "seen": 1793071384.9839208,
+    "mtime": 1794875065.1489086,
+    "seen": 1794875353.001964,
     "ast_hash": "8a211ba7c889f11b631db8365ea038a3",
     "semantic_hash": "8a211ba7c889f11b631db8365ea038a3"
   },
@@ -714,8 +714,8 @@
     "semantic_hash": "52ece10ba8ed0b823911e8d1fe6dfac7"
   },
   "Lyriora/Views/Components/TypewriterRevealText.swift": {
-    "mtime": 1793071378.214247,
-    "seen": 1793071384.983925,
+    "mtime": 1794875065.1488364,
+    "seen": 1794875353.0019681,
     "ast_hash": "cb9b16af198a3e4017ac2c2c417d360a",
     "semantic_hash": "cb9b16af198a3e4017ac2c2c417d360a"
   },
@@ -726,16 +726,16 @@
     "semantic_hash": ""
   },
   "Lyriora/Services/LyricPlaySyncProtocol.swift": {
-    "mtime": 1793071378.2056687,
-    "seen": 1793071384.983862,
-    "ast_hash": "4a95ad25a45713a61d035f5e60094b0a",
+    "mtime": 1794875362.5643501,
+    "seen": 1794875364.444556,
+    "ast_hash": "8edb847e4ee2a22e7bfa7e8b77381dde",
     "semantic_hash": ""
   },
   "Lyriora/Services/LyricPlaySyncServer.swift": {
-    "mtime": 1793071378.2057686,
-    "seen": 1793071384.983863,
-    "ast_hash": "a64296b07aa0a66647e252b635ff2d36",
-    "semantic_hash": "a64296b07aa0a66647e252b635ff2d36"
+    "mtime": 1794875362.5646203,
+    "seen": 1794875364.444557,
+    "ast_hash": "4a5415fdbd8991b6253f981885295541",
+    "semantic_hash": ""
   },
   "Lyriora/Views/Components/SimplePlayConnectionIndicator.swift": {
     "mtime": 1793071378.2122004,
@@ -840,80 +840,80 @@
     "semantic_hash": ""
   },
   "Lyriora/Models/BibleBookCatalog.swift": {
-    "mtime": 1793071383.3035069,
-    "seen": 1793071384.983828,
+    "mtime": 1794875065.1489887,
+    "seen": 1794875353.001861,
     "ast_hash": "ee9ac3e99dd3120ad3f175a58da45e6a",
     "semantic_hash": ""
   },
   "Lyriora/Models/BibleVersion.swift": {
-    "mtime": 1793071383.304861,
-    "seen": 1793071384.983829,
+    "mtime": 1794875065.1486313,
+    "seen": 1794875353.0018618,
     "ast_hash": "380476691ec80a2b43417a7ce87a60f8",
     "semantic_hash": ""
   },
   "Lyriora/Services/BibleSearchEngine.swift": {
-    "mtime": 1793071383.3056111,
-    "seen": 1793071384.983849,
+    "mtime": 1794875065.1488879,
+    "seen": 1794875353.0018828,
     "ast_hash": "8e5d0a725b50c344089bdbef0e7a0956",
     "semantic_hash": ""
   },
   "Lyriora/Services/BibleSearchIndex.swift": {
-    "mtime": 1793071383.3057218,
-    "seen": 1793071384.983849,
+    "mtime": 1794875065.1489692,
+    "seen": 1794875353.001884,
     "ast_hash": "efc75d8c706b9f100c85fe1993c9558d",
     "semantic_hash": ""
   },
   "Lyriora/Services/BibleSlideBuilder.swift": {
-    "mtime": 1793071383.3058379,
-    "seen": 1793071384.98385,
+    "mtime": 1794875065.1488035,
+    "seen": 1794875353.001885,
     "ast_hash": "7b1ed838fd923a136e67c42449585e45",
     "semantic_hash": ""
   },
   "Lyriora/Services/BibleVersionRepository.swift": {
-    "mtime": 1793071383.3059487,
-    "seen": 1793071384.983851,
+    "mtime": 1794875065.152533,
+    "seen": 1794875353.001886,
     "ast_hash": "c57719b33edf0ad82d744e5a46c32126",
     "semantic_hash": ""
   },
   "Lyriora/Services/BibleXMLParser.swift": {
-    "mtime": 1793071383.3060546,
-    "seen": 1793071384.9838521,
+    "mtime": 1794875065.1487508,
+    "seen": 1794875353.001887,
     "ast_hash": "cd303300a3c24e4f0e9c97721fde87b0",
     "semantic_hash": ""
   },
   "Lyriora/Utilities/BibleVersionDisplayFormatter.swift": {
-    "mtime": 1793071383.3070097,
-    "seen": 1793071384.983876,
+    "mtime": 1794875065.1525273,
+    "seen": 1794875353.001913,
     "ast_hash": "6c081e4806eed72a813a79c14a196346",
     "semantic_hash": ""
   },
   "Lyriora/Utilities/MacFileImportPanel.swift": {
-    "mtime": 1793071383.3071148,
-    "seen": 1793071384.983882,
+    "mtime": 1794875065.0997696,
+    "seen": 1794875353.00192,
     "ast_hash": "79d77e5f25b7a4cbc547708247cce2b5",
     "semantic_hash": ""
   },
   "Lyriora/Views/Bible/BiblePresentationSheet.swift": {
-    "mtime": 1793071383.307982,
-    "seen": 1793071384.983893,
+    "mtime": 1794875065.1489825,
+    "seen": 1794875353.0019321,
     "ast_hash": "f34491dba869f8739121ffe0213e77f9",
     "semantic_hash": ""
   },
   "Lyriora/Views/Bible/BibleSlideGridView.swift": {
-    "mtime": 1793071383.3083475,
-    "seen": 1793071384.983894,
+    "mtime": 1794875065.148608,
+    "seen": 1794875353.001933,
     "ast_hash": "3c593a5dfeffb464400b1c502728030b",
     "semantic_hash": ""
   },
   "Lyriora/Views/Bible/BibleTransitionStyleSection.swift": {
-    "mtime": 1793071383.3086,
-    "seen": 1793071384.983895,
+    "mtime": 1794875065.1487288,
+    "seen": 1794875353.001934,
     "ast_hash": "15538fcce20427612e28ef88003b6d64",
     "semantic_hash": ""
   },
   "Lyriora/Views/Bible/BibleXMLDocumentPicker.swift": {
-    "mtime": 1793071383.308721,
-    "seen": 1793071384.983896,
+    "mtime": 1794875065.148653,
+    "seen": 1794875353.001935,
     "ast_hash": "f0cc88cd67fe5f4fa42547e109b3c0c6",
     "semantic_hash": ""
   }

@@ -1,0 +1,77 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "app.display_name" : {
+      "comment" : "User-visible product name in in-app copy.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lvoq Show"
+          }
+        }
+      }
+    },
+    "main.rotate_iphone.title" : {
+      "comment" : "Prompt when iPhone is held in portrait.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotate iPhone to Landscape"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gira el iPhone a horizontal"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gire o iPhone para a horizontal"
+          }
+        }
+      }
+    },
+    "main.rotate_iphone.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ is designed for landscape on iPhone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ está diseñada para usarse en horizontal en iPhone."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ foi feita para uso em horizontal no iPhone."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

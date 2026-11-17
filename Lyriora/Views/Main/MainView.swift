@@ -195,10 +195,10 @@ struct MainView: View {
                 .font(.system(size: 52, weight: .medium))
                 .foregroundStyle(.secondary)
 
-            Text("Rotate iPhone to Landscape")
+            Text(L10n.Main.rotateIPhoneTitle)
                 .font(.title3.weight(.semibold))
 
-            Text("Lyriora is designed for landscape on iPhone.")
+            Text(String(format: L10n.Main.rotateIPhoneBody, L10n.App.displayName))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
