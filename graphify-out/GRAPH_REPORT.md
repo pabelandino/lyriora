@@ -1,17 +1,17 @@
-# Graph Report - Lyriora  (2026-10-26)
+# Graph Report - Lyriora  (2026-11-16)
 
 ## Corpus Check
-- 151 files · ~81,410 words
+- 151 files · ~81,909 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 9 file(s) not represented in the graph (top: (none) 4, .mdc 1, .plist 1)
 
 ## Summary
-- 2530 nodes · 5874 edges · 146 communities (130 shown, 16 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 481 edges (avg confidence: 0.82)
+- 2584 nodes · 5922 edges · 166 communities (140 shown, 26 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 497 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4f34840d`
+- Built from commit: `c423c9b3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -23,9 +23,9 @@
 - TextAnimationKind
 - LyricEditorView
 - ThemeMiniPreview
-- SlideDetailEditorView
+- String
 - What You Must Do When Invoked
-- MediaAsset
+- MediaRepositoryProtocol
 - AnimatedPresentationText
 - PresentationFontWeight
 - TextAnimationEditorSection
@@ -37,22 +37,22 @@
 - VideoPlaybackController
 - SwiftUI
 - .resolvedMetrics
-- Equatable
-- MediaAssetKind
+- BiblePresentationSlide
+- MediaAsset
 - CodingKeys
 - PlaylistGlassModal.swift
-- Image
+- SimplePlaySyncDisplayState
 - ExplicitLinePresentationText
-- Identifiable
-- LyricDocument
-- PresentationBackgroundView
+- PresentationFontDesign
+- CodingKeys
+- PresentationBackgroundLayer
 - MainView
 - SlideGridView
 - BiblePresentationSheet
 - Codable
 - MetalTextEffectRenderer
 - LibraryMorphSearchHeader
-- .init
+- Task
 - .transitionTransform
 - Foundation
 - lyricTextFragment
@@ -60,29 +60,29 @@
 - What You Must Do When Invoked
 - AppViewModel
 - Sendable
-- YouTubePlaybackController
-- LyricStyleProfile
-- GlassIconButton
+- YouTubeEmbedBackgroundView.swift
+- LyricEditorSlideCard
+- LyricLanguage
 - LyricSlideTag
-- GlassCircleIcon
-- PlaylistPickerSheet
+- GlassPanel
+- YouTubeEmbedWebViewRepresentable
 - LyricSlideLayoutEngine
 - .measureSingleLine
-- VideoPlaybackMode
+- GlassIconButton
 - BibleXMLDocumentPicker
 - ExternalDisplaySceneCoordinator
 - LyrioraUITests
-- BibleChapterIndex
+- BibleVersion.swift
 - CodingKeys
 - BackgroundContentMode
 - View
-- SlideTextStyle
-- .matches
+- String
+- EditorCard
 - LyricEditorHeaderBar
 - LyricSlide
 - MacWindowConfigurator
-- BibleBookInfo
-- WordFontSizeOverride
+- Identifiable
+- SlideDetailEditorView
 - CodingKeys
 - BibleVersionManifest
 - PresentationTextConfiguration
@@ -91,13 +91,13 @@
 - ThemeSavePromptSheet
 - ExternalPresentationContainerViewController
 - SlideAnimationProfile
-- ClearerAnchorView
-- GlassPanel.swift
+- LyricPlaySyncServer
+- GlassCircleIcon
 - LyrioraTests.swift
 - BibleVersionIndex
 - BibleSlideGridView
 - TransitionSpeedControl
-- MetalTextEffectRepresentable
+- .body
 - PlaylistEditorSheet
 - WorkspaceCompactLayout.swift
 - DefaultBackgroundPreset
@@ -116,9 +116,9 @@
 - LyricRepository
 - PlayerLayerView
 - BibleSearchEngine
-- .body
-- MetalTextEffectParameters
-- LyricCardView
+- content
+- PresentationBackgroundView
+- LyricsLibraryPanelView
 - CodingKeys
 - BibleVersionDisplayFormatter
 - PresentationState
@@ -135,77 +135,97 @@
 - graphify reference: commit hook and native CLAUDE.md integration
 - graphify reference: incremental update and cluster-only
 - GlobalStyleEditorContent
-- .resolved
+- .loadThumbnail
 - graphify reference: GitHub clone and cross-repo merge
 - graphify reference: transcribe video and audio
 - graphify reference: GitHub clone and cross-repo merge
 - graphify reference: transcribe video and audio
-- .font
+- .fetchTitle
 - .agents/skills/graphify/references/extraction-spec.md
 - CLAUDE.md
 - .claude/CLAUDE.md
 - .claude/skills/graphify/references/extraction-spec.md
-- AppViewModel.swift
-- SlideThumbnailView
-- PresentationFontPickerSheet
+- PickedImageFile
+- Image
+- SettingsSheet
 - ExternalDisplayInfo
-- PlaylistGlassColumn
+- .store
 - PlaylistMediaPreview
-- .pickFiles
-- LyricsLibraryPanelView
-- LyrioraApp
+- BibleVersionRepository.swift
+- LyricPlaySyncMessageKind
+- BibleVerseLocation
 - CodableColor
-- UIViewController
+- DefaultBackgroundMeshStyle
 - TextAnimationStylePreset
-- AVPlayerLayerView
-- BibleVersionDisplayFormatter.swift
-- .init
+- VideoPlaybackMode
+- AnimationApplyScope
+- MetadataError
 - .encode
-- LyricClipboardImporter.swift
+- .saveLyric
+- LyricImportError
+- YouTubePlaybackController
+- ImageLibrarySection
+- .playbackTime
+- LocalFileThumbnailImage
+- BiblePresentationFooterView
+- Data
+- Decoder
+- Encoder
+- Date
+- Error
+- CGSize
+- LyricDocument
+- Never
+- PhotosPickerItem
+- SlideTextStyle
+- Task
+- TimeInterval
+- URL
+- CGFloat
 
 ## God Nodes (most connected - your core abstractions)
-1. `AppViewModel` - 203 edges
+1. `AppViewModel` - 207 edges
 2. `TextAnimationKind` - 76 edges
-3. `SlideAnimationProfile` - 67 edges
-4. `LyricEditorView` - 67 edges
-5. `LyricSlide` - 62 edges
-6. `MediaAsset` - 54 edges
-7. `Image` - 53 edges
-8. `ExternalDisplayManager` - 51 edges
-9. `TextAnimationEditorSection` - 46 edges
-10. `PresentationTextConfiguration` - 44 edges
+3. `LyricEditorView` - 67 edges
+4. `SlideAnimationProfile` - 66 edges
+5. `LyricSlide` - 59 edges
+6. `Image` - 53 edges
+7. `ExternalDisplayManager` - 50 edges
+8. `TextAnimationEditorSection` - 46 edges
+9. `PresentationTextConfiguration` - 44 edges
+10. `MediaAsset` - 42 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `.body` --calls--> `content`  [INFERRED]
-  Lyriora/Views/Components/GlassPanel.swift → Lyriora/Models/LyricDocument.swift
-- `.body` --calls--> `content`  [INFERRED]
-  Lyriora/Views/Components/StickyPreviewEditorLayout.swift → Lyriora/Models/LyricDocument.swift
-- `.body` --calls--> `content`  [INFERRED]
-  Lyriora/Views/Modals/PlaylistGlassModal.swift → Lyriora/Models/LyricDocument.swift
-- `.slidesRefreshID` --references--> `LyricSlide`  [INFERRED]
-  Lyriora/Views/Components/LyricEditorSlideHorizontalListView.swift → Lyriora/Models/LyricSlide.swift
-- `.headerRow` --references--> `LyricSlide`  [INFERRED]
-  Lyriora/Views/Components/LyricSlideLivePreview.swift → Lyriora/Models/LyricSlide.swift
+- `.availableVerseCount` --references--> `AppViewModel`  [INFERRED]
+  Lyriora/Views/Bible/BiblePresentationSheet.swift → Lyriora/ViewModels/AppViewModel.swift
+- `.activeTheme` --references--> `AppViewModel`  [INFERRED]
+  Lyriora/Views/Modals/LyricEditorView.swift → Lyriora/ViewModels/AppViewModel.swift
+- `.allItemIDs` --references--> `AppViewModel`  [INFERRED]
+  Lyriora/Views/Modals/PlaylistSheets.swift → Lyriora/ViewModels/AppViewModel.swift
+- `.resolvedPlaylist` --references--> `AppViewModel`  [INFERRED]
+  Lyriora/Views/Modals/PlaylistSheets.swift → Lyriora/ViewModels/AppViewModel.swift
+- `.iPhonePortraitPrompt` --calls--> `Image`  [INFERRED]
+  Lyriora/Views/Main/MainView.swift → Lyriora/Views/Components/YouTubeEmbedBackgroundView.swift
 
 ## Import Cycles
 - None detected.
 
-## Communities (146 total, 16 thin omitted)
+## Communities (166 total, 26 thin omitted)
 
 ### Community 0 - "ExternalDisplayManager"
 Cohesion: 0.11
 Nodes (19): ExternalDisplayManager, .displayMonitorInterval, .isExternalDisplayConnected, ExternalPresentationWindow, .canBecomeKey, .canBecomeMain, Bool, CGSize (+11 more)
 
 ### Community 1 - "PresentationPreviewView"
-Cohesion: 0.15
-Nodes (16): PresentationContentView, .textConfiguration, PresentationPreviewView, .canvasAspectRatio, .canvasSize, .isVideoBackground, .previewMetadataBar, .previewStage (+8 more)
+Cohesion: 0.17
+Nodes (14): PresentationContentView, .textConfiguration, PresentationPreviewView, .isVideoBackground, .previewMetadataBar, .previewStage, .showsSlidePlaceholder, .showsVideoControls (+6 more)
 
 ### Community 2 - "LibraryPlaylist"
-Cohesion: 0.09
-Nodes (22): LibraryPlaylist, LibraryPlaylistKind, image, lyric, .systemImage, .title, video, Date (+14 more)
+Cohesion: 0.08
+Nodes (26): LibraryPlaylist, LibraryPlaylistKind, image, lyric, .systemImage, .title, video, Bool (+18 more)
 
 ### Community 3 - ".configure"
-Cohesion: 0.11
+Cohesion: 0.10
 Nodes (29): TimeInterval, UUID, VideoSeekRequest, TimeInterval, Void, VideoProgressReporter, Coordinator, LoopingVideoBackground (+21 more)
 
 ### Community 4 - "TextAnimationKind"
@@ -213,148 +233,148 @@ Cohesion: 0.04
 Nodes (47): Bool, TextAnimationKind, .basicCases, blink, blinkSemiRotate, bounce, chromaticShift, .displayName (+39 more)
 
 ### Community 5 - "LyricEditorView"
-Cohesion: 0.06
-Nodes (41): EditorCard, .cardBackground, LyricEditorLifecycleModifier, .importErrorPresented, LyricEditorView, .activeTheme, .body, .canSave (+33 more)
+Cohesion: 0.08
+Nodes (26): LyricEditorView, .activeTheme, .body, .canSave, .compactSplitLayout, .editorBackground, .editorBackgroundColor, .editorTitle (+18 more)
 
 ### Community 6 - "ThemeMiniPreview"
 Cohesion: 0.14
 Nodes (21): Bool, CGFloat, SlideTextStyle, String, UUID, Void, ThemeGalleryView, .body (+13 more)
 
-### Community 7 - "SlideDetailEditorView"
-Cohesion: 0.19
-Nodes (12): SlideDetailEditorView, .activeStyle, .animationProfileBinding, .body, .previewAnimationProfile, .resolvedStyleForWordSizing, Binding, Bool (+4 more)
+### Community 7 - "String"
+Cohesion: 0.22
+Nodes (6): LibraryPlaylist, LibraryPlaylistKind, PlaylistRepositoryProtocol, String, UUID, .body
 
 ### Community 8 - "What You Must Do When Invoked"
 Cohesion: 0.08
 Nodes (24): For /graphify add and --watch, For /graphify query, For the commit hook and native AGENTS.md integration, For --update and --cluster-only, /graphify, Honesty Rules, Interpreter guard for subcommands, Part A - Structural extraction for code files (+16 more)
 
-### Community 9 - "MediaAsset"
-Cohesion: 0.08
-Nodes (32): MediaAsset, .listLabel, Date, UUID, MediaRepositoryProtocol, .isYouTubeLink, importSelectedVideos(), URL (+24 more)
+### Community 9 - "MediaRepositoryProtocol"
+Cohesion: 0.12
+Nodes (12): MediaRepositoryProtocol, Bool, LibrarySearchEmptyState, .body, String, .body, .body, VideoLibrarySection (+4 more)
 
 ### Community 10 - "AnimatedPresentationText"
-Cohesion: 0.12
-Nodes (23): Font, AnimatedPresentationText, .allowsEffectTimelineUpdates, .animatedBody, .emptyLinePlaceholder, .proRenderQuality, .shouldRenderAnimatedContent, .shouldRunEffectTimeline (+15 more)
+Cohesion: 0.13
+Nodes (21): AnimatedPresentationText, .allowsEffectTimelineUpdates, .animatedBody, .proRenderQuality, .shouldRenderAnimatedContent, .shouldRunEffectTimeline, NaturalWidthPreferenceKey, ScaledToFitWidthModifier (+13 more)
 
 ### Community 11 - "PresentationFontWeight"
-Cohesion: 0.17
-Nodes (12): PresentationFontWeight, bold, .id, .label, medium, regular, semibold, .nsWeight (+4 more)
+Cohesion: 0.13
+Nodes (15): PresentationFontWeight, bold, .id, .label, medium, regular, semibold, CGFloat (+7 more)
 
 ### Community 12 - "TextAnimationEditorSection"
-Cohesion: 0.13
-Nodes (20): Binding, Bool, Int, String, Void, TextAnimationEditorSection, .activeEffectKind, .activeTransitionKind (+12 more)
+Cohesion: 0.12
+Nodes (23): .wordCount, Binding, Bool, Int, String, Void, TextAnimationEditorSection, .activeEffectKind (+15 more)
 
 ### Community 13 - "ParsedSlideText"
-Cohesion: 0.12
-Nodes (14): Int, ParsedSlideText, .isEmpty, .totalWordCount, SlideTextTokenizer, Bool, Int, Range (+6 more)
+Cohesion: 0.13
+Nodes (12): Int, ParsedSlideText, .isEmpty, .totalWordCount, SlideTextTokenizer, Bool, Int, Range (+4 more)
 
 ### Community 14 - "LyricImportParser"
-Cohesion: 0.14
-Nodes (14): String, LyricImportError, empty, .errorDescription, notText, unsupportedContent, LyricImportParser, LyricImportResult (+6 more)
+Cohesion: 0.17
+Nodes (10): LyricImportParser, LyricImportResult, LyricSectionParseResult, ParsedSections, Bool, CGSize, Int, SlideTextStyle (+2 more)
 
 ### Community 15 - "PresentationFontFamily"
-Cohesion: 0.09
-Nodes (22): PresentationFontFamily, americanTypewriter, arial, avenirNext, baskerville, courierNew, didot, futura (+14 more)
+Cohesion: 0.08
+Nodes (26): PresentationFontFamily, americanTypewriter, arial, avenirNext, baskerville, courierNew, didot, futura (+18 more)
 
 ### Community 16 - "LyricSlideLivePreview"
 Cohesion: 0.11
 Nodes (24): LyricPreviewBackgroundStyle, borderOnly, settingsDefault, LyricSlideLivePreview, .body, .compactCanvasPreview, .compactHeight, .cornerRadius (+16 more)
 
 ### Community 17 - "MediaThumbnailView"
-Cohesion: 0.21
-Nodes (11): GlassOverflowMenu, MediaThumbnailView, .body, .menuIconSize, .overflowActions, .resolvedDurationLabel, .shape, .youtubeLinkString (+3 more)
+Cohesion: 0.12
+Nodes (20): ClipboardLinkReader, .string, MediaImportToolbarButton, .photoPickerSelection, MediaThumbnailView, .body, .menuIconSize, .overflowActions (+12 more)
 
 ### Community 18 - "VideoPlaybackController"
 Cohesion: 0.19
 Nodes (10): AVPlayerLooper, Any, AVPlayer, AVPlayerItem, CMTime, NSObjectProtocol, TimeInterval, URL (+2 more)
 
 ### Community 19 - "SwiftUI"
-Cohesion: 0.23
-Nodes (5): AppKit, AVFoundation, AVKit, SwiftUI, UIKit
+Cohesion: 0.19
+Nodes (7): AppKit, AVFoundation, AVKit, MediaImportContentTypes, UTType, SwiftUI, UIKit
 
 ### Community 20 - ".resolvedMetrics"
 Cohesion: 0.19
 Nodes (13): ExternalDisplayDiscovery, ExternalDisplayMetrics, Source, liveContainer, liveWindow, sceneCoordinateSpace, screenBounds, Bool (+5 more)
 
-### Community 21 - "Equatable"
-Cohesion: 0.15
-Nodes (18): Equatable, BiblePresentationSlide, BibleReadingSession, .canGoPreviousInStrip, .previewSlide, BibleSearchHint, BibleSearchHintKind, reference (+10 more)
+### Community 21 - "BiblePresentationSlide"
+Cohesion: 0.18
+Nodes (14): BiblePresentationSlide, BibleReadingSession, .canGoPreviousInStrip, .previewSlide, BibleSearchHint, BibleSearchHintKind, reference, textMatch (+6 more)
 
-### Community 22 - "MediaAssetKind"
-Cohesion: 0.08
-Nodes (28): Error, .index, MediaAssetKind, image, video, MediaIndexEntry, MediaRepository, MediaRepositoryError (+20 more)
+### Community 22 - "MediaAsset"
+Cohesion: 0.07
+Nodes (32): .index, MediaAsset, .listLabel, MediaAssetKind, image, video, Date, UUID (+24 more)
 
 ### Community 23 - "CodingKeys"
 Cohesion: 0.10
 Nodes (20): CodingKeys, defaultAnimationProfile, defaultStyle, fontDesign, fontFamily, fontWeight, horizontalPaddingRatio, isAdaptiveScalingEnabled (+12 more)
 
 ### Community 24 - "PlaylistGlassModal.swift"
-Cohesion: 0.12
-Nodes (23): .body, PlaylistGlassEmptyState, .body, PlaylistGlassNameField, .body, PlaylistGlassRowButton, .body, PlaylistGlassSearchField (+15 more)
+Cohesion: 0.09
+Nodes (30): .body, PlaylistGlassColumn, .body, PlaylistGlassEmptyState, .body, PlaylistGlassNameField, PlaylistGlassRowButton, .body (+22 more)
 
-### Community 25 - "Image"
-Cohesion: 0.05
-Nodes (58): AVAssetImageGenerator, Entry, LocalImageCache, CGSize, URL, Metadata, CGImage, CGSize (+50 more)
+### Community 25 - "SimplePlaySyncDisplayState"
+Cohesion: 0.12
+Nodes (21): .slideGridHeader, SimplePlayConnectionIndicator, .body, .shouldAnimateGlow, SimplePlayConnectionInfoSheet, .body, .state, .statusFooter (+13 more)
 
 ### Community 26 - "ExplicitLinePresentationText"
-Cohesion: 0.12
-Nodes (21): EnvironmentKey, .body, .body, EditorAdaptivePresentationText, .body, .lines, .resolvedConfiguration, EditorPreviewSizing (+13 more)
+Cohesion: 0.13
+Nodes (20): EnvironmentKey, .body, .body, EditorAdaptivePresentationText, .body, .resolvedConfiguration, EditorPreviewSizing, exact (+12 more)
 
-### Community 27 - "Identifiable"
+### Community 27 - "PresentationFontDesign"
+Cohesion: 0.17
+Nodes (10): Hashable, LyricEditorLaunch, PresentationFontDesign, `default`, .id, .label, monospaced, rounded (+2 more)
+
+### Community 28 - "CodingKeys"
+Cohesion: 0.17
+Nodes (12): CodingKeys, colorSeed, createdAt, id, language, simplePlayProjectID, simplePlayProjectName, sourceSections (+4 more)
+
+### Community 29 - "PresentationBackgroundLayer"
 Cohesion: 0.16
-Nodes (11): Hashable, Identifiable, LyricEditorLaunch, PresentationFontDesign, `default`, .id, .label, monospaced (+3 more)
-
-### Community 28 - "LyricDocument"
-Cohesion: 0.11
-Nodes (20): CodingKeys, colorSeed, createdAt, id, language, simplePlayProjectID, simplePlayProjectName, sourceSections (+12 more)
-
-### Community 29 - "PresentationBackgroundView"
-Cohesion: 0.06
-Nodes (44): content, PresentationBackground, .isYouTube, Bool, String, URL, BiblePresentationFooterView, .body (+36 more)
+Nodes (16): PresentationBackground, .isYouTube, Bool, String, URL, AppBackgroundView, .layerIdentity, .shellBackground (+8 more)
 
 ### Community 30 - "MainView"
-Cohesion: 0.18
-Nodes (10): ContentView, .body, MainView, .adaptiveWorkspace, .iPadPortraitWorkspace, .iPhoneLandscapeWorkspace, .iPhonePortraitPrompt, CGFloat (+2 more)
+Cohesion: 0.08
+Nodes (25): App, CGFloat, ContentView, .body, LyrioraApp, .body, CenterPanelView, .presentationToolbar (+17 more)
 
 ### Community 31 - "SlideGridView"
-Cohesion: 0.36
-Nodes (6): SlideGridView, .body, .thumbnailWidth, CGFloat, Int, Void
+Cohesion: 0.18
+Nodes (14): SlideGridView, .body, .thumbnailWidth, SlideThumbnailView, .textConfiguration, .thumbnailCanvasSize, .thumbnailStyle, .usesDefaultGradientBackground (+6 more)
 
 ### Community 32 - "BiblePresentationSheet"
 Cohesion: 0.14
 Nodes (17): BiblePresentationSheet, .availableVerseCount, .bibleAnimationBinding, .bibleStyleBinding, .body, .filteredBooks, .hintsSection, .manualPassageCard (+9 more)
 
 ### Community 33 - "Codable"
-Cohesion: 0.11
-Nodes (26): Codable, JSONEncoder, LinkSectionCommand, LyricPlaySync, LyricPlaySyncCodec, LyricPlaySyncMessage, LyricPlaySyncMessageKind, catalogRequest (+18 more)
+Cohesion: 0.14
+Nodes (19): Codable, Data, Decoder, Encoder, JSONEncoder, LinkSectionCommand, LyricAirSnapshot, LyricPlaySync (+11 more)
 
 ### Community 34 - "MetalTextEffectRenderer"
-Cohesion: 0.17
-Nodes (12): MetalTextEffectRenderer, CGSize, CGRect, NSCoder, NSRect, MTKView, MTKViewDelegate, MTLCommandQueue (+4 more)
+Cohesion: 0.08
+Nodes (31): MetalTextEffectParameters, .isActive, MetalTextEffectRenderer, MetalTextEffectSupport, Bool, CGImage, CGSize, Double (+23 more)
 
 ### Community 35 - "LibraryMorphSearchHeader"
-Cohesion: 0.17
-Nodes (13): Layout, LibraryMorphSearchHeader, .body, .controlSize, .isSearchActive, .resolvedHorizontalPadding, .searchSlot, LibraryPanelMetrics (+5 more)
+Cohesion: 0.16
+Nodes (14): Layout, LibraryMorphSearchHeader, .body, .collapsedSearchButton, .controlSize, .isSearchActive, .resolvedHorizontalPadding, .searchSlot (+6 more)
 
-### Community 36 - ".init"
-Cohesion: 0.17
-Nodes (6): SettingsRepository, SettingsRepositoryProtocol, FileManager, URL, ThemeRepositoryProtocol, SlideTextStyle
+### Community 36 - "Task"
+Cohesion: 0.08
+Nodes (16): BibleVersionManifest, BibleVersionRepositoryProtocol, PhotosPickerItem, String, SettingsRepository, SettingsRepositoryProtocol, FileManager, URL (+8 more)
 
 ### Community 37 - ".transitionTransform"
-Cohesion: 0.08
-Nodes (35): Angle, AnimatableModifier, AnimatedTextSegmentModifier, SequentialWordTransitionModifier, .animatableData, .layoutSegmentIndex, .layoutTotalWords, SlideTransitionModifier (+27 more)
+Cohesion: 0.09
+Nodes (34): Angle, AnimatableModifier, AnimatedTextSegmentModifier, SequentialWordTransitionModifier, .animatableData, .layoutSegmentIndex, .layoutTotalWords, SlideTransitionModifier (+26 more)
 
 ### Community 38 - "Foundation"
-Cohesion: 0.15
-Nodes (3): CoreGraphics, Foundation, Observation
+Cohesion: 0.13
+Nodes (7): CoreGraphics, Foundation, PhotosPickerDisplayNameResolver, VideoControlsReveal, Observation, Photos, PhotosUI
 
 ### Community 39 - "lyricTextFragment"
 Cohesion: 0.13
 Nodes (17): constant, float2, float4, fragment, lyricTextFragment(), lyricTextVertex(), TextEffectUniforms, chromaticStrength (+9 more)
 
 ### Community 40 - "BackgroundFitToolbar"
-Cohesion: 0.22
-Nodes (12): BackgroundFitBadgeLabel, BackgroundFitToggleLabel, .body, BackgroundFitToolbar, .body, .expandedOptions, .toggleButton, Constants (+4 more)
+Cohesion: 0.20
+Nodes (13): BackgroundFitBadgeLabel, .body, BackgroundFitToggleLabel, .body, BackgroundFitToolbar, .body, .expandedOptions, .toggleButton (+5 more)
 
 ### Community 41 - "What You Must Do When Invoked"
 Cohesion: 0.08
@@ -362,51 +382,51 @@ Nodes (24): For /graphify add and --watch, For /graphify query, For the commit h
 
 ### Community 42 - "AppViewModel"
 Cohesion: 0.05
-Nodes (33): BibleVersionRepositoryProtocol, AppViewModel, .activePresentationBackground, .bibleSlides, .hasControllableVideoBackgroundSelected, .hasCustomBackgroundSelected, .hasVideoBackgroundSelected, .hasYouTubeBackgroundSelected (+25 more)
+Nodes (43): BiblePresentationSlide, BibleReadingSession, BibleSearchHint, BibleSearchIndex, BibleVersionIndex, BibleVersionRepositoryProtocol, CGSize, ExternalDisplayManager (+35 more)
 
 ### Community 43 - "Sendable"
-Cohesion: 0.42
-Nodes (9): AppSettings, PresentationTextSettings, Bool, Decoder, Double, BiblePresentationSettings, DefaultBackgroundSettings, Double (+1 more)
+Cohesion: 0.41
+Nodes (10): Equatable, AppSettings, PresentationTextSettings, Bool, Decoder, Double, BiblePresentationSettings, DefaultBackgroundSettings (+2 more)
 
-### Community 44 - "YouTubePlaybackController"
-Cohesion: 0.08
-Nodes (32): Decodable, OEmbedResponse, String, URL, YouTubeMetadataLoader, TimeInterval, Void, YouTubePlaybackController (+24 more)
+### Community 44 - "YouTubeEmbedBackgroundView.swift"
+Cohesion: 0.22
+Nodes (14): Bool, CGSize, Int, String, YouTubeEmbedBackgroundView, .body, .playbackRequest, YouTubeEmbedLoader (+6 more)
 
-### Community 45 - "LyricStyleProfile"
-Cohesion: 0.17
-Nodes (12): tagStyles, LyricStyleProfile, LyricEditorSlideCard, .textConfiguration, LyricEditorSlideHorizontalListView, .body, .slidesRefreshID, CGFloat (+4 more)
+### Community 45 - "LyricEditorSlideCard"
+Cohesion: 0.18
+Nodes (11): tagStyles, LyricEditorSlideCard, .body, .textConfiguration, LyricEditorSlideHorizontalListView, .body, .slidesRefreshID, CGFloat (+3 more)
 
-### Community 46 - "GlassIconButton"
-Cohesion: 0.20
-Nodes (11): ButtonRole, .presentationToolbar, .body, Action, GlassIconButton, .body, .foregroundColor, GlassToolbarIconStyle (+3 more)
+### Community 46 - "LyricLanguage"
+Cohesion: 0.14
+Nodes (14): LyricDocument, .previewSnippet, .slides, Date, Decoder, String, UInt64, UUID (+6 more)
 
 ### Community 47 - "LyricSlideTag"
-Cohesion: 0.08
-Nodes (25): LyricSectionSource, String, UUID, LyricLanguage, .displayName, english, .id, spanish (+17 more)
+Cohesion: 0.12
+Nodes (19): LyricSectionSource, String, UUID, LyricSlideTag, bridge, chorus, .displayName, .id (+11 more)
 
-### Community 48 - "GlassCircleIcon"
+### Community 48 - "GlassPanel"
 Cohesion: 0.33
-Nodes (6): GlassCircleIcon, .body, GlassToolbarMetrics, .controlHeight, CGFloat, .collapsedSearchButton
+Nodes (7): GlassPanel, .body, .panelShape, GlassToolbarMetrics, .controlHeight, CGFloat, RoundedRectangle
 
-### Community 49 - "PlaylistPickerSheet"
-Cohesion: 0.36
-Nodes (6): PlaylistPickerSheet, .createPlaylistCard, .isSearching, .totalItemCount, Bool, Int
+### Community 49 - "YouTubeEmbedWebViewRepresentable"
+Cohesion: 0.28
+Nodes (6): Coordinator, Context, Coordinator, YouTubeEmbedWebViewRepresentable, Timer, WKWebView
 
 ### Community 50 - "LyricSlideLayoutEngine"
 Cohesion: 0.40
 Nodes (6): LyricSlideLayoutEngine, CGFloat, CGSize, Int, SlideTextStyle, String
 
 ### Community 51 - ".measureSingleLine"
-Cohesion: 0.38
-Nodes (7): PresentationTextMeasurer, Any, Bool, CGFloat, CGSize, String, NSAttributedString
+Cohesion: 0.28
+Nodes (10): PresentationTextMeasurer, Any, Bool, CGFloat, CGSize, String, .lines, .body (+2 more)
 
-### Community 52 - "VideoPlaybackMode"
-Cohesion: 0.12
-Nodes (14): Bool, VideoPlaybackMode, loop, .loopsVideo, playOnce, .toggled, Constants, PresentationActionsToolbar (+6 more)
+### Community 52 - "GlassIconButton"
+Cohesion: 0.15
+Nodes (14): ButtonRole, Action, GlassIconButton, .body, String, Void, Constants, PresentationActionsToolbar (+6 more)
 
 ### Community 53 - "BibleXMLDocumentPicker"
-Cohesion: 0.16
-Nodes (15): BibleImportPresentation, BibleImportRootModifier, BibleXMLDocumentPicker, Coordinator, Binding, Bool, Content, Coordinator (+7 more)
+Cohesion: 0.12
+Nodes (18): BibleImportPresentation, BibleImportRootModifier, BibleXMLDocumentPicker, Coordinator, Binding, Bool, Content, Context (+10 more)
 
 ### Community 54 - "ExternalDisplaySceneCoordinator"
 Cohesion: 0.15
@@ -416,49 +436,49 @@ Nodes (10): ExternalDisplaySceneCoordinator, UIWindowScene, ExternalDisplayScene
 Cohesion: 0.15
 Nodes (6): LyrioraUITests, LyrioraUITestsLaunchTests, .runsForEachTargetApplicationUIConfiguration, Bool, XCTest, XCTestCase
 
-### Community 56 - "BibleChapterIndex"
-Cohesion: 0.16
-Nodes (16): LocalizedError, BibleBookIndex, BibleChapterIndex, .verseCount, BibleVerseIndex, BibleXMLParser, BibleXMLParserError, .errorDescription (+8 more)
+### Community 56 - "BibleVersion.swift"
+Cohesion: 0.18
+Nodes (15): BibleBookIndex, BibleChapterIndex, .verseCount, BibleVerseIndex, BibleXMLParser, BibleXMLParserError, .errorDescription, invalidFormat (+7 more)
 
 ### Community 57 - "CodingKeys"
-Cohesion: 0.09
-Nodes (22): CaseIterable, AnimationApplyScope, allSlides, currentSlide, .id, .label, CodingKeys, assignments (+14 more)
+Cohesion: 0.17
+Nodes (12): CodingKeys, assignments, effectAssignments, effectFallback, effectIntensity, effectSpeed, fallbackAnimation, transitionAssignments (+4 more)
 
 ### Community 58 - "BackgroundContentMode"
-Cohesion: 0.18
-Nodes (11): BackgroundContentMode, auto, fill, fit, .id, .label, landscape, portrait (+3 more)
+Cohesion: 0.11
+Nodes (17): BackgroundContentMode, auto, fill, fit, .id, .label, landscape, portrait (+9 more)
 
 ### Community 59 - "View"
-Cohesion: 0.29
+Cohesion: 0.27
 Nodes (11): ProTextSegmentView, .body, Bool, CGSize, Color, Double, Font, Int (+3 more)
 
-### Community 60 - "SlideTextStyle"
-Cohesion: 0.33
-Nodes (7): SlideTextStyle, .fontSize, Bool, Decoder, Double, Encoder, Int
+### Community 60 - "String"
+Cohesion: 0.24
+Nodes (10): LyricStyleProfile, SlideTextStyle, .fontSize, Bool, Decoder, Double, Encoder, Int (+2 more)
 
-### Community 61 - ".matches"
-Cohesion: 0.30
-Nodes (6): Bool, LibrarySearch, LyricDocument, .searchableText, Bool, String
+### Community 61 - "EditorCard"
+Cohesion: 0.14
+Nodes (15): EditorCard, .cardBackground, LyricEditorLifecycleModifier, .importErrorPresented, .iosEditorRoot, .lyricsInfoSection, .macEditorRoot, .rawLyricsSection (+7 more)
 
 ### Community 62 - "LyricEditorHeaderBar"
 Cohesion: 0.22
 Nodes (15): LyricEditorChrome, LyricEditorHeaderBar, .body, LyricEditorHeaderButton, .body, LyricEditorNavRow, .body, MacLyricEditorHeaderChrome (+7 more)
 
 ### Community 63 - "LyricSlide"
-Cohesion: 0.12
-Nodes (16): CGSize, SlideTextStyle, LyricSlide, Decoder, Encoder, Int, SlideTextStyle, String (+8 more)
+Cohesion: 0.14
+Nodes (14): CGSize, SlideTextStyle, LyricSlide, Decoder, Encoder, Int, SlideTextStyle, String (+6 more)
 
 ### Community 64 - "MacWindowConfigurator"
 Cohesion: 0.31
 Nodes (6): MacWindowConfigurator, Bool, Context, NSView, View, NSViewRepresentable
 
-### Community 65 - "BibleBookInfo"
-Cohesion: 0.20
-Nodes (10): BibleBookCatalog, BibleBookInfo, .id, Bool, Int, String, BibleSearchIndex, BibleSearchIndexEntry (+2 more)
+### Community 65 - "Identifiable"
+Cohesion: 0.32
+Nodes (7): Identifiable, BibleBookCatalog, BibleBookInfo, .id, Bool, Int, String
 
-### Community 66 - "WordFontSizeOverride"
-Cohesion: 0.14
-Nodes (19): CGFloat, Double, Int, UUID, WordFontSizeOverride, WordFontSizeResolver, SlideStyleControlsView, .body (+11 more)
+### Community 66 - "SlideDetailEditorView"
+Cohesion: 0.07
+Nodes (34): CGFloat, Double, Int, UUID, WordFontSizeOverride, WordFontSizeResolver, PresentationFontPicker, PresentationFontPickerMetrics (+26 more)
 
 ### Community 67 - "CodingKeys"
 Cohesion: 0.25
@@ -469,52 +489,52 @@ Cohesion: 0.19
 Nodes (10): BibleVersionManifest, Date, BibleVersionRepository, .importableContentTypes, Data, FileManager, String, URL (+2 more)
 
 ### Community 69 - "PresentationTextConfiguration"
-Cohesion: 0.15
-Nodes (15): PresentationTextConfiguration, SlideTextStyle, Bool, CGFloat, CGSize, Color, Double, SlideTextStyle (+7 more)
+Cohesion: 0.14
+Nodes (16): PresentationTextConfiguration, SlideTextStyle, Bool, CGFloat, CGSize, Color, Double, Font (+8 more)
 
 ### Community 70 - "LyricTheme"
 Cohesion: 0.16
 Nodes (11): LyricTheme, Date, Int, SlideTextStyle, String, UUID, FileManager, URL (+3 more)
 
 ### Community 71 - ".shadowColor"
-Cohesion: 0.33
-Nodes (7): .body, GlassControlChrome, Color, ColorScheme, LinearGradient, .expandedSearchField, .body
+Cohesion: 0.20
+Nodes (10): GlassControlChrome, .foregroundColor, GlassToolbarIconStyle, Bool, Color, ColorScheme, LinearGradient, .expandedSearchField (+2 more)
 
 ### Community 72 - "ThemeSavePromptSheet"
-Cohesion: 0.22
-Nodes (7): Bool, String, Void, ThemeSavePromptSheet, .header, .themeNameField, .trimmedThemeName
+Cohesion: 0.25
+Nodes (6): Bool, String, Void, ThemeSavePromptSheet, .header, .trimmedThemeName
 
 ### Community 73 - "ExternalPresentationContainerViewController"
 Cohesion: 0.26
 Nodes (7): ExternalPresentationContainerViewController, AnyView, Bool, CGSize, View, Void, UIHostingController
 
 ### Community 74 - "SlideAnimationProfile"
-Cohesion: 0.12
-Nodes (22): SlideAnimationProfile, .hasAnimations, .hasPersistentEffects, .hasProPersistentEffects, .hasTransition, .preferredEffectSelectionTarget, .preferredTransitionSelectionTarget, .transitionsOnly (+14 more)
+Cohesion: 0.11
+Nodes (26): SlideAnimationProfile, .hasAnimations, .hasPersistentEffects, .hasProPersistentEffects, .hasTransition, .preferredEffectSelectionTarget, .preferredTransitionSelectionTarget, .transitionsOnly (+18 more)
 
-### Community 75 - "ClearerAnchorView"
-Cohesion: 0.27
-Nodes (6): ClearerAnchorView, NavigationSplitViewBackgroundClearer, Context, UIView, View, UIViewRepresentable
+### Community 75 - "LyricPlaySyncServer"
+Cohesion: 0.30
+Nodes (7): Date, LyricPlaySyncServer, Void, MessageHandler, NWConnection, NWListener, Result
 
-### Community 76 - "GlassPanel.swift"
+### Community 76 - "GlassCircleIcon"
 Cohesion: 0.22
-Nodes (9): GlassCapsuleToolbar, .body, GlassControlBorderModifier, GlassPanel, .panelShape, Content, RoundedRectangle, View (+1 more)
+Nodes (9): GlassCapsuleToolbar, .body, GlassCircleIcon, .body, GlassControlBorderModifier, .body, Content, View (+1 more)
 
 ### Community 78 - "BibleVersionIndex"
-Cohesion: 0.42
+Cohesion: 0.49
 Nodes (7): BibleVersionIndex, BibleSlideBuilder, Bool, CGSize, Int, SlideTextStyle, String
 
 ### Community 79 - "BibleSlideGridView"
-Cohesion: 0.15
-Nodes (15): BibleSlideGridView, .canGoNext, .slideCounterLabel, .thumbnailWidth, BibleSlideThumbnailView, .borderColor, .borderWidth, .textConfiguration (+7 more)
+Cohesion: 0.14
+Nodes (15): BibleSlideGridView, .body, .slideCounterLabel, .thumbnailWidth, BibleSlideThumbnailView, .borderColor, .borderWidth, .textConfiguration (+7 more)
 
 ### Community 80 - "TransitionSpeedControl"
 Cohesion: 0.22
 Nodes (8): .defaultTransitionControls, Bool, Double, Int, String, Void, TransitionSpeedControl, .body
 
-### Community 81 - "MetalTextEffectRepresentable"
-Cohesion: 0.25
-Nodes (9): CGImage, ContainerView, MetalTextEffectContainer, .body, MetalTextEffectRepresentable, Content, Context, TimeInterval (+1 more)
+### Community 81 - ".body"
+Cohesion: 0.20
+Nodes (5): LyricTheme, ThemeRepositoryProtocol, .styleSection, .body, SlideTextStyle
 
 ### Community 82 - "PlaylistEditorSheet"
 Cohesion: 0.18
@@ -525,24 +545,24 @@ Cohesion: 0.33
 Nodes (6): EnvironmentValues, .workspaceCompactLayout, Bool, WorkspaceDevice, .isPad, .isPhone
 
 ### Community 84 - "DefaultBackgroundPreset"
-Cohesion: 0.06
-Nodes (35): EdgeInsets, ConfigurableDefaultGradientView, .body, .layerIdentity, DefaultBackgroundMeshStyle, .colors, daylightWaves, morningHaze (+27 more)
+Cohesion: 0.12
+Nodes (16): .body, DefaultBackgroundMeshView, .body, .style, DefaultBackgroundPreset, daylightWaves, .id, .isAdaptive (+8 more)
 
 ### Community 85 - "GlassToolbarIconSize"
 Cohesion: 0.33
 Nodes (6): GlassToolbarIconSize, .frameSize, .iconFont, prominent, regular, Font
 
 ### Community 86 - "SlideTransitionTextContainer"
-Cohesion: 0.06
-Nodes (39): LyricPlaySyncServer, LyricPlaySyncTransportError, emptyResponse, .errorDescription, noLyrioraHost, unexpectedResponse, State, failed (+31 more)
+Cohesion: 0.08
+Nodes (31): LyricPlaySyncTransportError, emptyResponse, .errorDescription, noLyrioraHost, unexpectedResponse, State, failed, ready (+23 more)
 
 ### Community 87 - "StickyPreviewEditorLayout"
-Cohesion: 0.25
-Nodes (7): StickyPreviewEditorLayout, .body, .previewSection, .stickyBackground, CGFloat, Content, Preview
+Cohesion: 0.33
+Nodes (5): StickyPreviewEditorLayout, .stickyBackground, CGFloat, Content, Preview
 
 ### Community 88 - "PresentationLayout"
-Cohesion: 0.39
-Nodes (4): PresentationLayout, CGFloat, CGSize, .presentationLayoutCanvasSize
+Cohesion: 0.26
+Nodes (7): PresentationLayout, CGFloat, CGSize, .presentationLayoutCanvasSize, .canvasAspectRatio, .canvasSize, .previewSection
 
 ### Community 89 - ".refreshDisplayInfo"
 Cohesion: 0.25
@@ -553,15 +573,15 @@ Cohesion: 0.22
 Nodes (8): LyricEditorNavigationOption, .id, lyrics, .systemImage, .title, typography, String, Self
 
 ### Community 92 - ".body"
-Cohesion: 0.21
-Nodes (5): LyricRepositoryProtocol, seedSampleLyricsIfNeeded(), LyricDocument, .body, UUID
+Cohesion: 0.15
+Nodes (8): LyricDocument, LyricEditorLaunch, LyricSlide, .selectedLyricSlides, .selectedSlide, seedSampleLyricsIfNeeded(), .body, UUID
 
 ### Community 93 - "DisplayInfoSheet"
 Cohesion: 0.29
 Nodes (6): DisplayInfoSheet, .body, .statusDescription, Bool, String, Void
 
 ### Community 94 - "GlobalStyleEditorView"
-Cohesion: 0.20
+Cohesion: 0.22
 Nodes (8): KeyboardDismissal, GlobalStyleEditorView, .body, .hasStyleChanges, Bool, SlideTextStyle, String, UUID
 
 ### Community 95 - "graphify reference: extra exports and benchmark"
@@ -573,40 +593,40 @@ Cohesion: 0.22
 Nodes (8): graphify reference: extra exports and benchmark, Step 6b - Wiki (only if --wiki flag), Step 7 - Neo4j export (only if --neo4j or --neo4j-push flag), Step 7a - FalkorDB export (only if --falkordb or --falkordb-push flag), Step 7b - SVG export (only if --svg flag), Step 7c - GraphML export (only if --graphml flag), Step 7d - MCP server (only if --mcp flag), Step 8 - Token reduction benchmark (only if total_words > 5000)
 
 ### Community 97 - "LyricRepository"
-Cohesion: 0.29
-Nodes (5): LyricRepository, FileManager, LyricDocument, URL, UUID
+Cohesion: 0.27
+Nodes (6): LyricRepository, LyricRepositoryProtocol, FileManager, LyricDocument, URL, UUID
 
 ### Community 98 - "PlayerLayerView"
-Cohesion: 0.18
-Nodes (12): AnyClass, AVPlayerView, AVPlayerLayerRepresentable, AVPlayerViewRepresentable, PlayerLayerView, .layerClass, .playerLayer, AVLayerVideoGravity (+4 more)
+Cohesion: 0.09
+Nodes (23): AnyClass, AVPlayerView, AVPlayerLayerRepresentable, AVPlayerLayerView, .body, AVPlayerViewRepresentable, PlayerLayerView, .layerClass (+15 more)
 
 ### Community 99 - "BibleSearchEngine"
-Cohesion: 0.46
+Cohesion: 0.39
 Nodes (3): BibleSearchEngine, Int, String
 
-### Community 100 - ".body"
-Cohesion: 0.19
-Nodes (10): .header, CenterPanelView, .body, .slideGridSection, String, WorkspaceDisplayToolbar, .displayButtonAccessibilityLabel, .iPadPortraitDetailWorkspace (+2 more)
+### Community 100 - "content"
+Cohesion: 0.23
+Nodes (11): content, BlurredBackgroundLayer, .body, BlurredBackgroundModifier, CGFloat, Content, Double, View (+3 more)
 
-### Community 101 - "MetalTextEffectParameters"
+### Community 101 - "PresentationBackgroundView"
 Cohesion: 0.18
-Nodes (10): MetalTextEffectParameters, .isActive, MetalTextEffectSupport, Bool, Double, Float, TimeInterval, TextEffectUniformsMetal (+2 more)
+Nodes (14): ConfigurableDefaultGradientView, .layerIdentity, AppBackgroundAnimation, .transition, .body, .body, Animation, Double (+6 more)
 
-### Community 102 - "LyricCardView"
-Cohesion: 0.20
-Nodes (11): Layout, .trailingControlInset, LyricCardView, .footerShape, .overflowActions, Bool, CGFloat, LyricDocument (+3 more)
+### Community 102 - "LyricsLibraryPanelView"
+Cohesion: 0.15
+Nodes (17): Layout, .trailingControlInset, LyricCardView, .footerShape, .overflowActions, LyricsLibraryPanelView, .deleteAlertBinding, .filteredLyrics (+9 more)
 
 ### Community 103 - "CodingKeys"
 Cohesion: 0.20
 Nodes (10): CodingKeys, animationProfile, id, order, simplePlaySectionID, sourceSectionID, style, tag (+2 more)
 
 ### Community 104 - "BibleVersionDisplayFormatter"
-Cohesion: 0.47
-Nodes (4): name, BibleVersionDisplayFormatter, .prettyDisplayName, String
+Cohesion: 0.30
+Nodes (6): name, BibleVersionDisplayFormatter, .prettyDisplayName, String, .nilIfEmpty, String
 
 ### Community 105 - "PresentationState"
-Cohesion: 0.29
-Nodes (7): .presentationState, PresentationState, Bool, Int, SlideTextStyle, String, UUID
+Cohesion: 0.33
+Nodes (6): PresentationState, Bool, Int, SlideTextStyle, String, UUID
 
 ### Community 106 - ".linearGradient"
 Cohesion: 0.32
@@ -660,77 +680,117 @@ Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphif
 Cohesion: 0.14
 Nodes (17): GlobalStyleEditorContent, .animationProfileBinding, .body, .currentSlide, .lyricDefaultAnimationBinding, .lyricSlides, .previewAnimationProfile, .previewSlideForDisplay (+9 more)
 
-### Community 119 - ".resolved"
-Cohesion: 0.25
-Nodes (6): ResolvedBackgroundContentMode, fill, fit, CGSize, .resolvedMode, .resolvedContentMode
-
-### Community 124 - ".font"
+### Community 119 - ".loadThumbnail"
 Cohesion: 0.32
-Nodes (4): CGFloat, Font, NSFont, UIFont
+Nodes (7): AVAssetImageGenerator, Metadata, CGImage, CGSize, CMTime, URL, VideoAssetMetadataLoader
 
-### Community 129 - "AppViewModel.swift"
-Cohesion: 0.10
-Nodes (16): String, .nilIfEmpty, PhotosPickerDisplayNameResolver, PhotosPickerItem, String, .selectedPhotoItems, PickedImageFile, .transferRepresentation (+8 more)
+### Community 124 - ".fetchTitle"
+Cohesion: 0.18
+Nodes (9): Decodable, OEmbedResponse, String, URL, YouTubeMetadataLoader, Any, Double, YouTubeProgressParser (+1 more)
 
-### Community 130 - "SlideThumbnailView"
-Cohesion: 0.29
-Nodes (8): SlideThumbnailView, .textConfiguration, .thumbnailCanvasSize, .thumbnailStyle, .usesDefaultGradientBackground, Bool, CGSize, SlideTextStyle
+### Community 129 - "PickedImageFile"
+Cohesion: 0.40
+Nodes (6): PickedImageFile, .transferRepresentation, PickedVideoFile, .transferRepresentation, Transferable, TransferRepresentation
 
-### Community 131 - "PresentationFontPickerSheet"
-Cohesion: 0.32
-Nodes (6): PresentationFontPicker, .body, PresentationFontPickerMetrics, PresentationFontPickerSheet, .body, CGFloat
+### Community 130 - "Image"
+Cohesion: 0.39
+Nodes (9): LocalFileImageBackground, .body, CGSize, URL, Image, .body, .body, NSImage (+1 more)
+
+### Community 131 - "SettingsSheet"
+Cohesion: 0.22
+Nodes (9): EdgeInsets, DefaultBackgroundPresetPreview, .body, DefaultBackgroundPreviewCard, .body, SettingsSheet, .defaultBackgroundSection, Binding (+1 more)
 
 ### Community 132 - "ExternalDisplayInfo"
 Cohesion: 0.33
 Nodes (6): ExternalDisplayInfo, .resolutionDescription, Bool, CGFloat, CGSize, String
 
-### Community 133 - "PlaylistGlassColumn"
-Cohesion: 0.29
-Nodes (7): PlaylistGlassColumn, .body, PlaylistModalScrim, .body, PlaylistModalShell, .body, Content
+### Community 133 - ".store"
+Cohesion: 0.33
+Nodes (8): Entry, LocalImageCache, CGSize, URL, Data, YouTubeThumbnailView, .body, .body
 
 ### Community 134 - "PlaylistMediaPreview"
-Cohesion: 0.48
-Nodes (6): PlaylistImagePreview, PlaylistMediaPreview, .body, PlaylistVideoPreview, CGFloat, URL
+Cohesion: 0.39
+Nodes (7): PlaylistImagePreview, PlaylistMediaPreview, .body, PlaylistVideoPreview, .body, CGFloat, URL
 
-### Community 135 - ".pickFiles"
-Cohesion: 0.33
-Nodes (4): MacFileImportPanel, Bool, URL, UTType
+### Community 135 - "BibleVersionRepository.swift"
+Cohesion: 0.20
+Nodes (7): String, .nilIfEmpty, MacFileImportPanel, Bool, URL, UTType, UniformTypeIdentifiers
 
-### Community 136 - "LyricsLibraryPanelView"
-Cohesion: 0.47
-Nodes (6): LyricsLibraryPanelView, .deleteAlertBinding, .filteredLyrics, .isPlaylistFiltered, .isSearching, Binding
+### Community 136 - "LyricPlaySyncMessageKind"
+Cohesion: 0.18
+Nodes (11): LyricPlaySyncMessageKind, airFrame, catalogRequest, catalogResponse, error, linkSection, linkSectionAck, presence (+3 more)
 
-### Community 137 - "LyrioraApp"
-Cohesion: 0.40
-Nodes (4): App, LyrioraApp, .body, Scene
+### Community 137 - "BibleVerseLocation"
+Cohesion: 0.38
+Nodes (5): BibleVerseLocation, BibleSearchIndex, BibleSearchIndexEntry, Int, String
 
 ### Community 138 - "CodableColor"
 Cohesion: 0.70
 Nodes (4): CodableColor, .color, Color, Double
 
-### Community 141 - "AVPlayerLayerView"
-Cohesion: 0.83
-Nodes (3): AVPlayerLayerView, .body, CGSize
+### Community 139 - "DefaultBackgroundMeshStyle"
+Cohesion: 0.22
+Nodes (10): DefaultBackgroundMeshStyle, .colors, daylightWaves, morningHaze, twilightWaves, violetDusk, .wavePoints, Color (+2 more)
+
+### Community 141 - "VideoPlaybackMode"
+Cohesion: 0.29
+Nodes (6): Bool, VideoPlaybackMode, loop, .loopsVideo, playOnce, .toggled
+
+### Community 142 - "AnimationApplyScope"
+Cohesion: 0.33
+Nodes (6): CaseIterable, AnimationApplyScope, allSlides, currentSlide, .id, .label
+
+### Community 143 - "MetadataError"
+Cohesion: 0.33
+Nodes (6): Error, MediaRepositoryError, invalidYouTubeLink, MetadataError, cancelled, thumbnailFailed
+
+### Community 145 - ".saveLyric"
+Cohesion: 0.18
+Nodes (6): LyricImportResult, LyricLanguage, LyricSectionSource, LyricStyleProfile, LyricClipboardImporter, String
+
+### Community 146 - "LyricImportError"
+Cohesion: 0.33
+Nodes (6): LocalizedError, LyricImportError, empty, .errorDescription, notText, unsupportedContent
+
+### Community 147 - "YouTubePlaybackController"
+Cohesion: 0.53
+Nodes (3): TimeInterval, Void, YouTubePlaybackController
+
+### Community 148 - "ImageLibrarySection"
+Cohesion: 0.33
+Nodes (5): ImageLibrarySection, .filteredAssets, .isPlaylistFiltered, .filteredAssets, MediaAssetKind
+
+### Community 149 - ".playbackTime"
+Cohesion: 0.70
+Nodes (3): String, TimeInterval, VideoDurationFormatter
+
+### Community 150 - "LocalFileThumbnailImage"
+Cohesion: 0.60
+Nodes (5): LocalFileThumbnailImage, LocalFileVideoThumbnail, .thumbnailContent, URL, View
+
+### Community 151 - "BiblePresentationFooterView"
+Cohesion: 0.50
+Nodes (4): BiblePresentationFooterView, .body, .body, String
 
 ## Knowledge Gaps
-- **514 isolated node(s):** `regular`, `medium`, `semibold`, `bold`, `.id` (+509 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 790 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **517 isolated node(s):** `catalogRequest`, `catalogResponse`, `showSlide`, `linkSection`, `linkSectionAck` (+512 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 817 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **26 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AppViewModel` connect `AppViewModel` to `ExternalDisplayManager`, `AppViewModel.swift`, `LibraryPlaylist`, `PresentationPreviewView`, `LyricEditorView`, `LyricsLibraryPanelView`, `LyrioraApp`, `MediaAsset`, `LyricImportParser`, `MediaThumbnailView`, `VideoPlaybackController`, `Equatable`, `Image`, `Identifiable`, `PresentationBackgroundView`, `MainView`, `SlideGridView`, `BiblePresentationSheet`, `Codable`, `.init`, `YouTubePlaybackController`, `LyricSlideTag`, `PlaylistPickerSheet`, `VideoPlaybackMode`, `BibleXMLDocumentPicker`, `LyricSlide`, `BibleBookInfo`, `BibleVersionManifest`, `LyricTheme`, `BibleVersionIndex`, `BibleSlideGridView`, `PlaylistEditorSheet`, `SlideTransitionTextContainer`, `PresentationLayout`, `.refreshDisplayInfo`, `.body`, `GlobalStyleEditorView`, `.body`, `PresentationState`, `PresentationVideoControls`, `GlobalStyleEditorContent`?**
-  _High betweenness centrality (0.215) - this node is a cross-community bridge._
-- **Why does `SwiftUI` connect `SwiftUI` to `AppViewModel.swift`, `PresentationFontPickerSheet`, `LyricEditorView`, `ThemeMiniPreview`, `PlaylistMediaPreview`, `SlideDetailEditorView`, `LyrioraApp`, `AnimatedPresentationText`, `MediaAsset`, `TextAnimationEditorSection`, `LyricSlideLivePreview`, `PlaylistGlassModal.swift`, `Image`, `ExplicitLinePresentationText`, `PresentationBackgroundView`, `MainView`, `SlideGridView`, `BiblePresentationSheet`, `LibraryMorphSearchHeader`, `.transitionTransform`, `Foundation`, `BackgroundFitToolbar`, `YouTubePlaybackController`, `LyricStyleProfile`, `VideoPlaybackMode`, `BibleXMLDocumentPicker`, `LyricEditorHeaderBar`, `LyricSlide`, `MacWindowConfigurator`, `WordFontSizeOverride`, `PresentationTextConfiguration`, `ThemeSavePromptSheet`, `ClearerAnchorView`, `GlassPanel.swift`, `BibleSlideGridView`, `TransitionSpeedControl`, `WorkspaceCompactLayout.swift`, `DefaultBackgroundPreset`, `SlideTransitionTextContainer`, `StickyPreviewEditorLayout`, `GlassMorphAnimation.swift`, `LyricEditorNavigationOption`, `DisplayInfoSheet`, `GlobalStyleEditorView`, `.body`, `MetalTextEffectParameters`, `LyricCardView`, `.linearGradient`, `BibleThemeQuickPicker`?**
-  _High betweenness centrality (0.070) - this node is a cross-community bridge._
-- **Why does `SlideAnimationProfile` connect `SlideAnimationProfile` to `PresentationPreviewView`, `TextAnimationKind`, `SlideDetailEditorView`, `AnimatedPresentationText`, `TextAnimationStylePreset`, `ParsedSlideText`, `TextAnimationEditorSection`, `.encode`, `LyricSlideLivePreview`, `Equatable`, `PresentationBackgroundView`, `BiblePresentationSheet`, `Codable`, `AppViewModel`, `Sendable`, `LyricStyleProfile`, `CodingKeys`, `SlideTextStyle`, `LyricSlide`, `PresentationTextConfiguration`, `PresentationState`, `BibleThemeQuickPicker`, `GlobalStyleEditorContent`?**
+- **Why does `AppViewModel` connect `AppViewModel` to `ExternalDisplayManager`, `PresentationPreviewView`, `LibraryPlaylist`, `SettingsSheet`, `LyricEditorView`, `String`, `MediaRepositoryProtocol`, `.saveLyric`, `VideoPlaybackController`, `YouTubePlaybackController`, `ImageLibrarySection`, `MediaThumbnailView`, `MediaAsset`, `SimplePlaySyncDisplayState`, `MainView`, `SlideGridView`, `BiblePresentationSheet`, `Codable`, `Task`, `Foundation`, `BibleXMLDocumentPicker`, `BibleVersionManifest`, `LyricTheme`, `LyricPlaySyncServer`, `BibleSlideGridView`, `.body`, `PlaylistEditorSheet`, `PresentationLayout`, `.refreshDisplayInfo`, `.body`, `GlobalStyleEditorView`, `BibleSearchEngine`, `LyricsLibraryPanelView`, `PresentationVideoControls`, `GlobalStyleEditorContent`?**
+  _High betweenness centrality (0.196) - this node is a cross-community bridge._
+- **Why does `SwiftUI` connect `SwiftUI` to `LibraryPlaylist`, `SettingsSheet`, `ThemeMiniPreview`, `PlaylistMediaPreview`, `AnimatedPresentationText`, `LyricSlideLivePreview`, `PlaylistGlassModal.swift`, `SimplePlaySyncDisplayState`, `ExplicitLinePresentationText`, `PresentationBackgroundLayer`, `MainView`, `SlideGridView`, `BiblePresentationSheet`, `MetalTextEffectRenderer`, `LibraryMorphSearchHeader`, `.transitionTransform`, `Foundation`, `BackgroundFitToolbar`, `YouTubeEmbedBackgroundView.swift`, `LyricEditorSlideCard`, `GlassIconButton`, `BibleXMLDocumentPicker`, `View`, `EditorCard`, `LyricEditorHeaderBar`, `LyricSlide`, `MacWindowConfigurator`, `SlideDetailEditorView`, `PresentationTextConfiguration`, `ThemeSavePromptSheet`, `GlassCircleIcon`, `BibleSlideGridView`, `TransitionSpeedControl`, `WorkspaceCompactLayout.swift`, `DefaultBackgroundPreset`, `SlideTransitionTextContainer`, `StickyPreviewEditorLayout`, `GlassMorphAnimation.swift`, `LyricEditorNavigationOption`, `DisplayInfoSheet`, `GlobalStyleEditorView`, `PlayerLayerView`, `content`, `LyricsLibraryPanelView`, `.linearGradient`, `BibleThemeQuickPicker`?**
+  _High betweenness centrality (0.096) - this node is a cross-community bridge._
+- **Why does `ExternalDisplayManager` connect `ExternalDisplayManager` to `ExternalDisplayInfo`, `ExternalPresentationContainerViewController`, `AppViewModel`, `SwiftUI`, `ExternalDisplaySceneCoordinator`, `.refreshDisplayInfo`?**
   _High betweenness centrality (0.062) - this node is a cross-community bridge._
 - **Are the 19 inferred relationships involving `AppViewModel` (e.g. with `.body` and `LyrioraApp`) actually correct?**
   _`AppViewModel` has 19 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 12 inferred relationships involving `SlideAnimationProfile` (e.g. with `.body` and `.previewStageContent()`) actually correct?**
-  _`SlideAnimationProfile` has 12 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `regular`, `medium`, `semibold` to the rest of the system?**
-  _514 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Are the 2 inferred relationships involving `LyricEditorView` (e.g. with `.body` and `.body`) actually correct?**
+  _`LyricEditorView` has 2 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `catalogRequest`, `catalogResponse`, `showSlide` to the rest of the system?**
+  _517 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `ExternalDisplayManager` be split into smaller, more focused modules?**
   _Cohesion score 0.11494252873563218 - nodes in this community are weakly interconnected._
